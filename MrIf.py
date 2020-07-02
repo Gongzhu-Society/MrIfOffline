@@ -53,10 +53,16 @@ class MrRandom():
         self.cards_on_table = [] #[int,str,...]
 
     def receive_shuffle(self,cards):
+        """接收洗牌"""
         self.cards_list=cards
         for i in self.cards_list:
             self.cards_dict[i[0]].append(i)
         #log("%s received shuffle: %s"%(self.name,self.cards_list))
+
+    def pop_card(self,which):
+        """确认手牌打出后会被调用，更新手牌的数据结构"""
+        self.cards_list.remove(which)
+        self.cards_dict[which[0]].remove(which)
 
     def pick_a_card(self,suit):
         try:
@@ -66,12 +72,10 @@ class MrRandom():
         #log("%s, %s, %s, %s"%(self.name,suit,self.cards_on_table,self.cards_list))
         if self.cards_dict.get(suit)==None or len(self.cards_dict[suit])==0:
             i=random.randint(0,len(self.cards_list)-1)
-            choice=self.cards_list.pop(i)
-            self.cards_dict[choice[0]].remove(choice)
+            choice=self.cards_list[i]
         else:
             i=random.randint(0,len(self.cards_dict[suit])-1)
-            choice=self.cards_dict[suit].pop(i)
-            self.cards_list.remove(choice)
+            choice=self.cards_dict[suit][i]
         #log("%s plays %s"%(self.name,choice))
         return choice
 
@@ -84,12 +88,10 @@ class Human(MrRandom):
         log("%s, %s, %s, %s"%(self.name,suit,self.cards_on_table,self.cards_list))
         while True:
             choice=input("your turn: ")
-            try:
-                self.cards_list.remove(choice)
+            if choice in self.cards_list:
                 break
-            except ValueError:
+            else:
                 log("%s is not your cards. "%(choice),end="")
-        self.cards_dict[choice[0]].remove(choice)
         return choice
 
     @staticmethod
@@ -110,7 +112,7 @@ class MrIf(MrRandom):
     如果是贴牌，按危险列表依次贴，没有危险列表了，贴短的
     如果是猪牌并且我的猪剩两张以上
         如果我有猪并且有人打过猪圈，贴猪
-        如果我是最后一个，打除了猪之外最大的
+        如果我是最后一个并且前面没认出过猪，打除了猪之外最大的
         其他情况打不会得猪的
     如果是变压器并且草花剩两张以上
         类似于猪
@@ -138,40 +140,28 @@ class MrIf(MrRandom):
                 if suit_temp=="S" and ("SQ" not in self.cards_list) \
                 and ("SK" not in self.cards_list) and ("SA" not in self.cards_list):
                     choice=self.cards_dict["S"][-1]
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
                 if suit_temp=="H" and ("HQ" not in self.cards_list) \
                 and ("HK" not in self.cards_list) and ("HA" not in self.cards_list):
                     choice=self.cards_dict["H"][-1]
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
                 if suit_temp=="C" and ("C10" not in self.cards_list) \
                 and ("CJ" not in self.cards_list) and ("CQ" not in self.cards_list)\
                 and ("CK" not in self.cards_list) and ("CA" not in self.cards_list):
                     choice=self.cards_dict["C"][-1]
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
                 if suit_temp=="D" and ("DJ" not in self.cards_list):
                     choice=self.cards_dict["D"][-1]
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
             for i in range(5):
                 choice=random.choice(self.cards_list)
                 if choice not in ("SQ","SK","SA","HA","HK","C10","CJ","CQ","CK","CA","DJ"):
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
         #如果是贴牌
         elif len(self.cards_dict[suit])==0:
             for i in ("SQ","HA","SA","SK","HK","C10","CA","HQ","HJ","CK","CQ","CJ","H10","H9","H8","H7","H6","H5"):
                 if i in self.cards_list:
                     choice=i
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
             list_temp=[self.cards_dict[k] for k in self.cards_dict]
             list_temp.sort(key=get_nonempty_min)
@@ -180,29 +170,21 @@ class MrIf(MrRandom):
                     continue
                 suit_temp=list_temp[i][0][0]
                 choice=self.cards_dict[suit_temp][-1]
-                self.cards_list.remove(choice)
-                self.cards_dict[choice[0]].remove(choice)
                 return choice
         #如果只有这一张
         elif len(self.cards_dict[suit])==1:
             choice=self.cards_dict[suit][-1]
-            self.cards_list.remove(choice)
-            self.cards_dict[choice[0]].remove(choice)
             return choice
 
         #如果是猪并且剩好几张猪牌
         if suit=="S":
             if ("SQ" in self.cards_list) and (("SK" in self.cards_on_table) or ("SA" in self.cards_on_table)):
                 choice="SQ"
-                self.cards_list.remove(choice)
-                self.cards_dict[choice[0]].remove(choice)
                 return choice
             if len(self.cards_on_table)==4 and ("SQ" not in self.cards_on_table):
                 choice=self.cards_dict["S"][-1]
                 if choice=="SQ":
                     choice=self.cards_dict["S"][-2]
-                self.cards_list.remove(choice)
-                self.cards_dict[choice[0]].remove(choice)
                 return choice
             else:
                 if "SA" in self.cards_on_table[1:]:
@@ -214,13 +196,9 @@ class MrIf(MrRandom):
                 for i in self.cards_dict["S"][::-1]:
                     if cards_order(i)<max_pig:
                         choice=i
-                        self.cards_list.remove(choice)
-                        self.cards_dict[choice[0]].remove(choice)
                         return choice
                 else:
                     choice=self.cards_dict["S"][-1]
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
         #如果是变压器并且草花剩两张以上
         if suit=="C":
@@ -228,15 +206,11 @@ class MrIf(MrRandom):
             and (("CJ" in self.cards_on_table) or ("CQ" in self.cards_on_table) or\
                  ("CK" in self.cards_on_table) or ("CA" in self.cards_on_table)):
                 choice="C10"
-                self.cards_list.remove(choice)
-                self.cards_dict[choice[0]].remove(choice)
                 return choice
             if len(self.cards_on_table)==4 and ("C10" not in self.cards_on_table):
                 choice=self.cards_dict["C"][-1]
                 if choice=="C10":
                     choice=self.cards_dict["C"][-2]
-                self.cards_list.remove(choice)
-                self.cards_dict[choice[0]].remove(choice)
                 return choice
             else:
                 if "CA" in self.cards_on_table[1:]:
@@ -252,13 +226,9 @@ class MrIf(MrRandom):
                 for i in self.cards_dict["C"][::-1]:
                     if cards_order(i)<max_club:
                         choice=i
-                        self.cards_list.remove(choice)
-                        self.cards_dict[choice[0]].remove(choice)
                         return choice
                 else:
                     choice=self.cards_dict["C"][-1]
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
         #如果是羊并且剩两张以上
         if suit=="D":
@@ -266,14 +236,10 @@ class MrIf(MrRandom):
             and ("DA" not in self.cards_on_table) and ("DK" not in self.cards_on_table)\
             and ("DQ" not in self.cards_on_table):
                 choice="DJ"
-                self.cards_list.remove(choice)
-                self.cards_dict[choice[0]].remove(choice)
                 return choice
             choice=self.cards_dict["D"][-1]
             if choice=="DJ":
                 choice=self.cards_dict["D"][-2]
-            self.cards_list.remove(choice)
-            self.cards_dict[choice[0]].remove(choice)
             return choice
         #如果是红桃
         if suit=="H":
@@ -284,8 +250,6 @@ class MrIf(MrRandom):
             for i in self.cards_dict["H"][::-1]:
                 if cards_order(i)<max_heart:
                     choice=i
-                    self.cards_list.remove(choice)
-                    self.cards_dict[choice[0]].remove(choice)
                     return choice
         #log("cannot be decided by rules")
         return MrRandom.pick_a_card(self,suit)

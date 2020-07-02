@@ -58,6 +58,7 @@ class OfflineInterface():
         self.players[self.pnext].cards_on_table=self.cards_on_table
         choice=self.players[self.pnext].pick_a_card(suit)
         self.cards_on_table.append(choice)
+        self.players[self.pnext].pop_card(choice)
         #log("%s played %s"%(self.players[self.pnext].name,self.cards_on_table,))
         if len(self.cards_on_table)==5:
             pass
@@ -83,7 +84,7 @@ class OfflineInterface():
     def clear(self):
         self.scores_num=[calc_score(i) for i in self.scores]
         log("game end: %s, %s"%(self.scores_num,self.scores))
-        return self.scores_num
+        return self.scores_num #[0,100,-100,50]
     
     def prepare_new(self):
         self.pstart=(self.pstart+1)%4
@@ -103,7 +104,7 @@ def stat_random():
     if3=MrIf(0,2,"if3")
     offlineinterface=OfflineInterface([if0,random1,if2,random3])
     stats=[]
-    for k,l in itertools.product(range(128),range(16)):
+    for k,l in itertools.product(range(16),range(16)):
         if l==0:
             cards=offlineinterface.shuffle()
         else:
@@ -113,7 +114,7 @@ def stat_random():
             offlineinterface.step()
         stats.append(offlineinterface.clear())
         offlineinterface.prepare_new()
-    #log(stats)
+    log(stats)
     for i in range(4):
         pi=[j[i] for j in stats]
         log("%.2f %.2f"%(numpy.mean(pi),numpy.sqrt(numpy.var(pi)),))
