@@ -47,28 +47,23 @@ class MrRandom():
         self.name = name
         self.players_information = [None, None, None, None]
         self.cards_list = [] #cards in hand
-        self.cards_dict = {"S": [], "H": [], "D": [], "C": []} 
         self.initial_cards = [] #cards initial
         self.history = [] #list of (int,str,str,str,str)
         self.cards_on_table = [] #[int,str,...]
 
-    def receive_shuffle(self,cards):
-        """接收洗牌"""
-        self.cards_list=cards
+    def pick_a_card(self,suit=None):
+        #try:
+        #    assert len(self.cards_list)==sum([len(self.cards_dict[k]) for k in self.cards_dict])
+        #except:
+        #    log("",l=3)
+        if suit==None:
+            if len(self.cards_on_table)==1:
+                suit="A"
+            else:
+                suit=self.cards_on_table[1][0]
+        self.cards_dict={"S":[],"H":[],"D":[],"C":[]}
         for i in self.cards_list:
             self.cards_dict[i[0]].append(i)
-        #log("%s received shuffle: %s"%(self.name,self.cards_list))
-
-    def pop_card(self,which):
-        """确认手牌打出后会被调用，更新手牌的数据结构"""
-        self.cards_list.remove(which)
-        self.cards_dict[which[0]].remove(which)
-
-    def pick_a_card(self,suit):
-        try:
-            assert len(self.cards_list)==sum([len(self.cards_dict[k]) for k in self.cards_dict])
-        except:
-            log("",l=3)
         #log("%s, %s, %s, %s"%(self.name,suit,self.cards_on_table,self.cards_list))
         if self.cards_dict.get(suit)==None or len(self.cards_dict[suit])==0:
             i=random.randint(0,len(self.cards_list)-1)
@@ -84,7 +79,12 @@ class MrRandom():
         return 'MrRandom'
 
 class Human(MrRandom):
-    def pick_a_card(self,suit):
+    def pick_a_card(self,suit=None):
+        if suit==None:
+            if len(self.cards_on_table)==1:
+                suit="A"
+            else:
+                suit=self.cards_on_table[1][0]
         log("%s, %s, %s, %s"%(self.name,suit,self.cards_on_table,self.cards_list))
         while True:
             choice=input("your turn: ")
@@ -121,11 +121,15 @@ class MrIf(MrRandom):
         其他情况打不是羊的最大的
     如果是红桃，尽可能躲，捡大的贴
     """
-    def pick_a_card(self,suit):
-        try:
-            assert len(self.cards_list)==sum([len(self.cards_dict[k]) for k in self.cards_dict])
-        except:
-            log("",l=3)
+    def pick_a_card(self,suit=None):
+        if suit==None:
+            if len(self.cards_on_table)==1:
+                suit="A"
+            else:
+                suit=self.cards_on_table[1][0]
+        self.cards_dict={"S":[],"H":[],"D":[],"C":[]}
+        for i in self.cards_list:
+            self.cards_dict[i[0]].append(i)
         #log("%s, %s, %s, %s"%(self.name,suit,self.cards_on_table,self.cards_list))
         #如果随便出
         if suit=="A":
