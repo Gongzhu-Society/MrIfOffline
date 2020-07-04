@@ -1,34 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-import time,sys,traceback,math,numpy
-LOGLEVEL={0:"DEBUG",1:"INFO",2:"WARN",3:"ERR",4:"FATAL"}
-LOGFILE=sys.argv[0].split(".")
-LOGFILE[-1]="log"
-LOGFILE=".".join(LOGFILE)
-def log(msg,l=1,end="\n",logfile=None,fileonly=False):
-    st=traceback.extract_stack()[-2]
-    lstr=LOGLEVEL[l]
-    now_str="%s %03d"%(time.strftime("%y/%m/%d %H:%M:%S",time.localtime()),math.modf(time.time())[0]*1000)
-    if l<3:
-        tempstr="%s [%s,%s:%d] %s%s"%(now_str,lstr,st.name,st.lineno,str(msg),end)
-    else:
-        tempstr="%s [%s,%s:%d] %s:\n%s%s"%(now_str,lstr,st.name,st.lineno,str(msg),traceback.format_exc(limit=5),end)
-    if not fileonly:
-        print(tempstr,end="")
-    if l>=1 or fileonly:
-        if logfile==None:
-            logfile=LOGFILE
-        with open(logfile,"a") as f:
-            f.write(tempstr)
-
+from Util import log,cards_order
+from Util import ORDER_DICT1,ORDER_DICT2
+from MrRandom import MrRandom
 import random
 
-ORDER_DICT1={'S':-300,'H':-200,'D':-100,'C':0,'J':-200}
-ORDER_DICT2={'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'1':10,'J':11,'Q':12,'K':13,'A':14,'P':15,'G':16}
-def cards_order(card):
-    return ORDER_DICT1[card[0]]+ORDER_DICT2[card[1]]
-def get_max_card(l):
-    """请在使用时把cards_on_table中第一个int去掉"""
+"""def get_max_card(l):
+    请在使用时把cards_on_table中第一个int去掉
     max_card=None
     score_temp=-500
     for i in l:
@@ -37,66 +15,7 @@ def get_max_card(l):
             if score_temp2>score_temp:
                 max_card=i
                 score_temp=score_temp2
-    return max_card,score_temp
-
-class MrRandom():
-    """ONLY for 4 players"""
-    def __init__(self,room,place,name):
-        self.place = place
-        self.room = room
-        self.name = name
-        self.players_information = [None, None, None, None]
-        self.cards_list = [] #cards in hand
-        self.initial_cards = [] #cards initial
-        self.history = [] #list of (int,str,str,str,str)
-        self.cards_on_table = [] #[int,str,...]
-
-    def pick_a_card(self,suit=None):
-        #try:
-        #    assert len(self.cards_list)==sum([len(self.cards_dict[k]) for k in self.cards_dict])
-        #except:
-        #    log("",l=3)
-        if suit==None:
-            if len(self.cards_on_table)==1:
-                suit="A"
-            else:
-                suit=self.cards_on_table[1][0]
-        self.cards_dict={"S":[],"H":[],"D":[],"C":[]}
-        for i in self.cards_list:
-            self.cards_dict[i[0]].append(i)
-        #log("%s, %s, %s, %s"%(self.name,suit,self.cards_on_table,self.cards_list))
-        if self.cards_dict.get(suit)==None or len(self.cards_dict[suit])==0:
-            i=random.randint(0,len(self.cards_list)-1)
-            choice=self.cards_list[i]
-        else:
-            i=random.randint(0,len(self.cards_dict[suit])-1)
-            choice=self.cards_dict[suit][i]
-        #log("%s plays %s"%(self.name,choice))
-        return choice
-
-    @staticmethod
-    def family_name():
-        return 'MrRandom'
-
-class Human(MrRandom):
-    def pick_a_card(self,suit=None):
-        if suit==None:
-            if len(self.cards_on_table)==1:
-                suit="A"
-            else:
-                suit=self.cards_on_table[1][0]
-        log("%s, %s, %s, %s"%(self.name,suit,self.cards_on_table,self.cards_list))
-        while True:
-            choice=input("your turn: ")
-            if choice in self.cards_list:
-                break
-            else:
-                log("%s is not your cards. "%(choice),end="")
-        return choice
-
-    @staticmethod
-    def family_name():
-        return 'Human'
+    return max_card,score_temp"""
 
 def get_nonempty_min(l):
     if len(l)!=0:
@@ -121,19 +40,19 @@ class MrIf(MrRandom):
         其他情况打不是羊的最大的
     如果是红桃，尽可能躲，捡大的贴
     """
-    def pick_a_card(self,suit=None):
-        if suit==None:
-            if len(self.cards_on_table)==1:
-                suit="A"
-            else:
-                suit=self.cards_on_table[1][0]
-        self.cards_dict={"S":[],"H":[],"D":[],"C":[]}
+    def pick_a_card(self):
+        assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place,"self.place and self.cards_on_table contrdict"
+        if len(self.cards_on_table)==1:
+            suit="A"
+        else:
+            suit=self.cards_on_table[1][0]
+        cards_dict={"S":[],"H":[],"D":[],"C":[]}
         for i in self.cards_list:
-            self.cards_dict[i[0]].append(i)
+            cards_dict[i[0]].append(i)
         #log("%s, %s, %s, %s"%(self.name,suit,self.cards_on_table,self.cards_list))
         #如果随便出
         if suit=="A":
-            list_temp=[self.cards_dict[k] for k in self.cards_dict]
+            list_temp=[cards_dict[k] for k in cards_dict]
             list_temp.sort(key=get_nonempty_min)
             #log(list_temp)
             for i in range(4):
@@ -141,43 +60,43 @@ class MrIf(MrRandom):
                     continue
                 suit_temp=list_temp[i][0][0]
                 #log("thinking %s"%(suit_temp))
-                if suit_temp=="S" and ("SQ" not in self.cards_list) \
+                if suit_temp=="S" and ("SQ" not in self.cards_list)\
                 and ("SK" not in self.cards_list) and ("SA" not in self.cards_list):
-                    choice=self.cards_dict["S"][-1]
+                    choice=cards_dict["S"][-1]
                     return choice
-                if suit_temp=="H" and ("HQ" not in self.cards_list) \
+                if suit_temp=="H" and ("HQ" not in self.cards_list)\
                 and ("HK" not in self.cards_list) and ("HA" not in self.cards_list):
-                    choice=self.cards_dict["H"][-1]
+                    choice=cards_dict["H"][-1]
                     return choice
-                if suit_temp=="C" and ("C10" not in self.cards_list) \
+                if suit_temp=="C" and ("C10" not in self.cards_list)\
                 and ("CJ" not in self.cards_list) and ("CQ" not in self.cards_list)\
                 and ("CK" not in self.cards_list) and ("CA" not in self.cards_list):
-                    choice=self.cards_dict["C"][-1]
+                    choice=cards_dict["C"][-1]
                     return choice
                 if suit_temp=="D" and ("DJ" not in self.cards_list):
-                    choice=self.cards_dict["D"][-1]
+                    choice=cards_dict["D"][-1]
                     return choice
             for i in range(5):
                 choice=random.choice(self.cards_list)
                 if choice not in ("SQ","SK","SA","HA","HK","C10","CJ","CQ","CK","CA","DJ"):
                     return choice
         #如果是贴牌
-        elif len(self.cards_dict[suit])==0:
+        elif len(cards_dict[suit])==0:
             for i in ("SQ","HA","SA","SK","HK","C10","CA","HQ","HJ","CK","CQ","CJ","H10","H9","H8","H7","H6","H5"):
                 if i in self.cards_list:
                     choice=i
                     return choice
-            list_temp=[self.cards_dict[k] for k in self.cards_dict]
+            list_temp=[cards_dict[k] for k in cards_dict]
             list_temp.sort(key=get_nonempty_min)
             for i in range(4):
                 if len(list_temp[i])==0:
                     continue
                 suit_temp=list_temp[i][0][0]
-                choice=self.cards_dict[suit_temp][-1]
+                choice=cards_dict[suit_temp][-1]
                 return choice
         #如果只有这一张
-        elif len(self.cards_dict[suit])==1:
-            choice=self.cards_dict[suit][-1]
+        elif len(cards_dict[suit])==1:
+            choice=cards_dict[suit][-1]
             return choice
 
         #如果是猪并且剩好几张猪牌
@@ -186,9 +105,9 @@ class MrIf(MrRandom):
                 choice="SQ"
                 return choice
             if len(self.cards_on_table)==4 and ("SQ" not in self.cards_on_table):
-                choice=self.cards_dict["S"][-1]
+                choice=cards_dict["S"][-1]
                 if choice=="SQ":
-                    choice=self.cards_dict["S"][-2]
+                    choice=cards_dict["S"][-2]
                 return choice
             else:
                 if "SA" in self.cards_on_table[1:]:
@@ -197,12 +116,12 @@ class MrIf(MrRandom):
                     max_pig=cards_order("SK")
                 else:
                     max_pig=cards_order("SQ")
-                for i in self.cards_dict["S"][::-1]:
+                for i in cards_dict["S"][::-1]:
                     if cards_order(i)<max_pig:
                         choice=i
                         return choice
                 else:
-                    choice=self.cards_dict["S"][-1]
+                    choice=cards_dict["S"][-1]
                     return choice
         #如果是变压器并且草花剩两张以上
         if suit=="C":
@@ -212,9 +131,9 @@ class MrIf(MrRandom):
                 choice="C10"
                 return choice
             if len(self.cards_on_table)==4 and ("C10" not in self.cards_on_table):
-                choice=self.cards_dict["C"][-1]
+                choice=cards_dict["C"][-1]
                 if choice=="C10":
-                    choice=self.cards_dict["C"][-2]
+                    choice=cards_dict["C"][-2]
                 return choice
             else:
                 if "CA" in self.cards_on_table[1:]:
@@ -227,23 +146,23 @@ class MrIf(MrRandom):
                     max_club=cards_order("CJ")
                 else:
                     max_club=cards_order("C10")
-                for i in self.cards_dict["C"][::-1]:
+                for i in cards_dict["C"][::-1]:
                     if cards_order(i)<max_club:
                         choice=i
                         return choice
                 else:
-                    choice=self.cards_dict["C"][-1]
+                    choice=cards_dict["C"][-1]
                     return choice
         #如果是羊并且剩两张以上
         if suit=="D":
-            if len(self.cards_on_table)==4 and ("DJ" in self.cards_dict["D"])\
+            if len(self.cards_on_table)==4 and ("DJ" in cards_dict["D"])\
             and ("DA" not in self.cards_on_table) and ("DK" not in self.cards_on_table)\
             and ("DQ" not in self.cards_on_table):
                 choice="DJ"
                 return choice
-            choice=self.cards_dict["D"][-1]
+            choice=cards_dict["D"][-1]
             if choice=="DJ":
-                choice=self.cards_dict["D"][-2]
+                choice=cards_dict["D"][-2]
             return choice
         #如果是红桃
         if suit=="H":
@@ -251,27 +170,22 @@ class MrIf(MrRandom):
             for i in self.cards_on_table[1:]:
                 if i[0]=="H" and cards_order(i)>max_heart:
                     max_heart=cards_order(i)
-            for i in self.cards_dict["H"][::-1]:
+            for i in cards_dict["H"][::-1]:
                 if cards_order(i)<max_heart:
                     choice=i
                     return choice
         #log("cannot be decided by rules")
-        return MrRandom.pick_a_card(self,suit)
+        return MrRandom.pick_a_card(self)
 
     @staticmethod
     def family_name():
         return 'MrIf'
 
 def test_avoid_C10():
-    if0=MrIf(0,0,"if0")
-    if0.receive_shuffle(['D2', 'D7', 'DQ', 'C2', 'C4', 'C5', 'C6', 'C9', 'CQ'])
-    if0.cards_on_table=[3, 'C8', 'C3', 'C10']
-    log(if0.pick_a_card("C"))
+    if0=MrIf(room=0,place=0,name="if0")
+    if0.cards_list=['D2', 'D7', 'DQ', 'C2', 'C4', 'C5', 'C6', 'C9', 'CQ']
+    if0.cards_on_table=[1, 'C8', 'C3', 'C10']
+    log(if0.pick_a_card())
 
 if __name__=="__main__":
     test_avoid_C10()
-
-# git push https://github.com/Gongzhu-Society/MrIfOffline.git
-# git pull https://github.com/Gongzhu-Society/MrIfOffline.git
-# git add .
-# git commit

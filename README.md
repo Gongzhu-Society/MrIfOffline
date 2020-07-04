@@ -22,8 +22,21 @@ An offline(testing) version of Mr. If
         其他情况打不是羊的最大的
     如果是红桃，尽可能躲，捡大的贴
 
-### 统计信息
+### MrIf 对 MrRandom
+
+```
+20/07/04 22:35:24 505 [INFO,stat_random:131] 0th player: -20.81 1.22
+20/07/04 22:35:24 506 [INFO,stat_random:131] 1th player: -119.55 2.14
+20/07/04 22:35:24 507 [INFO,stat_random:131] 2th player: -21.22 1.22
+20/07/04 22:35:24 507 [INFO,stat_random:131] 3th player: -116.48 2.19
+20/07/04 22:35:24 509 [INFO,stat_random:133] 0 2 player: -42.03 1.59
+20/07/04 22:35:24 510 [INFO,stat_random:135] 1 3 player: -236.03 2.26
+20/07/04 22:35:24 511 [INFO,stat_random:137]  0+2 - 1+3: 194.00 3.63
+```
+
+### MrRandom 和 MrIf 的详细统计信息
 #### 第一个数字（比如下面第一行的-64.01）是平均每局得分，第二个（比如110.97）是得分的方差
+#### 详细统计信息可以用于纠错
 
 四个Mr. Random打1024x16局：
 ```
