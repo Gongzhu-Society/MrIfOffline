@@ -36,6 +36,7 @@ An offline(testing) version of Mr. If
 
 ### MrRandom 和 MrIf 的详细统计信息
 __第一个数字（比如下面第一行的-64.01）是平均每局得分，第二个（比如110.97）是得分的方差__
+
 __详细统计信息可以用于纠错__
 
 四个Mr. Random打1024x16局：
