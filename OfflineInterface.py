@@ -4,11 +4,12 @@ from Util import log,calc_score,cards_order
 from Util import ORDER_DICT1,ORDER_DICT2,SCORE_DICT
 from MrRandom import MrRandom,Human
 from MrIf import MrIf
+from MrGreed import MrGreed
 import random,itertools,numpy,copy
 
 class OfflineInterface():
     """ONLY for 4 players"""
-    def __init__(self,players):
+    def __init__(self,players,print_flag=True):
         """players: list of robots or humans(represent by None)"""
         self.players=players
         self.pstart=0
@@ -17,6 +18,7 @@ class OfflineInterface():
         self.history = []
         self.cards_remain=[[],[],[],[]]
         self.scores = [[],[],[],[]]
+        self.print_flag=print_flag
 
     def shuffle(self,cards=None):
         if cards==None:
@@ -33,7 +35,8 @@ class OfflineInterface():
             list_temp.sort(key=cards_order)
             self.cards_remain.append(list_temp)
             self.players[i].cards_list=copy.copy(list_temp)
-        #log("shuffle: %s"%(self.cards_remain))
+        if self.print_flag:
+            log("shuffle: %s"%(self.cards_remain))
         return cards
 
     def judge_legal(self,choice):
@@ -58,7 +61,8 @@ class OfflineInterface():
         self.cards_remain[self.pnext].remove(choice)
         self.players[self.pnext].cards_list.remove(choice)
         self.cards_on_table.append(choice)
-        #log("%s played %s, %s"%(self.players[self.pnext].name,choice,self.cards_on_table,))
+        if self.print_flag:
+            log("%s played %s, %s"%(self.players[self.pnext].name,choice,self.cards_on_table,))
         #如果一墩结束
         if len(self.cards_on_table)==5:
             #判断赢家
@@ -83,14 +87,15 @@ class OfflineInterface():
             #更新数据结构
             self.history.append(copy.copy(self.cards_on_table))
             self.cards_on_table=[self.pnext,]
-            #log("trick end. winner is %s, %s"%(self.pnext,self.scores))
+            if self.print_flag:
+                log("trick end. winner is %s, %s"%(self.pnext,self.scores))
         else:
             self.pnext=(self.pnext+1)%4
         return 0
 
     def clear(self):
         self.scores_num=[calc_score(i) for i in self.scores]
-        #log("game end: %s, %s"%(self.scores_num,self.scores))
+        log("game end: %s, %s"%(self.scores_num,self.scores))
         return self.scores_num #[0,100,-100,50]
     
     def prepare_new(self):
@@ -102,19 +107,14 @@ class OfflineInterface():
         self.cards_remain=[[],[],[],[]]
         del self.scores_num
 
-def stat_random():
-    random0=MrRandom(room=0,place=0,name="random0")
-    random1=MrRandom(room=0,place=1,name="random1")
-    random2=MrRandom(room=0,place=2,name="random2")
-    random3=MrRandom(room=0,place=3,name="random3")
-    if0=MrIf(room=0,place=0,name="if0")
-    if1=MrIf(room=0,place=1,name="if1")
-    if2=MrIf(room=0,place=2,name="if2")
-    if3=MrIf(room=0,place=3,name="if3")
-    offlineinterface=OfflineInterface([if0,random1,if2,random3])
+def stat_ai():
+    r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
+    f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
+    g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
+    offlineinterface=OfflineInterface([g[0],f[1],g[2],f[3]],print_flag=False)
     stats=[]
     N1=256
-    N2=16
+    N2=4
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
             cards=offlineinterface.shuffle()
@@ -136,13 +136,12 @@ def stat_random():
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log(" 0+2 - 1+3: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),))
 
-def play_with_if():
-    if0=MrIf(0,0,"if0")
-    if1=MrIf(0,1,"if1")
-    if2=MrIf(0,2,"if2")
-    if3=MrIf(0,2,"if3")
-    myself=Human(0,3,"myself")
-    offlineinterface=OfflineInterface([if0,if1,if2,if3])
+def play_with_ai():
+    r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
+    f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
+    g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
+    myself=Human(room=0,place=3,name="myself")
+    offlineinterface=OfflineInterface([f[0],g[1],f[2],g[3]])
     offlineinterface.shuffle()
     for i in range(13):
         for j in range(4):
@@ -150,26 +149,7 @@ def play_with_if():
             input()
     offlineinterface.clear()
 
-def test_random():
-    random0=MrRandom(room=0,place=0,name="random0")
-    random1=MrRandom(room=0,place=1,name="random1")
-    random2=MrRandom(room=0,place=2,name="random2")
-    random3=MrRandom(room=0,place=3,name="random3")
-    myself=Human(room=0,place=3,name="myself")
-    offlineinterface=OfflineInterface([random0,random1,random2,random3])
-    offlineinterface.shuffle()
-    n_cards=52
-    while n_cards>0:
-        r=offlineinterface.step()
-        if r==0:
-            n_cards-=1
-        input()
-    offlineinterface.clear()
-
 if __name__=="__main__":
     #test_random()
-    stat_random()
-    #play_with_if()
-
-"""
-"""
+    stat_ai()
+    #play_with_ai()

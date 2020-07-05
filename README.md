@@ -1,9 +1,9 @@
 # MrIfOffline
-An offline(testing) version of Mr. If 
-线下版本的茹先生（MrIf）
+Offline(testing) version of several AIs.
 
-### AI介绍
-文件中的MrRandom是按规则随即出牌的玩家，也是将来等级分规则的0分的基准
+### MrIf 和 MrRandom
+
+MrRandom是按规则随即出牌的玩家，也是将来等级分规则的0分的基准
 
 而MrIf是用Ifs判断几个最基础的规则其他情况随即出牌的玩家，他的规则包括：
 
@@ -22,7 +22,7 @@ An offline(testing) version of Mr. If
         其他情况打不是羊的最大的
     如果是红桃，尽可能躲，捡大的贴
 
-### MrIf 对 MrRandom
+下面是 MrIf(0,2) 对战 MrRandom(1,3) 的战绩，对战局数为256x16
 
 ```
 20/07/04 22:35:24 505 [INFO,stat_random:131] 0th player: -20.81 1.22
@@ -32,6 +32,39 @@ An offline(testing) version of Mr. If
 20/07/04 22:35:24 509 [INFO,stat_random:133] 0 2 player: -42.03 1.59
 20/07/04 22:35:24 510 [INFO,stat_random:135] 1 3 player: -236.03 2.26
 20/07/04 22:35:24 511 [INFO,stat_random:137]  0+2 - 1+3: 194.00 3.63
+```
+
+### MrGreed
+
+MrGreed只看重眼前利益（这一圈的收益），不会用历史估计对手手牌（但是会考虑断章），也不会考虑自己之后怎么办
+
+MrGreed是用递归的方法定义的，首先，如果他是最后一个出牌的，他可以按照他的价值观（BURDEN_DICT）知道自己该怎么打。
+如果他是倒数第二个则对可能的牌的分布采样，并假定最后一个人和自己打法一致，进而判断自己该怎么打。一直递归到第一个打的。
+
+MrGreed不会再把猪塞给队友了。MrGreed会部分地考虑队友的感受，比如该它打牌，知道队友断某一门，自己又有这一门最小的，他就会打这一门好舒缓队友的压力。
+
+下面是 MrGreed(0,2) 对战 MrRandom(1,3) 的战绩，对战局数为256x4
+
+```
+20/07/05 15:36:46 055 [INFO,stat_ai:131] 0th player: -5.90 2.68
+20/07/05 15:36:46 056 [INFO,stat_ai:131] 1th player: -139.54 4.60
+20/07/05 15:36:46 056 [INFO,stat_ai:131] 2th player: -4.97 2.65
+20/07/05 15:36:46 057 [INFO,stat_ai:131] 3th player: -143.34 4.53
+20/07/05 15:36:46 057 [INFO,stat_ai:133] 0 2 player: -10.87 3.27
+20/07/05 15:36:46 057 [INFO,stat_ai:135] 1 3 player: -282.88 4.69
+20/07/05 15:36:46 058 [INFO,stat_ai:137]  0+2 - 1+3: 272.01 7.48
+```
+
+下面是 MrGreed(0,2) 对战 MrIf(1,3) 的战绩，对战局数为256x4
+
+```
+20/07/05 15:40:35 936 [INFO,stat_ai:131] 0th player: -45.13 3.45
+20/07/05 15:40:35 936 [INFO,stat_ai:131] 1th player: -84.90 3.89
+20/07/05 15:40:35 937 [INFO,stat_ai:131] 2th player: -52.75 3.61
+20/07/05 15:40:35 937 [INFO,stat_ai:131] 3th player: -83.76 3.90
+20/07/05 15:40:35 938 [INFO,stat_ai:133] 0 2 player: -97.88 4.29
+20/07/05 15:40:35 938 [INFO,stat_ai:135] 1 3 player: -168.66 4.63
+20/07/05 15:40:35 939 [INFO,stat_ai:137]  0+2 - 1+3: 70.78 8.41
 ```
 
 ### MrRandom 和 MrIf 的详细统计信息
