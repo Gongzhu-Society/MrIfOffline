@@ -5,7 +5,7 @@ from Util import ORDER_DICT1,ORDER_DICT2,SCORE_DICT
 from MrRandom import MrRandom,Human
 from MrIf import MrIf
 from MrGreed import MrGreed
-import random,itertools,numpy,copy
+import random,itertools,numpy,copy,time
 
 class OfflineInterface():
     """ONLY for 4 players"""
@@ -95,7 +95,8 @@ class OfflineInterface():
 
     def clear(self):
         self.scores_num=[calc_score(i) for i in self.scores]
-        log("game end: %s, %s"%(self.scores_num,self.scores))
+        if self.print_flag:
+            log("game end: %s, %s"%(self.scores_num,self.scores))
         return self.scores_num #[0,100,-100,50]
     
     def prepare_new(self):
@@ -115,6 +116,7 @@ def stat_ai():
     stats=[]
     N1=256
     N2=4
+    tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
             cards=offlineinterface.shuffle()
@@ -124,32 +126,33 @@ def stat_ai():
         for i,j in itertools.product(range(13),range(4)):
             offlineinterface.step()
         stats.append(offlineinterface.clear())
+        log("%d, %d: %s"%(k,l,stats[-1]))
         offlineinterface.prepare_new()
-    #log(stats)
+    tok=time.time()
+    log("time consume: %d"%(tok-tik))
     for i in range(4):
         s_temp=[j[i] for j in stats]
-        log("%dth player: %.2f %.2f"%(i,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),))
+        log("%dth player: %.2f %.2f"%(i,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
     s_temp=[j[0]+j[2] for j in stats]
-    log("0 2 player: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),))
+    log("0 2 player: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
     s_temp=[j[1]+j[3] for j in stats]
-    log("1 3 player: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),))
+    log("1 3 player: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
-    log(" 0+2 - 1+3: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),))
+    log(" 0+2 - 1+3: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
 
 def play_with_ai():
     r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
     g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
     myself=Human(room=0,place=3,name="myself")
-    offlineinterface=OfflineInterface([f[0],g[1],f[2],g[3]])
+    offlineinterface=OfflineInterface([g[0],g[1],g[2],g[3]])
     offlineinterface.shuffle()
     for i in range(13):
         for j in range(4):
             offlineinterface.step()
-            input()
+            #input()
     offlineinterface.clear()
 
 if __name__=="__main__":
-    #test_random()
     stat_ai()
     #play_with_ai()

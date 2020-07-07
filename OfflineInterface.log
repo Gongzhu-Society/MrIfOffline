@@ -1,0 +1,1451 @@
+20/07/05 16:58:13 876 [WARN,stat_ai:131] 0th player: -49.00 3.69
+20/07/05 16:58:13 877 [WARN,stat_ai:131] 1th player: -88.39 3.97
+20/07/05 16:58:13 878 [WARN,stat_ai:131] 2th player: -45.25 3.54
+20/07/05 16:58:13 878 [WARN,stat_ai:131] 3th player: -86.68 3.93
+20/07/05 16:58:13 879 [WARN,stat_ai:133] 0 2 player: -94.26 4.35
+20/07/05 16:58:13 880 [WARN,stat_ai:135] 1 3 player: -175.07 4.67
+20/07/05 16:58:13 880 [WARN,stat_ai:137]  0+2 - 1+3: 80.81 8.50
+20/07/05 17:16:19 037 [WARN,stat_ai:133] 0th player: -44.73 3.54
+20/07/05 17:16:19 038 [WARN,stat_ai:133] 1th player: -84.12 3.73
+20/07/05 17:16:19 039 [WARN,stat_ai:133] 2th player: -46.67 3.45
+20/07/05 17:16:19 039 [WARN,stat_ai:133] 3th player: -89.71 3.85
+20/07/05 17:16:19 040 [WARN,stat_ai:135] 0 2 player: -91.40 4.23
+20/07/05 17:16:19 040 [WARN,stat_ai:137] 1 3 player: -173.83 4.53
+20/07/05 17:16:19 041 [WARN,stat_ai:139]  0+2 - 1+3: 82.43 8.25
+20/07/05 17:18:01 315 [WARN,stat_ai:133] 0th player: -53.28 3.72
+20/07/05 17:18:01 316 [WARN,stat_ai:133] 1th player: -86.38 3.86
+20/07/05 17:18:01 316 [WARN,stat_ai:133] 2th player: -52.98 3.59
+20/07/05 17:18:01 317 [WARN,stat_ai:133] 3th player: -83.52 3.71
+20/07/05 17:18:01 317 [WARN,stat_ai:135] 0 2 player: -106.26 4.51
+20/07/05 17:18:01 318 [WARN,stat_ai:137] 1 3 player: -169.89 4.64
+20/07/05 17:18:01 319 [WARN,stat_ai:139]  0+2 - 1+3: 63.63 8.70
+20/07/06 00:05:38 779 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 779 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 780 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 780 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 780 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 781 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 781 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 782 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 782 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 783 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 783 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 783 [ERR,clear_score:50] ['HA', 'C6', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 784 [ERR,clear_score:50] ['HA', 'C2', 'C6', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 784 [ERR,clear_score:50] ['HA', 'C2', 'C6', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:38 785 [ERR,clear_score:50] ['HA', 'C2', 'C6', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 167 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 167 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 168 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 168 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 168 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 169 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 169 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 169 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 170 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 170 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 170 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 170 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 171 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 171 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 171 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 171 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 172 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 172 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 172 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 172 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 173 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 173 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 173 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 173 [ERR,clear_score:50] ['C6', 'D3', 'HQ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 410 [ERR,clear_score:50] ['HK', 'C2', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 411 [ERR,clear_score:50] ['HK', 'C2', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 411 [ERR,clear_score:50] ['HK', 'C2', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 411 [ERR,clear_score:50] ['HK', 'C3', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 412 [ERR,clear_score:50] ['HK', 'C3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 412 [ERR,clear_score:50] ['HK', 'C3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 412 [ERR,clear_score:50] ['HK', 'C3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 412 [ERR,clear_score:50] ['CK', 'C2', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 413 [ERR,clear_score:50] ['CK', 'C3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 413 [ERR,clear_score:50] ['CK', 'C3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 413 [ERR,clear_score:50] ['HK', 'C3', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 414 [ERR,clear_score:50] ['HK', 'C3', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 414 [ERR,clear_score:50] ['HK', 'C3', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 414 [ERR,clear_score:50] ['HK', 'C4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 414 [ERR,clear_score:50] ['HK', 'C4', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 415 [ERR,clear_score:50] ['HK', 'C4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 415 [ERR,clear_score:50] ['HK', 'C4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 415 [ERR,clear_score:50] ['CK', 'C3', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 415 [ERR,clear_score:50] ['CK', 'C4', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 416 [ERR,clear_score:50] ['CK', 'C4', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 416 [ERR,clear_score:50] ['HK', 'C3', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 416 [ERR,clear_score:50] ['HK', 'C3', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 417 [ERR,clear_score:50] ['HK', 'C3', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 417 [ERR,clear_score:50] ['HK', 'C4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 417 [ERR,clear_score:50] ['HK', 'C4', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 417 [ERR,clear_score:50] ['HK', 'C4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 418 [ERR,clear_score:50] ['HK', 'C4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 418 [ERR,clear_score:50] ['CK', 'C3', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 418 [ERR,clear_score:50] ['CK', 'C4', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 418 [ERR,clear_score:50] ['CK', 'C4', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 657 [ERR,clear_score:50] ['HQ', 'D3', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 658 [ERR,clear_score:50] ['HQ', 'D3', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 658 [ERR,clear_score:50] ['HQ', 'D3', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 658 [ERR,clear_score:50] ['HQ', 'D3', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 658 [ERR,clear_score:50] ['HQ', 'D4', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 659 [ERR,clear_score:50] ['HQ', 'D4', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 659 [ERR,clear_score:50] ['HQ', 'D4', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 659 [ERR,clear_score:50] ['HQ', 'D4', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 660 [ERR,clear_score:50] ['HQ', 'DJ', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 660 [ERR,clear_score:50] ['HQ', 'DJ', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 660 [ERR,clear_score:50] ['HQ', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 660 [ERR,clear_score:50] ['HQ', 'DJ', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 661 [ERR,clear_score:50] ['HQ', 'D4', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 661 [ERR,clear_score:50] ['HK', 'D3', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 661 [ERR,clear_score:50] ['HK', 'D3', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 662 [ERR,clear_score:50] ['HK', 'D3', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 662 [ERR,clear_score:50] ['HK', 'D3', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 662 [ERR,clear_score:50] ['HK', 'D4', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 662 [ERR,clear_score:50] ['HK', 'D4', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 663 [ERR,clear_score:50] ['HK', 'D4', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 663 [ERR,clear_score:50] ['HK', 'D4', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 663 [ERR,clear_score:50] ['HK', 'DJ', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 664 [ERR,clear_score:50] ['HK', 'DJ', 'C2', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 664 [ERR,clear_score:50] ['HK', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 664 [ERR,clear_score:50] ['HK', 'DJ', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 664 [ERR,clear_score:50] ['HK', 'D4', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 665 [ERR,clear_score:50] ['D7', 'D3', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 665 [ERR,clear_score:50] ['D7', 'D4', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 665 [ERR,clear_score:50] ['D7', 'DJ', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 665 [ERR,clear_score:50] ['D7', 'DJ', 'D5', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 669 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 669 [ERR,clear_score:50] ['HK', 'D3', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 669 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 670 [ERR,clear_score:50] ['HK', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 670 [ERR,clear_score:50] ['HK', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 670 [ERR,clear_score:50] ['HK', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 671 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 671 [ERR,clear_score:50] ['D7', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 671 [ERR,clear_score:50] ['D7', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 671 [ERR,clear_score:50] ['D7', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 672 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 672 [ERR,clear_score:50] ['HK', 'D3', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 672 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 673 [ERR,clear_score:50] ['HK', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 673 [ERR,clear_score:50] ['HK', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 673 [ERR,clear_score:50] ['HK', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 673 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 674 [ERR,clear_score:50] ['D7', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 674 [ERR,clear_score:50] ['D7', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 674 [ERR,clear_score:50] ['D7', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 675 [ERR,clear_score:50] ['HK', 'D3', 'DJ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 675 [ERR,clear_score:50] ['HK', 'D3', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 675 [ERR,clear_score:50] ['HK', 'D3', 'DJ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 675 [ERR,clear_score:50] ['HK', 'D4', 'DJ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 676 [ERR,clear_score:50] ['HK', 'D4', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 676 [ERR,clear_score:50] ['HK', 'D4', 'DJ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 676 [ERR,clear_score:50] ['HK', 'D4', 'DJ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 677 [ERR,clear_score:50] ['D7', 'D3', 'DJ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 677 [ERR,clear_score:50] ['D7', 'D4', 'DJ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 677 [ERR,clear_score:50] ['D7', 'D4', 'DJ', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 677 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 678 [ERR,clear_score:50] ['HK', 'D3', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 678 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 678 [ERR,clear_score:50] ['HK', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 678 [ERR,clear_score:50] ['HK', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 679 [ERR,clear_score:50] ['HK', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 679 [ERR,clear_score:50] ['HK', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 679 [ERR,clear_score:50] ['D7', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 679 [ERR,clear_score:50] ['D7', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 680 [ERR,clear_score:50] ['D7', 'DJ', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 680 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 680 [ERR,clear_score:50] ['HK', 'D4', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 681 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 681 [ERR,clear_score:50] ['HK', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 681 [ERR,clear_score:50] ['HK', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 681 [ERR,clear_score:50] ['HK', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 682 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 682 [ERR,clear_score:50] ['D7', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 682 [ERR,clear_score:50] ['D7', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 683 [ERR,clear_score:50] ['D7', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 683 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 683 [ERR,clear_score:50] ['HK', 'D4', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 684 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 684 [ERR,clear_score:50] ['HK', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 684 [ERR,clear_score:50] ['HK', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 684 [ERR,clear_score:50] ['HK', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 685 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 685 [ERR,clear_score:50] ['D7', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 685 [ERR,clear_score:50] ['D7', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 685 [ERR,clear_score:50] ['D7', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 686 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 686 [ERR,clear_score:50] ['HK', 'D4', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 686 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 687 [ERR,clear_score:50] ['HK', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 687 [ERR,clear_score:50] ['HK', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 687 [ERR,clear_score:50] ['HK', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 687 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 688 [ERR,clear_score:50] ['D7', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 688 [ERR,clear_score:50] ['D7', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 688 [ERR,clear_score:50] ['D7', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 688 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 689 [ERR,clear_score:50] ['HK', 'D4', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 689 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 689 [ERR,clear_score:50] ['HK', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 690 [ERR,clear_score:50] ['HK', 'DJ', 'C3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 690 [ERR,clear_score:50] ['HK', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 690 [ERR,clear_score:50] ['HK', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 690 [ERR,clear_score:50] ['D7', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 691 [ERR,clear_score:50] ['D7', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 691 [ERR,clear_score:50] ['D7', 'DJ', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 692 [ERR,clear_score:50] ['D7', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 692 [ERR,clear_score:50] ['D7', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 693 [ERR,clear_score:50] ['D7', 'D3', 'D4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 693 [ERR,clear_score:50] ['D7', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 693 [ERR,clear_score:50] ['D7', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:39 694 [ERR,clear_score:50] ['D7', 'D4', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 331 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 332 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 332 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 332 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 333 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 333 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 333 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 333 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 334 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 334 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 334 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 335 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 335 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 335 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 335 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 336 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 336 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 336 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 337 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 337 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 337 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 337 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 338 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 338 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 338 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:05:40 339 [ERR,clear_score:50] ['C2', 'S3', 'C4', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:06:03 519 [ERR,clear_score:50] ['H9', 'H7', 'D3', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 46, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:12:17 023 [ERR,as_third_player:87] H8:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 85, in as_third_player
+    score_temp=-1*MrGreed.clear_score(four_cards_tmp)+MrGreed.BURDEN_DICT.get(c,0)
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 45, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:12:45 446 [ERR,as_third_player:87] C6, ['H7', 'D2', 'C6', '']:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 85, in as_third_player
+    score_temp=-1*MrGreed.clear_score(four_cards_tmp)+MrGreed.BURDEN_DICT.get(c,0)
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 45, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:14:12 383 [ERR,as_third_player:87] D2, H, ['HA', 'D3', 'D2', ''], {'S': [], 'H': [], 'D': [], 'C': []}:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 85, in as_third_player
+    score_temp=-1*MrGreed.clear_score(four_cards_tmp)+MrGreed.BURDEN_DICT.get(c,0)
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 45, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 00:15:39 336 [ERR,as_third_player:87] HA, D, ['DA', 'H3', 'HA', ''], {'S': [], 'H': [], 'D': [], 'C': []}, []:
+Traceback (most recent call last):
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 85, in as_third_player
+    score_temp=-1*MrGreed.clear_score(four_cards_tmp)+MrGreed.BURDEN_DICT.get(c,0)
+  File "/media/nonlocal/Data/MrIf/MrGreed.py", line 45, in clear_score
+    if four_cards[3][0]==four_cards[0][0]\
+IndexError: string index out of range
+
+20/07/06 01:34:51 758 [WARN,stat_ai:133] 0th player: -50.01 3.49
+20/07/06 01:34:51 758 [WARN,stat_ai:133] 1th player: -92.77 4.04
+20/07/06 01:34:51 759 [WARN,stat_ai:133] 2th player: -45.80 3.54
+20/07/06 01:34:51 760 [WARN,stat_ai:133] 3th player: -83.68 3.83
+20/07/06 01:34:51 760 [WARN,stat_ai:135] 0 2 player: -95.81 4.22
+20/07/06 01:34:51 761 [WARN,stat_ai:137] 1 3 player: -176.46 4.72
+20/07/06 01:34:51 761 [WARN,stat_ai:139]  0+2 - 1+3: 80.64 8.45
+20/07/07 13:58:47 885 [WARN,stat_ai:133] 0th player: -39.26 7.35
+20/07/07 13:58:47 906 [WARN,stat_ai:133] 1th player: -94.41 7.77
+20/07/07 13:58:47 906 [WARN,stat_ai:133] 2th player: -42.11 6.98
+20/07/07 13:58:47 907 [WARN,stat_ai:133] 3th player: -89.14 7.10
+20/07/07 13:58:47 907 [WARN,stat_ai:135] 0 2 player: -81.37 8.52
+20/07/07 13:58:47 907 [WARN,stat_ai:137] 1 3 player: -183.55 8.68
+20/07/07 13:58:47 908 [WARN,stat_ai:139]  0+2 - 1+3: 102.19 16.16
+20/07/07 14:00:28 897 [WARN,stat_ai:133] 0th player: -54.19 3.69
+20/07/07 14:00:28 897 [WARN,stat_ai:133] 1th player: -85.57 3.96
+20/07/07 14:00:28 898 [WARN,stat_ai:133] 2th player: -51.93 3.68
+20/07/07 14:00:28 898 [WARN,stat_ai:133] 3th player: -81.92 3.72
+20/07/07 14:00:28 899 [WARN,stat_ai:135] 0 2 player: -106.12 4.44
+20/07/07 14:00:28 899 [WARN,stat_ai:137] 1 3 player: -167.49 4.65
+20/07/07 14:00:28 900 [WARN,stat_ai:139]  0+2 - 1+3: 61.37 8.60
+20/07/07 14:46:20 596 [WARN,stat_ai:133] 0th player: -53.97 3.66
+20/07/07 14:46:20 597 [WARN,stat_ai:133] 1th player: -81.24 3.75
+20/07/07 14:46:20 597 [WARN,stat_ai:133] 2th player: -53.59 3.87
+20/07/07 14:46:20 598 [WARN,stat_ai:133] 3th player: -83.01 3.80
+20/07/07 14:46:20 598 [WARN,stat_ai:135] 0 2 player: -107.57 4.43
+20/07/07 14:46:20 599 [WARN,stat_ai:137] 1 3 player: -164.25 4.52
+20/07/07 14:46:20 599 [WARN,stat_ai:139]  0+2 - 1+3: 56.68 8.44
+20/07/07 14:52:26 545 [WARN,stat_ai:133] 0th player: -59.63 3.81
+20/07/07 14:52:26 546 [WARN,stat_ai:133] 1th player: -77.20 3.82
+20/07/07 14:52:26 546 [WARN,stat_ai:133] 2th player: -53.06 3.58
+20/07/07 14:52:26 547 [WARN,stat_ai:133] 3th player: -77.12 3.67
+20/07/07 14:52:26 547 [WARN,stat_ai:135] 0 2 player: -112.69 4.37
+20/07/07 14:52:26 548 [WARN,stat_ai:137] 1 3 player: -154.32 4.51
+20/07/07 14:52:26 548 [WARN,stat_ai:139]  0+2 - 1+3: 41.63 8.38
+20/07/07 14:53:08 967 [WARN,stat_ai:133] 0th player: -51.42 3.74
+20/07/07 14:53:08 968 [WARN,stat_ai:133] 1th player: -80.49 3.76
+20/07/07 14:53:08 968 [WARN,stat_ai:133] 2th player: -50.82 3.62
+20/07/07 14:53:08 969 [WARN,stat_ai:133] 3th player: -81.32 3.64
+20/07/07 14:53:08 969 [WARN,stat_ai:135] 0 2 player: -102.24 4.25
+20/07/07 14:53:08 970 [WARN,stat_ai:137] 1 3 player: -161.81 4.42
+20/07/07 14:53:08 970 [WARN,stat_ai:139]  0+2 - 1+3: 59.57 8.15
+20/07/07 14:58:09 755 [WARN,stat_ai:133] 0th player: -56.94 3.68
+20/07/07 14:58:09 756 [WARN,stat_ai:133] 1th player: -80.65 3.76
+20/07/07 14:58:09 756 [WARN,stat_ai:133] 2th player: -51.95 3.64
+20/07/07 14:58:09 757 [WARN,stat_ai:133] 3th player: -79.86 3.74
+20/07/07 14:58:09 757 [WARN,stat_ai:135] 0 2 player: -108.90 4.34
+20/07/07 14:58:09 758 [WARN,stat_ai:137] 1 3 player: -160.52 4.47
+20/07/07 14:58:09 758 [WARN,stat_ai:139]  0+2 - 1+3: 51.62 8.31
+20/07/07 15:00:51 695 [WARN,stat_ai:133] 0th player: -55.60 3.54
+20/07/07 15:00:51 696 [WARN,stat_ai:133] 1th player: -84.53 3.81
+20/07/07 15:00:51 697 [WARN,stat_ai:133] 2th player: -49.99 3.56
+20/07/07 15:00:51 697 [WARN,stat_ai:133] 3th player: -87.35 3.93
+20/07/07 15:00:51 698 [WARN,stat_ai:135] 0 2 player: -105.59 4.40
+20/07/07 15:00:51 698 [WARN,stat_ai:137] 1 3 player: -171.88 4.74
+20/07/07 15:00:51 699 [WARN,stat_ai:139]  0+2 - 1+3: 66.30 8.69
+20/07/07 15:07:03 341 [WARN,stat_ai:135] 0th player: -56.03 3.85
+20/07/07 15:07:03 341 [WARN,stat_ai:135] 1th player: -84.09 4.17
+20/07/07 15:07:03 342 [WARN,stat_ai:135] 2th player: -50.41 3.68
+20/07/07 15:07:03 342 [WARN,stat_ai:135] 3th player: -82.69 3.91
+20/07/07 15:07:03 343 [WARN,stat_ai:137] 0 2 player: -106.44 4.54
+20/07/07 15:07:03 343 [WARN,stat_ai:139] 1 3 player: -166.78 4.82
+20/07/07 15:07:03 344 [WARN,stat_ai:141]  0+2 - 1+3: 60.34 8.84
+20/07/07 15:09:03 474 [WARN,stat_ai:135] 0th player: -58.97 3.53
+20/07/07 15:09:03 475 [WARN,stat_ai:135] 1th player: -79.82 3.79
+20/07/07 15:09:03 476 [WARN,stat_ai:135] 2th player: -52.39 3.56
+20/07/07 15:09:03 505 [WARN,stat_ai:135] 3th player: -81.73 3.92
+20/07/07 15:09:03 506 [WARN,stat_ai:137] 0 2 player: -111.37 4.25
+20/07/07 15:09:03 506 [WARN,stat_ai:139] 1 3 player: -161.55 4.57
+20/07/07 15:09:03 507 [WARN,stat_ai:141]  0+2 - 1+3: 50.19 8.35
+20/07/07 15:11:28 078 [WARN,stat_ai:135] 0th player: -49.37 3.36
+20/07/07 15:11:28 079 [WARN,stat_ai:135] 1th player: -80.83 3.61
+20/07/07 15:11:28 079 [WARN,stat_ai:135] 2th player: -51.99 3.58
+20/07/07 15:11:28 080 [WARN,stat_ai:135] 3th player: -89.14 3.74
+20/07/07 15:11:28 080 [WARN,stat_ai:137] 0 2 player: -101.36 4.26
+20/07/07 15:11:28 081 [WARN,stat_ai:139] 1 3 player: -169.97 4.48
+20/07/07 15:11:28 081 [WARN,stat_ai:141]  0+2 - 1+3: 68.61 8.29
+20/07/07 15:15:41 461 [WARN,stat_ai:135] 0th player: -45.36 3.48
+20/07/07 15:15:41 461 [WARN,stat_ai:135] 1th player: -88.75 3.83
+20/07/07 15:15:41 462 [WARN,stat_ai:135] 2th player: -43.66 3.34
+20/07/07 15:15:41 462 [WARN,stat_ai:135] 3th player: -89.28 3.81
+20/07/07 15:15:41 463 [WARN,stat_ai:137] 0 2 player: -89.02 4.07
+20/07/07 15:15:41 463 [WARN,stat_ai:139] 1 3 player: -178.03 4.58
+20/07/07 15:15:41 464 [WARN,stat_ai:141]  0+2 - 1+3: 89.00 8.17
+20/07/07 15:19:34 030 [WARN,stat_ai:135] 0th player: -46.52 3.51
+20/07/07 15:19:34 031 [WARN,stat_ai:135] 1th player: -83.79 3.72
+20/07/07 15:19:34 031 [WARN,stat_ai:135] 2th player: -50.61 3.50
+20/07/07 15:19:34 032 [WARN,stat_ai:135] 3th player: -89.66 3.76
+20/07/07 15:19:34 032 [WARN,stat_ai:137] 0 2 player: -97.13 4.20
+20/07/07 15:19:34 033 [WARN,stat_ai:139] 1 3 player: -173.45 4.60
+20/07/07 15:19:34 034 [WARN,stat_ai:141]  0+2 - 1+3: 76.32 8.34
+20/07/07 15:23:44 290 [WARN,stat_ai:135] 0th player: -48.25 3.50
+20/07/07 15:23:44 290 [WARN,stat_ai:135] 1th player: -88.84 3.87
+20/07/07 15:23:44 291 [WARN,stat_ai:135] 2th player: -50.15 3.54
+20/07/07 15:23:44 291 [WARN,stat_ai:135] 3th player: -85.70 3.82
+20/07/07 15:23:44 292 [WARN,stat_ai:137] 0 2 player: -98.40 4.11
+20/07/07 15:23:44 292 [WARN,stat_ai:139] 1 3 player: -174.54 4.55
+20/07/07 15:23:44 293 [WARN,stat_ai:141]  0+2 - 1+3: 76.14 8.18
+20/07/07 15:30:41 005 [WARN,stat_ai:135] 0th player: -44.47 3.38
+20/07/07 15:30:41 006 [WARN,stat_ai:135] 1th player: -87.70 3.79
+20/07/07 15:30:41 006 [WARN,stat_ai:135] 2th player: -44.28 3.38
+20/07/07 15:30:41 007 [WARN,stat_ai:135] 3th player: -87.54 3.75
+20/07/07 15:30:41 008 [WARN,stat_ai:137] 0 2 player: -88.75 4.01
+20/07/07 15:30:41 008 [WARN,stat_ai:139] 1 3 player: -175.23 4.48
+20/07/07 15:30:41 009 [WARN,stat_ai:141]  0+2 - 1+3: 86.48 8.01
+20/07/07 15:37:07 484 [WARN,stat_ai:135] 0th player: -46.95 3.44
+20/07/07 15:37:07 484 [WARN,stat_ai:135] 1th player: -89.49 4.08
+20/07/07 15:37:07 485 [WARN,stat_ai:135] 2th player: -52.83 3.66
+20/07/07 15:37:07 486 [WARN,stat_ai:135] 3th player: -88.48 3.97
+20/07/07 15:37:07 486 [WARN,stat_ai:137] 0 2 player: -99.79 4.33
+20/07/07 15:37:07 487 [WARN,stat_ai:139] 1 3 player: -177.97 4.81
+20/07/07 15:37:07 488 [WARN,stat_ai:141]  0+2 - 1+3: 78.18 8.66
+20/07/07 15:42:43 411 [WARN,stat_ai:135] 0th player: -47.13 3.55
+20/07/07 15:42:43 412 [WARN,stat_ai:135] 1th player: -89.60 3.95
+20/07/07 15:42:43 412 [WARN,stat_ai:135] 2th player: -51.88 3.59
+20/07/07 15:42:43 413 [WARN,stat_ai:135] 3th player: -84.32 3.86
+20/07/07 15:42:43 413 [WARN,stat_ai:137] 0 2 player: -99.00 4.27
+20/07/07 15:42:43 414 [WARN,stat_ai:139] 1 3 player: -173.92 4.61
+20/07/07 15:42:43 414 [WARN,stat_ai:141]  0+2 - 1+3: 74.91 8.38
+20/07/07 15:44:27 160 [WARN,stat_ai:135] 0th player: -54.41 3.64
+20/07/07 15:44:27 160 [WARN,stat_ai:135] 1th player: -80.44 3.83
+20/07/07 15:44:27 161 [WARN,stat_ai:135] 2th player: -55.37 3.61
+20/07/07 15:44:27 161 [WARN,stat_ai:135] 3th player: -81.17 3.95
+20/07/07 15:44:27 162 [WARN,stat_ai:137] 0 2 player: -109.79 4.32
+20/07/07 15:44:27 162 [WARN,stat_ai:139] 1 3 player: -161.61 4.60
+20/07/07 15:44:27 163 [WARN,stat_ai:141]  0+2 - 1+3: 51.83 8.40
