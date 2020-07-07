@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log,cards_order
-from Util import ORDER_DICT2,INIT_CARDS
+from Util import ORDER_DICT2,INIT_CARDS,SCORE_DICT
 from MrRandom import MrRandom
 import random,numpy
 
 print_level=0
 
 class MrGreed(MrRandom):
-    SCORE_DICT={'SQ':-100,'DJ':100,'C10':-60,
-            'H2':0,'H3':0,'H4':0,'H5':-10,'H6':-10,'H7':-10,'H8':-10,'H9':-10,'H10':-10,
-            'HJ':-20,'HQ':-30,'HK':-40,'HA':-50,'JP':-60,'JG':-70}
-    BURDEN_DICT={'SA':45,'SK':35,'SJ':9,'S10':8,'S9':7,'S8':6,'S7':5,'S6':4,'S5':3,'S4':2,'S3':1,
-                 'CA':16,'CK':15,'CQ':9,'CJ':8,'C9':7,'C8':6,'C7':5,'C6':4,'C5':3,'C4':2,'C3':1,
-                 'DA':-3,'DK':-2,'DQ':-1,'D10':8,'D9':7,'D8':6,'D7':5,'D6':4,'D5':3,'D4':2,'D3':1,
-                 'H10':6,'H9':5,'H8':4,'H7':3,'H6':2,'H5':1,'H4':3,'H3':2,'H2':1}
-    N_SAMPLE=5
+    #SCORE_DICT={'SQ':-100,'DJ':100,'C10':-60,
+    #        'H2':0,'H3':0,'H4':0,'H5':-10,'H6':-10,'H7':-10,'H8':-10,'H9':-10,'H10':-10,
+    #        'HJ':-20,'HQ':-30,'HK':-40,'HA':-50,'JP':-60,'JG':-70}
+    BURDEN_DICT={'SA':11,'SK':9,'SQ':8,'SJ':7,'S10':6,'S9':5,'S8':4,'S7':3,'S6':2,'S5':1,'S4':1,
+                 'CA':11,'CK':9,'CQ':8,'CJ':7,'C10':6,'C9':5,'C8':4,'C7':3,'C6':2,'C5':1,'C4':1,
+                 'DA':11,'DK':9,'DQ':8,'DJ':7,'D10':6,'D9':5,'D8':4,'D7':3,'D6':2,'D5':1,'D4':1,
+                 'H10':6,'H9':5,'H8':4,'H7':3,'H6':2,'H5':1,'H4':1}
+    BURDEN_DICT_S={'SA':40,'SK':30}
+    BURDEN_DICT_D={'DA':-30,'DK':-20,'DQ':-10}
+    BURDEN_DICT_C={'CA':0.4,'CK':0.3,'CQ':0.2,'CJ':0.1}
+    N_SAMPLE=20
 
     def gen_legal_choice(suit,cards_dict,cards_list):
         if cards_dict.get(suit)==None or len(cards_dict[suit])==0:
@@ -29,8 +32,20 @@ class MrGreed(MrRandom):
             cards_dict[i[0]].append(i)
         return cards_dict
 
-    def clear_score(four_cards):
-        winner=-1
+    def calc_score_change(fmt_score,four_cards,scs_rmn_avg):
+        delta_score=0
+        for c in four_cards:
+            delta_score+=SCORE_DICT.get(c,0)
+        if fmt_score[2]:
+            delta_score*=2
+        elif 'C10' in four_cards:
+            delta_score+=delta_score+fmt_score[0]+scs_rmn_avg
+        #if print_level>=1:
+        #    log("%s %s %d delta_score: %d"%(fmt_score,four_cards,scs_rmn_avg,delta_score))
+        return delta_score
+
+    def clear_score(four_cards,fmt_score_list,trick_start,scs_rmn_avg):
+        winner=0
         score_temp=ORDER_DICT2[four_cards[0][1]]
         if four_cards[1][0]==four_cards[0][0]\
         and ORDER_DICT2[four_cards[1][1]]>score_temp:
@@ -38,24 +53,31 @@ class MrGreed(MrRandom):
             score_temp=ORDER_DICT2[four_cards[1][1]]
         if four_cards[2][0]==four_cards[0][0]\
         and ORDER_DICT2[four_cards[2][1]]>score_temp:
-            winner=-1
+            winner=2
             score_temp=ORDER_DICT2[four_cards[2][1]]
         if four_cards[3][0]==four_cards[0][0]\
         and ORDER_DICT2[four_cards[3][1]]>score_temp:
-            winner=1
-        final_score=sum([MrGreed.SCORE_DICT.get(i,0) for i in four_cards])
-        if 'C10' in four_cards:
-            if 'SQ' in four_cards:
-                final_score-=75
-            if 'HA' in four_cards:
-                final_score-=25
-            if 'DJ' in four_cards:
-                final_score+=25
-        final_score*=winner
-        return final_score
+            winner=3
+        delta_score=MrGreed.calc_score_change(fmt_score_list[(trick_start+winner)%4],four_cards,scs_rmn_avg)
+        if winner%2==0:
+            delta_score*=-1
+        return delta_score
+    
+    def calc_relief(card,impc_dict,scs_rmn_avg,my_score):
+        relief=MrGreed.BURDEN_DICT.get(card,0)
+        if impc_dict['SQ']==False:
+            relief+=MrGreed.BURDEN_DICT_S.get(card,0)
+        if impc_dict['DJ']==False:
+            relief+=MrGreed.BURDEN_DICT_D.get(card,0)
+        if impc_dict['C10']==False:
+            relief+=int(-1*MrGreed.BURDEN_DICT_C.get(card,0)*(scs_rmn_avg+my_score))
+        #if print_level>=1:
+        #    log("%s %s %s %s relief: %d"%(card,impc_dict,scs_rmn_avg,my_score,relief))
+        return relief
 
-    def as_last_player(suit,four_cards,cards_dict,cards_list):
-        '''return best four_cards directly'''
+    def as_last_player(suit,four_cards,cards_dict,cards_list,
+        fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace):
+        '''return best choice in four_cards directly'''
         if len(cards_dict[suit])==1:
             four_cards[3]=cards_dict[suit][0]
             return
@@ -63,39 +85,48 @@ class MrGreed(MrRandom):
         four_cards_tmp=four_cards[0:3]+['']
         for c in MrGreed.gen_legal_choice(suit,cards_dict,cards_list):
             four_cards_tmp[3]=c
-            score_temp=MrGreed.clear_score(four_cards_tmp)+MrGreed.BURDEN_DICT.get(c,0)
+            score_temp=MrGreed.clear_score(four_cards_tmp,fmt_score_list,trick_start,scs_rmn_avg)\
+                      +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[myplace][0])
             if score_temp>best_score:
                 four_cards[3]=four_cards_tmp[3]
                 best_score=score_temp
 
-    def as_third_player(suit,four_cards,cards_dict3,cards_list3,cards_dict4,cards_list4):
+    def as_third_player(suit,four_cards,cards_dict3,cards_list3,cards_dict4,cards_list4,
+        fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace):
         '''return best four_cards directly'''
         if len(cards_dict3[suit])==1:
             four_cards[2]=cards_dict3[suit][0]
-            MrGreed.as_last_player(suit,four_cards,cards_dict4,cards_list4)
+            MrGreed.as_last_player(suit,four_cards,cards_dict4,cards_list4
+                                  ,fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace)
             return
         best_score=-65535
         four_cards_tmp=four_cards[0:2]+['','']
         for c in MrGreed.gen_legal_choice(suit,cards_dict3,cards_list3):
             four_cards_tmp[2]=c
-            MrGreed.as_last_player(suit,four_cards_tmp,cards_dict4,cards_list4)
-            score_temp=-1*MrGreed.clear_score(four_cards_tmp)+MrGreed.BURDEN_DICT.get(c,0)
+            MrGreed.as_last_player(suit,four_cards_tmp,cards_dict4,cards_list4
+                                  ,fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace)
+            score_temp=-1*MrGreed.clear_score(four_cards_tmp,fmt_score_list,trick_start,scs_rmn_avg)\
+                      +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[myplace][0])
             if score_temp>best_score:
                 four_cards[2]=four_cards_tmp[2]
                 four_cards[3]=four_cards_tmp[3]
                 best_score=score_temp
 
-    def as_second_player(suit,four_cards,cards_dict2,cards_list2,cards_dict3,cards_list3,cards_dict4,cards_list4):
+    def as_second_player(suit,four_cards,cards_dict2,cards_list2,cards_dict3,cards_list3,cards_dict4,cards_list4,
+        fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace):
         if len(cards_dict2[suit])==1:
             four_cards[1]=cards_dict2[suit][0]
-            MrGreed.as_third_player(suit,four_cards,cards_dict3,cards_list3,cards_dict4,cards_list4)
+            MrGreed.as_third_player(suit,four_cards,cards_dict3,cards_list3,cards_dict4,cards_list4
+                                   ,fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace)
             return
         best_score=-65535
         four_cards_tmp=[four_cards[0],'','','']
         for c in MrGreed.gen_legal_choice(suit,cards_dict2,cards_list2):
             four_cards_tmp[1]=c
-            MrGreed.as_third_player(suit,four_cards_tmp,cards_dict3,cards_list3,cards_dict4,cards_list4)
-            score_temp=MrGreed.clear_score(four_cards_tmp)+MrGreed.BURDEN_DICT.get(c,0)
+            MrGreed.as_third_player(suit,four_cards_tmp,cards_dict3,cards_list3,cards_dict4,cards_list4
+                                   ,fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace)
+            score_temp=MrGreed.clear_score(four_cards_tmp,fmt_score_list,trick_start,scs_rmn_avg)\
+                      +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[myplace][0])
             if score_temp>best_score:
                 four_cards[1]=four_cards_tmp[1]
                 four_cards[2]=four_cards_tmp[2]
@@ -197,7 +228,7 @@ class MrGreed(MrRandom):
         cards_list_list[(exc_ind+1)%3].append(c1)
         cards_list_list[(exc_ind+2)%3].remove(c1)
         cards_list_list[(exc_ind+2)%3].append(c0)
-        assert MrGreed.check_void_legal(cards_list_list[0],cards_list_list[1],cards_list_list[2],void_info)
+        #assert MrGreed.check_void_legal(cards_list_list[0],cards_list_list[1],cards_list_list[2],void_info)
         return 0
         
     def check_void_legal(cards_list1,cards_list2,cards_list3,void_info):
@@ -303,11 +334,45 @@ class MrGreed(MrRandom):
             return False
         return True"""
 
+    def gen_fmt_scores(scards):
+        '''score,num_h,C10,has score'''
+        fmt_score_list=[[0,0,False,False],[0,0,False,False],[0,0,False,False],[0,0,False,False]]
+        for i,cs in enumerate(scards):
+            for c in cs:
+                fmt_score_list[i][0]+=SCORE_DICT[c]
+                if c=='C10':
+                    fmt_score_list[i][2]=True
+                else:
+                    fmt_score_list[i][3]=True
+                    if c[0]=='H':
+                        fmt_score_list[i][1]+=1
+        return fmt_score_list
+
+    def gen_impc_dict(scards,cards_on_table):
+        impc_dict={'SQ':False,'DJ':False,'C10':False}
+        for i in scards:
+            for c in i:
+                if c=='SQ':
+                    impc_dict['SQ']=True
+                elif c=='DJ':
+                    impc_dict['DJ']=True
+                elif c=='C10':
+                    impc_dict['C10']=True
+        for c in cards_on_table:
+            if c=='SQ':
+                impc_dict['SQ']=True
+            elif c=='DJ':
+                impc_dict['DJ']=True
+            elif c=='C10':
+                impc_dict['C10']=True
+        return impc_dict
+
     def pick_a_card(self):
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place,"self.place and self.cards_on_table contrdict"
         global print_level
-        #if len(self.history)==10:
+        #if len(self.history)==0 and print_level==0:
         #    print_level=1
+        #    input("set print_level to 1")
         if print_level>=1:
             log("my turn %s %s"%(self.cards_on_table,self.cards_list))
         suit=self.decide_suit()
@@ -319,10 +384,25 @@ class MrGreed(MrRandom):
             if print_level>=1:
                 log("I have no choice but %s"%(choice))
             return choice
+        
         #如果我是最后一个出的
+        fmt_score_list=MrGreed.gen_fmt_scores(self.scores)
+        impc_dict=MrGreed.gen_impc_dict(self.scores,self.cards_on_table)
+        for c in self.cards_list:
+            if c=='SQ':
+                impc_dict['SQ']=True
+            elif c=='DJ':
+                impc_dict['DJ']=True
+            elif c=='C10':
+                impc_dict['C10']=True
+        scs_rmn_avg=(-200-sum([i[0] for i in fmt_score_list]))//4
+        if print_level>=2:
+            log(fmt_score_list)
+            log("scs_rmn_avg: %d"%(scs_rmn_avg))
         if len(self.cards_on_table)==4:
             four_cards=self.cards_on_table[1:4]+[""]
-            MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list)
+            MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list
+                                  ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
             choice=four_cards[3]
             if print_level>=1:
                 log("%s, %s I choose %s"%(self.cards_on_table,self.cards_list,choice))
@@ -332,9 +412,7 @@ class MrGreed(MrRandom):
         void_info=MrGreed.gen_void_info(self.place,self.history,self.cards_on_table)
         if print_level>=2:
             log("void info: %s"%(void_info,))
-        #计算别人可能还有什么牌
         cards_remain=MrGreed.calc_cards_remain(self.history,self.cards_on_table,self.cards_list)
-        #生成一个合法操作字典
         d_legal={}
         for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list):
             d_legal[c]=0
@@ -361,8 +439,10 @@ class MrGreed(MrRandom):
                     log("gen scenario: %s"%(cards_list_1))
                 for c in d_legal:
                     four_cards[2]=c
-                    MrGreed.as_last_player(suit,four_cards,cards_dict_1,cards_list_1)
-                    score=-1*MrGreed.clear_score(four_cards)+MrGreed.BURDEN_DICT.get(c,0)
+                    MrGreed.as_last_player(suit,four_cards,cards_dict_1,cards_list_1
+                                          ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
+                    score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
+                         +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
                     if print_level>=2:
                         log("If I choose %s: %s, %d"%(c,four_cards,score))
                     d_legal[c]+=score
@@ -390,8 +470,10 @@ class MrGreed(MrRandom):
                     log("gen scenario: %s, %s"%(cards_list_1,cards_list_2))
                 for c in d_legal:
                     four_cards[1]=c
-                    MrGreed.as_third_player(suit,four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2)
-                    score=MrGreed.clear_score(four_cards)+MrGreed.BURDEN_DICT.get(c,0)
+                    MrGreed.as_third_player(suit,four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2
+                                           ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
+                    score=MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
+                         +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
                     if print_level>=2:
                         log("If I choose %s: %s, %d"%(c,four_cards,score))
                     d_legal[c]+=score
@@ -399,6 +481,17 @@ class MrGreed(MrRandom):
         elif len(self.cards_on_table)==1:
             assert len(cards_remain)==3*len(self.cards_list)
             lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)]
+            d_suit_extra={'S':0,'H':0,'D':0,'C':0}
+            if len(self.history)<3:
+                l_temp=[]
+                for h in self.history:
+                    for c in h[1:5]:
+                        l_temp.append(c[0])
+                s_temp=''.join(l_temp)
+                for s in 'SHDC':
+                    my_len=len(cards_dict[s])
+                    avg_len=(13-s_temp.count(s)-my_len)/3
+                    d_suit_extra[s]=int((avg_len-my_len)*20) #a_free_para_meter_here
             four_cards=['','','','']
             for ax in range(MrGreed.N_SAMPLE):
                 if expire_date==0:
@@ -421,11 +514,15 @@ class MrGreed(MrRandom):
                     log("gen scenario: %s, %s, %s"%(cards_list_1,cards_list_2,cards_list_3))
                 for c in d_legal:
                     four_cards[0]=c
-                    MrGreed.as_second_player(c[0],four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2,cards_dict_3,cards_list_3)
-                    score=-1*MrGreed.clear_score(four_cards)+MrGreed.BURDEN_DICT.get(c,0)
+                    MrGreed.as_second_player(c[0],four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2,cards_dict_3,cards_list_3
+                                            ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
+                    score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
+                         +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
                     if print_level>=2:
                         log("If I choose %s: %s, %d"%(c,four_cards,score))
                     d_legal[c]+=score
+            for c in d_legal:
+                d_legal[c]+=d_suit_extra[c[0]]*(ax+1)
         if print_level>=1:
             log(d_legal)
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
@@ -522,8 +619,41 @@ def test_last():
     #g0.cards_on_table=[1, 'S8', 'SQ', 'S2']
     log(g0.pick_a_card())
 
+def test_c10():
+    global print_level
+    print_level=2
+    g0=MrGreed(room=0,place=0,name="if0")
+    g0.cards_list=['C3','CA','H2','H3','H4','H5','H6','H7','H8','H9','H10']
+    g0.history=[(2,'D3','D4','DJ','D6'),(1,'S2','S3','S4','S5')]
+    g0.cards_on_table=[2, 'C2', 'C10']
+    g0.scores=[['DJ'],[],[],['SQ']]
+    log(g0.pick_a_card())
+
+def test_sa():
+    global print_level
+    print_level=2
+    g0=MrGreed(room=0,place=0,name="if0")
+    g0.cards_list=['H2','H3','H4','H5','H6','H7','H8','H9','HJ','SK','SA']
+    g0.history=[(2,'D3','D4','DJ','D6'),(1,'S2','S3','S4','S5')]
+    g0.cards_on_table=[2, 'C2', 'C3']
+    g0.scores=[[],[],[],['SQ']]
+    log(g0.pick_a_card())
+
+def test_da():
+    global print_level
+    print_level=2
+    g0=MrGreed(room=0,place=0,name="if0")
+    g0.cards_list=['H2','H3','H4','H5','H6','H7','H8','H9','HJ','D9','DA']
+    g0.history=[(2,'D3','D4','DJ','D6'),(1,'S2','S3','S4','S5')]
+    g0.cards_on_table=[2, 'D7', 'D8']
+    g0.scores=[[],[],[],['DJ']]
+    log(g0.pick_a_card())
+
 if __name__=="__main__":
     #test_last()
     #test_3rd()
     #test_2nd()
-    test_1st()
+    #test_1st()
+    #test_c10()
+    #test_sa()
+    test_da()

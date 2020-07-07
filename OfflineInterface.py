@@ -150,7 +150,7 @@ def play_with_ai():
     for i in range(13):
         for j in range(4):
             offlineinterface.step()
-            #input()
+            input()
     offlineinterface.clear()
 
 if __name__=="__main__":
