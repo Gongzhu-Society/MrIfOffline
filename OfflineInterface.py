@@ -5,6 +5,7 @@ from Util import ORDER_DICT1,ORDER_DICT2,SCORE_DICT
 from MrRandom import MrRandom,Human
 from MrIf import MrIf
 from MrGreed import MrGreed
+from MrTree import MrTree
 import random,itertools,numpy,copy,time
 
 class OfflineInterface():
@@ -109,19 +110,18 @@ class OfflineInterface():
         del self.scores_num
 
 def stat_ai():
-    r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
     g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
-    offlineinterface=OfflineInterface([g[0],f[1],g[2],f[3]],print_flag=False)
+    t=[MrTree(room=0,place=i,name='tree%d'%(i)) for i in range(4)]
+    offlineinterface=OfflineInterface([t[0],f[1],t[2],f[3]],print_flag=False)
     stats=[]
-    N1=256
-    N2=4
+    N1=64;N2=2
     tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
             cards=offlineinterface.shuffle()
         else:
-            cards=cards[13:52]+cards[0:13]
+            cards=cards[39:52]+cards[0:39]
             offlineinterface.shuffle(cards=cards)
         for i,j in itertools.product(range(13),range(4)):
             offlineinterface.step()
@@ -140,12 +140,53 @@ def stat_ai():
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log(" 0+2 - 1+3: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
 
+def stat_ai_2():
+    f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
+    g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
+    offlineinterface=OfflineInterface([g[0],f[1],g[2],f[3]],print_flag=False)
+    stats=[]
+    N1=256;N2=4
+    for k in range(N1):
+        for l in range(N2):
+            if l==0:
+                cards=offlineinterface.shuffle()
+            else:
+                cards=cards[39:52]+cards[0:39]
+                offlineinterface.shuffle(cards=cards)
+            for i,j in itertools.product(range(13),range(4)):
+                offlineinterface.step()
+            stats.append(offlineinterface.clear())
+            log("%d, %d: %s"%(k,l,stats[-1]))
+            offlineinterface.prepare_new()
+        stat_temp=[j[0]+j[2]-j[1]-j[3] for j in stats[-1*N2:]]
+        stat_temp=sum(stat_temp)/4
+        if stat_temp>0:
+            log("win: %d"%(stat_temp))
+            continue
+        elif stat_temp==0:
+            log("draw")
+            continue
+        log("lose: %d"%(stat_temp))
+        offlineinterface.print_flag=True
+        for l in range(N2):
+            cards=cards[13:52]+cards[0:13]
+            offlineinterface.shuffle(cards=cards)
+            input()
+            for i,j in itertools.product(range(13),range(4)):
+                offlineinterface.step()
+            s_temp=offlineinterface.clear()
+            log("%d, %d: %s"%(k,l,s_temp))
+            input()
+            offlineinterface.prepare_new()
+        offlineinterface.print_flag=False
+
 def play_with_ai():
     r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
     g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
+    t=[MrTree(room=0,place=i,name='tree%d'%(i)) for i in range(4)]
     myself=Human(room=0,place=3,name="myself")
-    offlineinterface=OfflineInterface([g[0],g[1],g[2],g[3]])
+    offlineinterface=OfflineInterface([t[0],g[1],t[2],g[3]])
     offlineinterface.shuffle()
     for i in range(13):
         for j in range(4):
@@ -154,5 +195,6 @@ def play_with_ai():
     offlineinterface.clear()
 
 if __name__=="__main__":
-    stat_ai()
-    #play_with_ai()
+    #stat_ai()
+    #stat_ai_2()
+    play_with_ai()
