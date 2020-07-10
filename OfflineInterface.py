@@ -113,9 +113,9 @@ def stat_ai():
     f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
     g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
     t=[MrTree(room=0,place=i,name='tree%d'%(i)) for i in range(4)]
-    offlineinterface=OfflineInterface([t[0],f[1],t[2],f[3]],print_flag=False)
+    offlineinterface=OfflineInterface([g[0],g[1],g[2],g[3]],print_flag=True)
     stats=[]
-    N1=64;N2=2
+    N1=256;N2=4
     tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
@@ -195,6 +195,6 @@ def play_with_ai():
     offlineinterface.clear()
 
 if __name__=="__main__":
-    #stat_ai()
+    stat_ai()
     #stat_ai_2()
-    play_with_ai()
+    #play_with_ai()
