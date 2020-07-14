@@ -5,6 +5,7 @@
 
 ### 2020.7.14
 1. 转而使用神经网络模仿MrGreed打最后一张牌的行为, MrGreed打最后一张牌的逻辑很简单,一定好学. 并且果然取得了突破, 使用
+```
 NN_Last(
   (fc1): Linear(in_features=260, out_features=416, bias=True)
   (fc2): Linear(in_features=416, out_features=208, bias=True)
@@ -13,6 +14,7 @@ NN_Last(
   (fc5): Linear(in_features=52, out_features=52, bias=True)
   (fc6): Linear(in_features=52, out_features=52, bias=True)
 ) 228020(总参数个数)
+```
 经过585个epoch后: 0.012297 0.625901 0.962025(训练集loss,测试集loss,测试集模仿率). 96.2%是非常高的正确率, 与之相对的, 随机初始化的神经网络准确率大约是 26%-29%.
 
 2. 但是转念一想, MrGreed打最后一张牌的逻辑也很简单, 只有几个if, 所以神经网络拟合的好不足为奇, 同时这说明我应当可以缩减神经网络参数的个数达到一样好的效果. 
