@@ -46,21 +46,29 @@ class NN_Third(nn.Module):
         self.fc2=nn.Linear(256,128)
         self.fc3=nn.Linear(128,64)
         self.fc4=nn.Linear(64,64)
-        self.fc5=nn.Linear(64,52)
+        self.fc5=nn.Linear(64,64)
+        self.fc6=nn.Linear(64,64)
+        self.fc7=nn.Linear(64,64)
+        self.fc8=nn.Linear(64,52)
 
     def forward(self, x):
         x=F.relu(self.fc1(x))
         x=F.relu(self.fc2(x))
         x=F.relu(self.fc3(x))
         x=F.relu(self.fc4(x))
-        x=self.fc5(x)
+        x=F.relu(self.fc5(x))
+        x=F.relu(self.fc6(x))
+        x=F.relu(self.fc7(x))
+        x=self.fc8(x)
         return x
 
     def num_paras(self):
         return sum([p.numel() for p in self.parameters()])
 
     def __str__(self):
-        return "%s %d"%(super(NN_Last,self).__str__(),self.num_paras())    
+        #for param in self.parameters():
+        #    s.append("%s"%(list(param.size()),))
+        return "%s %d"%(super(NN_Third,self).__str__(),self.num_paras())
 
 def gen_legal_onehot(cards_on_table,cards_l):
     if len(cards_on_table)>2:
@@ -144,7 +152,8 @@ def correct_num(netout,target_index,legal_mask):
     return torch.sum(max_i==target_index).item()
 
 def train(NetClass,order):
-    files=["./Greed_batch/Greed_batch2.txt","./Greed_batch/Greed_batch3.txt"]
+    files=["./Greed_batch/Greed_batch2.txt","./Greed_batch/Greed_batch3.txt",
+           "./Greed_batch/Greed_batch4.txt","./Greed_batch/Greed_batch5.txt"]
     traindata=[]
     for f_name in files:
         parse_data(f_name,traindata,order)
@@ -165,7 +174,7 @@ def train(NetClass,order):
     log("epoch num: train_loss test_loss test_correct_ratio")
     optimizer=optim.SGD(net.parameters(),lr=0.01,momentum=0.9)
     optimizer.zero_grad()
-    scheduler=torch.optim.lr_scheduler.MultiStepLR(optimizer,[100,300],gamma=0.1)
+    scheduler=torch.optim.lr_scheduler.MultiStepLR(optimizer,[200,400],gamma=0.1)
     for epoch in range(5000):
         running_loss=0
         for i in trainloader:
@@ -195,4 +204,5 @@ def test_DataLoader():
 
 if __name__=="__main__":
     #test_DataLoader()
-    train(NN_Last,3)
+    #train(NN_Last,3)
+    train(NN_Third,2)

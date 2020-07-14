@@ -1647,3 +1647,491 @@
 20/07/14 16:43:40 358 [INFO,train:185] 400: 0.003297 0.474730 0.978062
 20/07/14 16:44:09 927 [INFO,train:185] 450: 0.003224 0.476330 0.978062
 20/07/14 16:44:39 622 [INFO,train:185] 500: 0.003153 0.477918 0.978062
+20/07/14 16:52:11 701 [INFO,parse_data:77] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 16:52:18 029 [INFO,parse_data:135] parse finish. got 10106 datas
+20/07/14 16:52:18 030 [INFO,parse_data:77] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 16:52:24 214 [INFO,parse_data:135] parse finish. got 10035 datas
+20/07/14 16:52:24 214 [INFO,parse_data:77] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 16:52:24 985 [INFO,parse_data:135] parse finish. got 1233 datas
+20/07/14 16:52:51 764 [INFO,parse_data:77] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 16:52:57 894 [INFO,parse_data:135] parse finish. got 10106 datas
+20/07/14 16:52:57 895 [INFO,parse_data:77] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 16:53:04 116 [INFO,parse_data:135] parse finish. got 10035 datas
+20/07/14 16:53:04 117 [INFO,parse_data:77] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 16:53:04 894 [INFO,parse_data:135] parse finish. got 1233 datas
+20/07/14 16:53:04 896 [INFO,train:159] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=64, bias=True)
+  (fc4): Linear(in_features=64, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=52, bias=True)
+) 122676
+20/07/14 16:53:05 046 [INFO,train:164] random init: 3.964376 0.263923
+20/07/14 16:53:05 047 [INFO,train:165] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 16:53:05 655 [INFO,train:185]   0: 3.828884 3.557503 0.450363
+20/07/14 16:53:24 023 [INFO,train:185]  50: 0.507196 0.699835 0.757869
+20/07/14 16:53:42 325 [INFO,train:185] 100: 0.104567 1.210574 0.861985
+20/07/14 16:54:01 747 [INFO,train:185] 150: 0.046314 1.423554 0.876513
+20/07/14 16:54:23 799 [INFO,train:185] 200: 0.035129 1.643346 0.876513
+20/07/14 16:54:46 121 [INFO,train:185] 250: 0.029144 1.835528 0.874092
+20/07/14 16:55:09 068 [INFO,train:185] 300: 0.024902 1.995474 0.876513
+20/07/14 16:55:29 037 [INFO,train:185] 350: 0.023941 2.013537 0.876513
+20/07/14 16:55:51 611 [INFO,train:185] 400: 0.023593 2.029570 0.876513
+20/07/14 16:56:14 653 [INFO,train:185] 450: 0.023249 2.045258 0.876513
+20/07/14 16:56:37 616 [INFO,train:185] 500: 0.022920 2.061274 0.876513
+20/07/14 16:56:57 660 [INFO,train:185] 550: 0.022606 2.077067 0.876513
+20/07/14 16:57:17 763 [INFO,train:185] 600: 0.022305 2.092768 0.876513
+20/07/14 16:57:37 877 [INFO,train:185] 650: 0.022010 2.108232 0.874092
+20/07/14 16:57:58 297 [INFO,train:185] 700: 0.021729 2.123414 0.874092
+20/07/14 16:58:19 204 [INFO,train:185] 750: 0.021460 2.138375 0.874092
+20/07/14 16:58:40 215 [INFO,train:185] 800: 0.021202 2.153088 0.874092
+20/07/14 16:59:00 810 [INFO,train:185] 850: 0.020952 2.167753 0.874092
+20/07/14 16:59:21 569 [INFO,train:185] 900: 0.020711 2.182298 0.874092
+20/07/14 16:59:42 256 [INFO,train:185] 950: 0.020477 2.196603 0.874092
+20/07/14 17:01:34 680 [INFO,parse_data:79] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 17:01:40 883 [INFO,parse_data:137] parse finish. got 10106 datas
+20/07/14 17:01:40 883 [INFO,parse_data:79] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 17:01:47 107 [INFO,parse_data:137] parse finish. got 10035 datas
+20/07/14 17:01:47 108 [INFO,parse_data:79] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 17:01:47 892 [INFO,parse_data:137] parse finish. got 1233 datas
+20/07/14 17:01:47 895 [INFO,train:161] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=64, bias=True)
+  (fc6): Linear(in_features=64, out_features=64, bias=True)
+  (fc4): Linear(in_features=64, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=52, bias=True)
+) 126836
+20/07/14 17:01:48 053 [INFO,train:166] random init: 3.937437 0.324455
+20/07/14 17:01:48 054 [INFO,train:167] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 17:01:48 592 [INFO,train:187]   0: 3.776368 3.440017 0.443099
+20/07/14 17:02:09 451 [INFO,train:187]  50: 0.404748 0.692225 0.791768
+20/07/14 17:02:31 033 [INFO,train:187] 100: 0.144932 1.474462 0.869249
+20/07/14 17:02:53 438 [INFO,train:187] 150: 0.048002 2.056180 0.891041
+20/07/14 17:03:16 234 [INFO,train:187] 200: 0.035204 2.345597 0.895884
+20/07/14 17:03:41 600 [INFO,train:187] 250: 0.028649 2.580015 0.893462
+20/07/14 17:04:05 542 [INFO,train:187] 300: 0.023995 2.807611 0.898305
+20/07/14 17:04:31 886 [INFO,train:187] 350: 0.022708 2.836856 0.898305
+20/07/14 17:05:00 277 [INFO,train:187] 400: 0.022375 2.863930 0.898305
+20/07/14 17:05:28 776 [INFO,train:187] 450: 0.022052 2.891901 0.898305
+20/07/14 17:05:56 740 [INFO,train:187] 500: 0.021727 2.921356 0.898305
+20/07/14 17:06:24 550 [INFO,train:187] 550: 0.021366 2.955876 0.898305
+20/07/14 17:06:53 413 [INFO,train:187] 600: 0.021057 2.983818 0.898305
+20/07/14 17:07:54 877 [INFO,parse_data:79] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 17:08:01 055 [INFO,parse_data:137] parse finish. got 10106 datas
+20/07/14 17:08:01 056 [INFO,parse_data:79] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 17:08:07 260 [INFO,parse_data:137] parse finish. got 10035 datas
+20/07/14 17:08:07 260 [INFO,parse_data:79] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 17:08:08 041 [INFO,parse_data:137] parse finish. got 1233 datas
+20/07/14 17:08:08 043 [INFO,train:161] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc6): Linear(in_features=128, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=64, bias=True)
+  (fc4): Linear(in_features=64, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=52, bias=True)
+) 139188
+20/07/14 17:08:08 205 [INFO,train:166] random init: 3.944275 0.278450
+20/07/14 17:08:08 205 [INFO,train:167] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 17:08:08 793 [INFO,train:187]   0: 3.838193 3.673817 0.460048
+20/07/14 17:08:33 402 [INFO,train:187]  50: 0.388727 0.774419 0.801453
+20/07/14 17:08:58 255 [INFO,train:187] 100: 0.122022 1.298380 0.864407
+20/07/14 17:09:23 833 [INFO,train:187] 150: 0.044194 2.145354 0.869249
+20/07/14 17:09:51 671 [INFO,train:187] 200: 0.022312 1.962852 0.891041
+20/07/14 17:10:22 639 [INFO,train:187] 250: 0.013924 2.312334 0.893462
+20/07/14 17:10:54 183 [INFO,train:187] 300: 0.012936 2.490592 0.886199
+20/07/14 17:11:23 699 [INFO,train:187] 350: 0.012304 2.634830 0.888620
+20/07/14 17:11:52 469 [INFO,train:187] 400: 0.011778 2.743711 0.888620
+20/07/14 17:12:21 624 [INFO,train:187] 450: 0.011642 2.758226 0.888620
+20/07/14 17:12:50 772 [INFO,train:187] 500: 0.011595 2.770081 0.891041
+20/07/14 17:13:20 057 [INFO,train:187] 550: 0.011550 2.781674 0.891041
+20/07/14 17:13:49 375 [INFO,train:187] 600: 0.011506 2.793123 0.891041
+20/07/14 17:15:29 584 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 17:15:35 723 [INFO,parse_data:139] parse finish. got 10106 datas
+20/07/14 17:15:35 723 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 17:15:41 858 [INFO,parse_data:139] parse finish. got 10035 datas
+20/07/14 17:15:41 858 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 17:15:42 625 [INFO,parse_data:139] parse finish. got 1233 datas
+20/07/14 17:15:42 627 [INFO,train:163] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc6): Linear(in_features=128, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=64, bias=True)
+  (fc7): Linear(in_features=64, out_features=64, bias=True)
+  (fc4): Linear(in_features=64, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=52, bias=True)
+) 143348
+20/07/14 17:15:42 792 [INFO,train:168] random init: 3.939580 0.319613
+20/07/14 17:15:42 793 [INFO,train:169] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 17:15:43 416 [INFO,train:189]   0: 3.823568 3.642545 0.474576
+20/07/14 17:16:08 953 [INFO,train:189]  50: 0.495240 0.789486 0.726392
+20/07/14 17:16:30 458 [INFO,train:189] 100: 0.174517 1.123135 0.840194
+20/07/14 17:16:53 507 [INFO,train:189] 150: 0.124343 1.515970 0.854722
+20/07/14 17:17:21 351 [INFO,train:189] 200: 0.040673 2.427901 0.881356
+20/07/14 17:17:53 523 [INFO,train:189] 250: 0.024540 3.027948 0.881356
+20/07/14 17:18:27 463 [INFO,train:189] 300: 0.022459 3.420055 0.881356
+20/07/14 17:19:01 362 [INFO,train:189] 350: 0.021017 3.770530 0.881356
+20/07/14 17:19:35 396 [INFO,train:189] 400: 0.019674 4.076186 0.881356
+20/07/14 17:20:10 308 [INFO,train:189] 450: 0.019533 4.113326 0.881356
+20/07/14 17:20:45 320 [INFO,train:189] 500: 0.019438 4.144162 0.878935
+20/07/14 17:21:20 446 [INFO,train:189] 550: 0.019346 4.175182 0.878935
+20/07/14 17:21:55 365 [INFO,train:189] 600: 0.019255 4.205298 0.878935
+20/07/14 17:22:30 709 [INFO,train:189] 650: 0.019168 4.234382 0.878935
+20/07/14 17:23:06 252 [INFO,train:189] 700: 0.019082 4.263776 0.878935
+20/07/14 17:23:41 504 [INFO,train:189] 750: 0.018996 4.292818 0.878935
+20/07/14 17:24:15 521 [INFO,train:189] 800: 0.018904 4.321742 0.881356
+20/07/14 17:24:46 804 [INFO,train:189] 850: 0.018802 4.347763 0.881356
+20/07/14 17:25:18 469 [INFO,train:189] 900: 0.018704 4.375279 0.881356
+20/07/14 17:25:54 033 [INFO,train:189] 950: 0.018614 4.404856 0.881356
+20/07/14 17:26:29 854 [INFO,train:189] 1000: 0.018530 4.434893 0.881356
+20/07/14 17:27:06 294 [INFO,train:189] 1050: 0.018445 4.462781 0.881356
+20/07/14 17:27:42 671 [INFO,train:189] 1100: 0.018363 4.490581 0.881356
+20/07/14 17:28:15 085 [INFO,train:189] 1150: 0.018282 4.518892 0.881356
+20/07/14 17:28:46 711 [INFO,train:189] 1200: 0.018201 4.545387 0.881356
+20/07/14 17:29:19 793 [INFO,train:189] 1250: 0.018121 4.573161 0.881356
+20/07/14 17:29:55 779 [INFO,train:189] 1300: 0.018040 4.599347 0.881356
+20/07/14 17:30:31 314 [INFO,train:189] 1350: 0.017960 4.626483 0.881356
+20/07/14 17:31:07 122 [INFO,train:189] 1400: 0.017883 4.652951 0.881356
+20/07/14 17:31:43 048 [INFO,train:189] 1450: 0.017805 4.678897 0.881356
+20/07/14 17:32:19 704 [INFO,train:189] 1500: 0.017720 4.706961 0.881356
+20/07/14 17:32:55 635 [INFO,train:189] 1550: 0.017642 4.733036 0.881356
+20/07/14 17:33:31 576 [INFO,train:189] 1600: 0.017568 4.760349 0.878935
+20/07/14 17:34:07 547 [INFO,train:189] 1650: 0.017492 4.786819 0.878935
+20/07/14 17:34:43 393 [INFO,train:189] 1700: 0.017420 4.812187 0.878935
+20/07/14 17:35:19 664 [INFO,train:189] 1750: 0.017346 4.839306 0.878935
+20/07/14 17:35:56 054 [INFO,train:189] 1800: 0.017273 4.865134 0.878935
+20/07/14 17:36:32 110 [INFO,train:189] 1850: 0.017206 4.891663 0.878935
+20/07/14 17:37:07 283 [INFO,train:189] 1900: 0.017135 4.917253 0.878935
+20/07/14 17:37:43 717 [INFO,train:189] 1950: 0.017069 4.942558 0.878935
+20/07/14 17:38:19 921 [INFO,train:189] 2000: 0.017003 4.968652 0.878935
+20/07/14 17:38:55 675 [INFO,train:189] 2050: 0.016939 4.994388 0.878935
+20/07/14 17:39:32 140 [INFO,train:189] 2100: 0.016876 5.019000 0.878935
+20/07/14 17:40:08 372 [INFO,train:189] 2150: 0.016814 5.044040 0.878935
+20/07/14 17:40:43 885 [INFO,train:189] 2200: 0.016753 5.069259 0.878935
+20/07/14 17:41:20 517 [INFO,train:189] 2250: 0.016691 5.093305 0.878935
+20/07/14 17:41:56 865 [INFO,train:189] 2300: 0.016633 5.118326 0.878935
+20/07/14 17:42:33 610 [INFO,train:189] 2350: 0.016574 5.141941 0.878935
+20/07/14 17:43:06 460 [INFO,train:189] 2400: 0.016516 5.166013 0.878935
+20/07/14 17:43:42 904 [INFO,train:189] 2450: 0.016458 5.191376 0.878935
+20/07/14 17:44:17 839 [INFO,train:189] 2500: 0.016400 5.215010 0.878935
+20/07/14 17:44:50 276 [INFO,train:189] 2550: 0.016343 5.238565 0.878935
+20/07/14 17:45:22 795 [INFO,train:189] 2600: 0.016285 5.263088 0.878935
+20/07/14 17:45:55 269 [INFO,train:189] 2650: 0.016228 5.286062 0.878935
+20/07/14 17:46:27 781 [INFO,train:189] 2700: 0.016174 5.309674 0.878935
+20/07/14 17:47:00 316 [INFO,train:189] 2750: 0.016118 5.333430 0.878935
+20/07/14 17:47:32 947 [INFO,train:189] 2800: 0.016064 5.356575 0.878935
+20/07/14 17:48:05 490 [INFO,train:189] 2850: 0.016008 5.380813 0.878935
+20/07/14 17:48:41 982 [INFO,train:189] 2900: 0.015955 5.402812 0.878935
+20/07/14 17:49:16 776 [INFO,train:189] 2950: 0.015900 5.425741 0.878935
+20/07/14 17:49:49 341 [INFO,train:189] 3000: 0.015847 5.449248 0.878935
+20/07/14 17:50:21 911 [INFO,train:189] 3050: 0.015796 5.470989 0.878935
+20/07/14 17:50:54 534 [INFO,train:189] 3100: 0.015743 5.493922 0.878935
+20/07/14 17:51:30 685 [INFO,train:189] 3150: 0.015693 5.516219 0.878935
+20/07/14 17:52:07 210 [INFO,train:189] 3200: 0.015643 5.539802 0.878935
+20/07/14 17:52:43 944 [INFO,train:189] 3250: 0.015593 5.561763 0.878935
+20/07/14 17:53:21 028 [INFO,train:189] 3300: 0.015543 5.583817 0.878935
+20/07/14 17:53:53 720 [INFO,train:189] 3350: 0.015496 5.606668 0.878935
+20/07/14 17:54:26 642 [INFO,train:189] 3400: 0.015447 5.628919 0.878935
+20/07/14 17:54:59 419 [INFO,train:189] 3450: 0.015401 5.651688 0.878935
+20/07/14 17:55:36 174 [INFO,train:189] 3500: 0.015354 5.673721 0.878935
+20/07/14 17:56:13 452 [INFO,train:189] 3550: 0.015309 5.696629 0.881356
+20/07/14 17:56:47 089 [INFO,train:189] 3600: 0.015263 5.718284 0.881356
+20/07/14 17:57:22 010 [INFO,train:189] 3650: 0.015220 5.740272 0.881356
+20/07/14 17:57:59 492 [INFO,train:189] 3700: 0.015176 5.762041 0.881356
+20/07/14 17:58:36 497 [INFO,train:189] 3750: 0.015128 5.779662 0.881356
+20/07/14 17:59:13 478 [INFO,train:189] 3800: 0.015083 5.800983 0.881356
+20/07/14 17:59:51 077 [INFO,train:189] 3850: 0.015038 5.820685 0.881356
+20/07/14 18:00:25 028 [INFO,train:189] 3900: 0.014994 5.841486 0.881356
+20/07/14 18:01:02 560 [INFO,train:189] 3950: 0.014949 5.861474 0.881356
+20/07/14 18:01:39 165 [INFO,train:189] 4000: 0.014906 5.882640 0.881356
+20/07/14 18:03:12 557 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 18:03:18 705 [INFO,parse_data:139] parse finish. got 10106 datas
+20/07/14 18:03:18 706 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 18:03:24 875 [INFO,parse_data:139] parse finish. got 10035 datas
+20/07/14 18:03:24 875 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 18:03:25 650 [INFO,parse_data:139] parse finish. got 1233 datas
+20/07/14 18:03:25 652 [INFO,train:163] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=64, bias=True)
+  (fc6): Linear(in_features=64, out_features=64, bias=True)
+  (fc7): Linear(in_features=64, out_features=64, bias=True)
+  (fc4): Linear(in_features=64, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=52, bias=True)
+) 130996
+20/07/14 18:03:25 812 [INFO,train:168] random init: 3.970786 0.230024
+20/07/14 18:03:25 813 [INFO,train:169] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 18:03:26 476 [INFO,train:189]   0: 3.844722 3.658280 0.445521
+20/07/14 18:03:50 741 [INFO,train:189]  50: 0.503762 0.806204 0.733656
+20/07/14 18:04:14 616 [INFO,train:189] 100: 0.322470 0.891765 0.818402
+20/07/14 18:04:40 141 [INFO,train:189] 150: 0.077267 1.937780 0.874092
+20/07/14 18:05:06 826 [INFO,train:189] 200: 0.055093 1.806015 0.874092
+20/07/14 18:05:34 676 [INFO,train:189] 250: 0.027221 2.470336 0.878935
+20/07/14 18:06:04 459 [INFO,train:189] 300: 0.023358 2.889621 0.881356
+20/07/14 18:06:34 070 [INFO,train:189] 350: 0.020900 3.256435 0.883777
+20/07/14 18:07:00 947 [INFO,train:189] 400: 0.019083 3.582329 0.883777
+20/07/14 18:07:31 276 [INFO,train:189] 450: 0.018920 3.616290 0.883777
+20/07/14 18:08:00 288 [INFO,train:189] 500: 0.018786 3.648456 0.883777
+20/07/14 18:08:26 476 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 18:08:32 602 [INFO,parse_data:139] parse finish. got 10106 datas
+20/07/14 18:08:32 602 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 18:08:38 718 [INFO,parse_data:139] parse finish. got 10035 datas
+20/07/14 18:08:38 719 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch4.txt...
+20/07/14 18:08:44 878 [INFO,parse_data:139] parse finish. got 10122 datas
+20/07/14 18:08:44 878 [INFO,parse_data:81] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 18:08:45 649 [INFO,parse_data:139] parse finish. got 1233 datas
+20/07/14 18:08:45 652 [INFO,train:163] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=64, bias=True)
+  (fc6): Linear(in_features=64, out_features=64, bias=True)
+  (fc7): Linear(in_features=64, out_features=64, bias=True)
+  (fc4): Linear(in_features=64, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=52, bias=True)
+) 130996
+20/07/14 18:08:45 909 [INFO,train:168] random init: 3.936733 0.292101
+20/07/14 18:08:45 909 [INFO,train:169] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 18:08:46 914 [INFO,train:189]   0: 3.587662 2.105539 0.561848
+20/07/14 18:09:20 815 [INFO,train:189]  50: 0.292020 0.323450 0.882265
+20/07/14 18:09:52 650 [INFO,train:189] 100: 0.188058 0.319178 0.937407
+20/07/14 18:10:26 511 [INFO,train:189] 150: 0.067891 0.321202 0.968703
+20/07/14 18:11:02 024 [INFO,train:189] 200: 0.032849 0.160455 0.982116
+20/07/14 18:11:39 622 [INFO,train:189] 250: 0.016309 0.209313 0.986587
+20/07/14 18:12:21 033 [INFO,train:189] 300: 0.014506 0.226106 0.986587
+20/07/14 18:13:06 458 [INFO,train:189] 350: 0.013462 0.243094 0.985097
+20/07/14 18:13:49 004 [INFO,train:189] 400: 0.012698 0.259822 0.986587
+20/07/14 18:14:32 310 [INFO,train:189] 450: 0.012507 0.260221 0.985097
+20/07/14 18:15:21 334 [INFO,train:189] 500: 0.012444 0.261842 0.986587
+20/07/14 18:16:08 323 [INFO,train:189] 550: 0.012383 0.263382 0.986587
+20/07/14 18:16:57 585 [INFO,train:189] 600: 0.012323 0.264965 0.986587
+20/07/14 18:45:21 686 [INFO,<module>:208] NN_Third: torch.Size([256, 288]) torch.Size([256]) torch.Size([128, 256]) torch.Size([128]) torch.Size([64, 128]) torch.Size([64]) torch.Size([64, 64]) torch.Size([64]) torch.Size([64, 64]) torch.Size([64]) torch.Size([64, 64]) torch.Size([64]) torch.Size([52, 64]) torch.Size([52]) 
+130996
+20/07/14 18:46:24 326 [INFO,<module>:209] NN_Third: torch.Size([256, 288])-->torch.Size([256])-->torch.Size([128, 256])-->torch.Size([128])-->torch.Size([64, 128])-->torch.Size([64])-->torch.Size([64, 64])-->torch.Size([64])-->torch.Size([64, 64])-->torch.Size([64])-->torch.Size([64, 64])-->torch.Size([64])-->torch.Size([52, 64])-->torch.Size([52])
+130996
+20/07/14 18:48:24 059 [INFO,<module>:209] NN_Third: [256, 288]-->[256]-->[128, 256]-->[128]-->[64, 128]-->[64]-->[64, 64]-->[64]-->[64, 64]-->[64]-->[64, 64]-->[64]-->[52, 64]-->[52]
+130996
+20/07/14 18:48:44 966 [INFO,<module>:209] NN_Third: [256, 288] --> [256] --> [128, 256] --> [128] --> [64, 128] --> [64] --> [64, 64] --> [64] --> [64, 64] --> [64] --> [64, 64] --> [64] --> [52, 64] --> [52] 130996
+20/07/14 18:48:57 009 [INFO,<module>:209] NN_Third: [256, 288] --> [256] --> [128, 256] --> [128] --> [64, 128] --> [64] --> [64, 64] --> [64] --> [64, 64] --> [64] --> [64, 64] --> [64] --> [52, 64] --> [52]
+130996
+20/07/14 18:51:43 933 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 18:51:50 159 [INFO,parse_data:143] parse finish. got 10106 datas
+20/07/14 18:51:50 159 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 18:51:56 412 [INFO,parse_data:143] parse finish. got 10035 datas
+20/07/14 18:51:56 412 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch4.txt...
+20/07/14 18:52:02 940 [INFO,parse_data:143] parse finish. got 10122 datas
+20/07/14 18:52:02 941 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 18:52:03 729 [INFO,parse_data:143] parse finish. got 1233 datas
+20/07/14 18:52:03 732 [INFO,train:167] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=64, bias=True)
+  (fc6): Linear(in_features=64, out_features=64, bias=True)
+  (fc7): Linear(in_features=64, out_features=64, bias=True)
+  (fc8): Linear(in_features=64, out_features=64, bias=True)
+  (fc4): Linear(in_features=64, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=52, bias=True)
+) 135156
+20/07/14 18:52:03 994 [INFO,train:172] random init: 3.915930 0.305514
+20/07/14 18:52:03 994 [INFO,train:173] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 18:52:05 014 [INFO,train:193]   0: 3.587350 2.234037 0.457526
+20/07/14 18:52:40 044 [INFO,train:193]  50: 0.392925 0.388898 0.861401
+20/07/14 18:53:18 349 [INFO,train:193] 100: 0.146958 0.247576 0.935917
+20/07/14 18:54:38 597 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 18:54:44 827 [INFO,parse_data:141] parse finish. got 10106 datas
+20/07/14 18:54:44 827 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 18:54:51 019 [INFO,parse_data:141] parse finish. got 10035 datas
+20/07/14 18:54:51 020 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch4.txt...
+20/07/14 18:54:57 229 [INFO,parse_data:141] parse finish. got 10122 datas
+20/07/14 18:54:57 229 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 18:54:58 008 [INFO,parse_data:141] parse finish. got 1233 datas
+20/07/14 18:54:58 010 [INFO,train:165] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=128, bias=True)
+  (fc4): Linear(in_features=128, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=64, bias=True)
+  (fc6): Linear(in_features=64, out_features=64, bias=True)
+  (fc7): Linear(in_features=64, out_features=52, bias=True)
+) 143348
+20/07/14 18:54:58 279 [INFO,train:170] random init: 3.951532 0.299553
+20/07/14 18:54:58 280 [INFO,train:171] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 18:54:59 273 [INFO,train:191]   0: 3.488688 1.414374 0.533532
+20/07/14 18:55:38 006 [INFO,train:191]  50: 0.438128 0.362240 0.864382
+20/07/14 18:56:17 672 [INFO,train:191] 100: 0.161249 0.269108 0.929955
+20/07/14 18:56:59 895 [INFO,train:191] 150: 0.066212 0.132803 0.971684
+20/07/14 18:57:44 481 [INFO,train:191] 200: 0.029813 0.163964 0.980626
+20/07/14 18:58:32 401 [INFO,train:191] 250: 0.014908 0.204085 0.983607
+20/07/14 18:59:23 332 [INFO,train:191] 300: 0.012933 0.239242 0.983607
+20/07/14 19:00:16 137 [INFO,train:191] 350: 0.011848 0.268494 0.983607
+20/07/14 19:01:10 883 [INFO,train:191] 400: 0.011135 0.291882 0.983607
+20/07/14 19:02:06 171 [INFO,train:191] 450: 0.011009 0.294235 0.983607
+20/07/14 19:03:01 747 [INFO,train:191] 500: 0.010951 0.296580 0.983607
+20/07/14 19:03:53 558 [INFO,train:191] 550: 0.010896 0.298962 0.983607
+20/07/14 19:04:49 441 [INFO,train:191] 600: 0.010844 0.301249 0.983607
+20/07/14 19:05:45 555 [INFO,train:191] 650: 0.010793 0.303445 0.983607
+20/07/14 19:06:35 713 [INFO,train:191] 700: 0.010745 0.305631 0.983607
+20/07/14 19:07:25 411 [INFO,train:191] 750: 0.010698 0.307708 0.983607
+20/07/14 19:08:15 246 [INFO,train:191] 800: 0.010651 0.309745 0.983607
+20/07/14 19:09:05 466 [INFO,train:191] 850: 0.010605 0.311740 0.983607
+20/07/14 19:10:01 371 [INFO,train:191] 900: 0.010558 0.313767 0.983607
+20/07/14 19:10:57 542 [INFO,train:191] 950: 0.010513 0.315741 0.983607
+20/07/14 19:11:55 529 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 19:12:01 713 [INFO,parse_data:141] parse finish. got 10106 datas
+20/07/14 19:12:01 713 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 19:12:07 910 [INFO,parse_data:141] parse finish. got 10035 datas
+20/07/14 19:12:07 910 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch4.txt...
+20/07/14 19:12:14 132 [INFO,parse_data:141] parse finish. got 10122 datas
+20/07/14 19:12:14 133 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch5.txt...
+20/07/14 19:12:20 347 [INFO,parse_data:141] parse finish. got 10081 datas
+20/07/14 19:12:20 347 [INFO,parse_data:83] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 19:12:21 119 [INFO,parse_data:141] parse finish. got 1233 datas
+20/07/14 19:12:21 121 [INFO,train:166] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=128, bias=True)
+  (fc4): Linear(in_features=128, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=64, bias=True)
+  (fc6): Linear(in_features=64, out_features=64, bias=True)
+  (fc7): Linear(in_features=64, out_features=52, bias=True)
+) 143348
+20/07/14 19:12:21 439 [INFO,train:171] random init: 3.946654 0.290541
+20/07/14 19:12:21 439 [INFO,train:172] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 19:12:22 800 [INFO,train:192]   0: 3.171026 0.994161 0.622748
+20/07/14 19:13:14 671 [INFO,train:192]  50: 0.321077 0.347175 0.905405
+20/07/14 19:14:00 241 [INFO,train:192] 100: 0.153735 0.416926 0.939189
+20/07/14 19:14:54 699 [INFO,train:192] 150: 0.068060 0.608770 0.951577
+20/07/14 19:15:52 311 [INFO,train:192] 200: 0.027742 0.677351 0.953829
+20/07/14 19:16:48 755 [INFO,train:192] 250: 0.014748 0.903956 0.957207
+20/07/14 19:17:48 775 [INFO,train:192] 300: 0.013248 1.031984 0.957207
+20/07/14 19:18:50 754 [INFO,train:192] 350: 0.012395 1.144545 0.954955
+20/07/14 19:20:00 255 [INFO,train:192] 400: 0.011777 1.221355 0.954955
+20/07/14 19:21:11 963 [INFO,train:192] 450: 0.011563 1.233513 0.954955
+20/07/14 19:22:23 461 [INFO,train:192] 500: 0.011511 1.242481 0.954955
+20/07/14 19:23:31 467 [INFO,train:192] 550: 0.011461 1.251209 0.954955
+20/07/14 19:24:40 022 [INFO,train:192] 600: 0.011412 1.259803 0.954955
+20/07/14 19:25:51 547 [INFO,train:192] 650: 0.011365 1.268234 0.954955
+20/07/14 19:27:03 207 [INFO,train:192] 700: 0.011319 1.276495 0.954955
+20/07/14 19:28:15 289 [INFO,train:192] 750: 0.011275 1.284686 0.954955
+20/07/14 19:29:27 612 [INFO,train:192] 800: 0.011226 1.293554 0.954955
+20/07/14 19:30:36 603 [INFO,train:192] 850: 0.011186 1.301407 0.954955
+20/07/14 19:31:45 544 [INFO,train:192] 900: 0.011148 1.309049 0.954955
+20/07/14 19:32:58 109 [INFO,train:192] 950: 0.011112 1.316682 0.954955
+20/07/14 19:34:11 200 [INFO,train:192] 1000: 0.011076 1.324170 0.954955
+20/07/14 19:35:24 548 [INFO,train:192] 1050: 0.011042 1.331653 0.954955
+20/07/14 19:36:37 840 [INFO,train:192] 1100: 0.011009 1.339154 0.954955
+20/07/14 19:37:48 232 [INFO,train:192] 1150: 0.010978 1.346347 0.954955
+20/07/14 19:39:01 375 [INFO,train:192] 1200: 0.010947 1.353295 0.954955
+20/07/14 19:40:15 019 [INFO,train:192] 1250: 0.010918 1.360182 0.954955
+20/07/14 19:41:28 597 [INFO,train:192] 1300: 0.010889 1.366840 0.954955
+20/07/14 19:42:42 611 [INFO,train:192] 1350: 0.010862 1.373422 0.954955
+20/07/14 19:43:51 411 [INFO,train:192] 1400: 0.010834 1.379975 0.954955
+20/07/14 19:44:57 442 [INFO,train:192] 1450: 0.010807 1.386420 0.954955
+20/07/14 19:46:03 629 [INFO,train:192] 1500: 0.010781 1.392915 0.954955
+20/07/14 19:47:10 067 [INFO,train:192] 1550: 0.010756 1.399470 0.954955
+20/07/14 19:48:17 395 [INFO,train:192] 1600: 0.010731 1.405824 0.954955
+20/07/14 19:49:31 227 [INFO,train:192] 1650: 0.010707 1.412064 0.954955
+20/07/14 19:51:07 817 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch2.txt...
+20/07/14 19:51:14 014 [INFO,parse_data:143] parse finish. got 10106 datas
+20/07/14 19:51:14 014 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch3.txt...
+20/07/14 19:51:20 177 [INFO,parse_data:143] parse finish. got 10035 datas
+20/07/14 19:51:20 178 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch4.txt...
+20/07/14 19:51:26 377 [INFO,parse_data:143] parse finish. got 10122 datas
+20/07/14 19:51:26 378 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch5.txt...
+20/07/14 19:51:32 594 [INFO,parse_data:143] parse finish. got 10081 datas
+20/07/14 19:51:32 595 [INFO,parse_data:85] parsing data from ./Greed_batch/Greed_batch1.txt...
+20/07/14 19:51:33 373 [INFO,parse_data:143] parse finish. got 1233 datas
+20/07/14 19:51:33 375 [INFO,train:168] NN_Third(
+  (fc1): Linear(in_features=288, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=128, bias=True)
+  (fc3): Linear(in_features=128, out_features=64, bias=True)
+  (fc4): Linear(in_features=64, out_features=64, bias=True)
+  (fc5): Linear(in_features=64, out_features=64, bias=True)
+  (fc6): Linear(in_features=64, out_features=64, bias=True)
+  (fc7): Linear(in_features=64, out_features=64, bias=True)
+  (fc8): Linear(in_features=64, out_features=52, bias=True)
+) 135156
+20/07/14 19:51:33 685 [INFO,train:173] random init: 3.956604 0.298423
+20/07/14 19:51:33 685 [INFO,train:174] epoch num: train_loss test_loss test_correct_ratio
+20/07/14 19:51:34 994 [INFO,train:194]   0: 2.890682 0.964320 0.613739
+20/07/14 19:52:27 411 [INFO,train:194]  50: 0.389980 0.432105 0.887387
+20/07/14 19:53:21 938 [INFO,train:194] 100: 0.148938 0.376476 0.943694
+20/07/14 19:54:16 770 [INFO,train:194] 150: 0.072627 0.526598 0.959459
+20/07/14 19:55:07 656 [INFO,train:194] 200: 0.034217 0.751885 0.958333
+20/07/14 19:56:10 066 [INFO,train:194] 250: 0.021447 0.921496 0.959459
+20/07/14 19:57:11 705 [INFO,train:194] 300: 0.019908 1.024203 0.959459
+20/07/14 19:58:14 340 [INFO,train:194] 350: 0.018885 1.107140 0.959459
+20/07/14 19:59:17 030 [INFO,train:194] 400: 0.017948 1.175863 0.958333
+20/07/14 20:00:16 757 [INFO,train:194] 450: 0.017810 1.182803 0.958333
+20/07/14 20:01:20 553 [INFO,train:194] 500: 0.017738 1.189336 0.958333
+20/07/14 20:02:17 545 [INFO,train:194] 550: 0.017667 1.195702 0.958333
+20/07/14 20:03:14 660 [INFO,train:194] 600: 0.017598 1.201996 0.958333
+20/07/14 20:04:11 838 [INFO,train:194] 650: 0.017530 1.208088 0.958333
+20/07/14 20:05:09 131 [INFO,train:194] 700: 0.017464 1.214212 0.958333
+20/07/14 20:06:06 304 [INFO,train:194] 750: 0.017400 1.220379 0.958333
+20/07/14 20:07:10 620 [INFO,train:194] 800: 0.017338 1.226478 0.958333
+20/07/14 20:08:16 505 [INFO,train:194] 850: 0.017276 1.232508 0.958333
+20/07/14 20:09:20 105 [INFO,train:194] 900: 0.017215 1.238204 0.958333
+20/07/14 20:10:17 769 [INFO,train:194] 950: 0.017155 1.243815 0.958333
+20/07/14 20:11:15 580 [INFO,train:194] 1000: 0.017097 1.249047 0.958333
+20/07/14 20:12:14 410 [INFO,train:194] 1050: 0.017040 1.254228 0.958333
+20/07/14 20:13:19 630 [INFO,train:194] 1100: 0.016985 1.259645 0.958333
+20/07/14 20:14:26 389 [INFO,train:194] 1150: 0.016929 1.265129 0.958333
+20/07/14 20:15:32 517 [INFO,train:194] 1200: 0.016875 1.270549 0.958333
+20/07/14 20:16:36 860 [INFO,train:194] 1250: 0.016821 1.275828 0.957207
+20/07/14 20:17:43 097 [INFO,train:194] 1300: 0.016768 1.281020 0.957207
+20/07/14 20:18:49 464 [INFO,train:194] 1350: 0.016716 1.286201 0.957207
+20/07/14 20:19:56 541 [INFO,train:194] 1400: 0.016665 1.291382 0.957207
+20/07/14 20:21:04 177 [INFO,train:194] 1450: 0.016614 1.296573 0.957207
+20/07/14 20:22:09 512 [INFO,train:194] 1500: 0.016564 1.301622 0.957207
+20/07/14 20:23:15 937 [INFO,train:194] 1550: 0.016514 1.306723 0.957207
+20/07/14 20:24:23 278 [INFO,train:194] 1600: 0.016466 1.311739 0.957207
+20/07/14 20:25:29 462 [INFO,train:194] 1650: 0.016417 1.316711 0.957207
+20/07/14 20:26:30 077 [INFO,train:194] 1700: 0.016370 1.321787 0.956081
+20/07/14 20:27:32 831 [INFO,train:194] 1750: 0.016323 1.326813 0.956081
+20/07/14 20:28:38 494 [INFO,train:194] 1800: 0.016277 1.331806 0.956081
+20/07/14 20:29:45 337 [INFO,train:194] 1850: 0.016232 1.336855 0.956081
+20/07/14 20:30:50 709 [INFO,train:194] 1900: 0.016187 1.341866 0.956081
+20/07/14 20:31:51 817 [INFO,train:194] 1950: 0.016143 1.346837 0.956081
+20/07/14 20:32:51 110 [INFO,train:194] 2000: 0.016099 1.351878 0.956081
+20/07/14 20:33:50 382 [INFO,train:194] 2050: 0.016055 1.356798 0.956081
+20/07/14 20:34:49 678 [INFO,train:194] 2100: 0.016011 1.361791 0.956081
+20/07/14 20:35:49 053 [INFO,train:194] 2150: 0.015967 1.366989 0.956081
+20/07/14 20:36:52 678 [INFO,train:194] 2200: 0.015922 1.372235 0.956081
+20/07/14 20:37:59 495 [INFO,train:194] 2250: 0.015878 1.377452 0.956081
+20/07/14 20:39:06 746 [INFO,train:194] 2300: 0.015834 1.382768 0.956081
+20/07/14 20:40:13 469 [INFO,train:194] 2350: 0.015790 1.387869 0.956081
+20/07/14 20:41:21 675 [INFO,train:194] 2400: 0.015746 1.392970 0.956081
+20/07/14 20:42:29 771 [INFO,train:194] 2450: 0.015703 1.397967 0.956081
+20/07/14 20:43:36 833 [INFO,train:194] 2500: 0.015660 1.403037 0.956081
+20/07/14 20:44:39 227 [INFO,train:194] 2550: 0.015618 1.408166 0.956081
+20/07/14 20:45:41 838 [INFO,train:194] 2600: 0.015575 1.413180 0.956081
+20/07/14 20:46:41 623 [INFO,train:194] 2650: 0.015533 1.418144 0.956081
+20/07/14 20:47:45 514 [INFO,train:194] 2700: 0.015491 1.423115 0.956081
+20/07/14 20:48:48 815 [INFO,train:194] 2750: 0.015449 1.428219 0.956081
+20/07/14 20:49:48 234 [INFO,train:194] 2800: 0.015407 1.433270 0.956081
+20/07/14 20:50:53 352 [INFO,train:194] 2850: 0.015364 1.438066 0.956081
+20/07/14 20:52:01 356 [INFO,train:194] 2900: 0.015322 1.442647 0.956081
+20/07/14 20:53:07 278 [INFO,train:194] 2950: 0.015279 1.447319 0.956081
+20/07/14 20:54:06 711 [INFO,train:194] 3000: 0.015236 1.452037 0.956081
+20/07/14 20:55:06 710 [INFO,train:194] 3050: 0.015194 1.456888 0.956081
+20/07/14 20:56:14 613 [INFO,train:194] 3100: 0.015152 1.461786 0.956081
+20/07/14 20:57:20 278 [INFO,train:194] 3150: 0.015111 1.466718 0.956081
+20/07/14 20:58:25 678 [INFO,train:194] 3200: 0.015069 1.471761 0.956081
+20/07/14 20:59:33 561 [INFO,train:194] 3250: 0.015028 1.476822 0.956081
+20/07/14 21:00:41 162 [INFO,train:194] 3300: 0.014986 1.482085 0.956081
+20/07/14 21:01:49 022 [INFO,train:194] 3350: 0.014945 1.487352 0.956081
+20/07/14 21:02:57 055 [INFO,train:194] 3400: 0.014903 1.492491 0.956081
+20/07/14 21:04:04 455 [INFO,train:194] 3450: 0.014861 1.497687 0.956081
+20/07/14 21:05:11 812 [INFO,train:194] 3500: 0.014818 1.502829 0.956081
+20/07/14 21:06:18 774 [INFO,train:194] 3550: 0.014776 1.508088 0.954955
+20/07/14 21:07:20 964 [INFO,train:194] 3600: 0.014735 1.513197 0.954955
+20/07/14 21:08:28 516 [INFO,train:194] 3650: 0.014694 1.518179 0.954955
+20/07/14 21:09:36 674 [INFO,train:194] 3700: 0.014653 1.523055 0.954955
+20/07/14 21:10:44 918 [INFO,train:194] 3750: 0.014613 1.527826 0.954955
+20/07/14 21:11:53 913 [INFO,train:194] 3800: 0.014573 1.532794 0.953829
+20/07/14 21:13:03 109 [INFO,train:194] 3850: 0.014533 1.537863 0.953829
+20/07/14 21:14:03 497 [INFO,train:194] 3900: 0.014492 1.542851 0.953829
+20/07/14 21:15:09 663 [INFO,train:194] 3950: 0.014452 1.547790 0.953829
+20/07/14 21:16:18 728 [INFO,train:194] 4000: 0.014411 1.552505 0.953829
+20/07/14 21:17:21 078 [INFO,train:194] 4050: 0.014370 1.557388 0.953829
+20/07/14 21:18:21 629 [INFO,train:194] 4100: 0.014329 1.562170 0.953829
