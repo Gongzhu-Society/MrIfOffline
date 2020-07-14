@@ -21,6 +21,7 @@ NN_Last(
 3.
 
 ### 附录一: 不断缩小Last的网络大小观察其表现
+```
 NN_Last(
   (fc1): Linear(in_features=260, out_features=832, bias=True)
   (fc2): Linear(in_features=832, out_features=416, bias=True)
@@ -82,3 +83,4 @@ NN_Last(
 NN_Last(
   (fc1): Linear(in_features=260, out_features=52, bias=True)
 ) 13572 500: 0.368931 0.354754 0.913163
+```
