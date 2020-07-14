@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log,cards_order
-from Util import ORDER_DICT,ORDER_DICT4,ORDER_DICT5
+from Util import ORDER_DICT,ORDER_DICT4,ORDER_DICT5,ORDER_DICT2
 #from MrRandom import MrRandom
 import torch,copy,math
 import torch.nn as nn
@@ -14,25 +14,23 @@ if train_flag:
     pattern_shuffle=re.compile("shuffle: (.+)")
     pattern_play=re.compile("greed([0-3]) played ([SHDC][0-9JQKA]{1,2}), (.+)")
     pattern_gamend=re.compile("game end: (\\[.+?\\])")
+    pattern_trick=re.compile("trick end. winner is ([0-3]), (.+)")
 
 class NN_Last(nn.Module):
     def __init__(self):
         super(NN_Last,self).__init__()
-        self.fc1=nn.Linear(52*5+16*4,52)  #我手里剩的牌, 另外仨人手里剩的牌, 前三个人打的牌, 四个人手里的分
-        #self.fc3=nn.Linear(52,52)
-        #self.fc4=nn.Linear(52*4,52*2)
-        #self.fc5=nn.Linear(52*2,52)
-        #self.fc6=nn.Linear(52,52)
-        #self.fc7=nn.Linear(52,52)
+        self.fc1=nn.Linear(52*5+16*4+4*4,256)#我手里剩的牌, 另外仨人手里剩的牌, 前三个人打的牌, 四个人手里的分, 四个人的断门
+        self.fc2=nn.Linear(256,128)
+        self.fc3=nn.Linear(128,64)
+        self.fc4=nn.Linear(64,64)
+        self.fc5=nn.Linear(64,52)
 
     def forward(self, x):
-        #x=F.relu(self.fc1(x))
-        #x=F.relu(self.fc3(x))
-        #x=F.relu(self.fc4(x))
-        #x=F.relu(self.fc5(x))
-        #x=F.relu(self.fc6(x))
-        #x=self.fc7(x)
-        x=self.fc1(x)
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        x=F.relu(self.fc3(x))
+        x=F.relu(self.fc4(x))
+        x=self.fc5(x)
         return x
 
     def num_paras(self):
@@ -40,6 +38,29 @@ class NN_Last(nn.Module):
 
     def __str__(self):
         return "%s %d"%(super(NN_Last,self).__str__(),self.num_paras())
+
+class NN_Third(nn.Module):
+    def __init__(self):
+        super(NN_Third,self).__init__()
+        self.fc1=nn.Linear(52*4+16*4+4*4,256)
+        self.fc2=nn.Linear(256,128)
+        self.fc3=nn.Linear(128,64)
+        self.fc4=nn.Linear(64,64)
+        self.fc5=nn.Linear(64,52)
+
+    def forward(self, x):
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        x=F.relu(self.fc3(x))
+        x=F.relu(self.fc4(x))
+        x=self.fc5(x)
+        return x
+
+    def num_paras(self):
+        return sum([p.numel() for p in self.parameters()])
+
+    def __str__(self):
+        return "%s %d"%(super(NN_Last,self).__str__(),self.num_paras())    
 
 def gen_legal_onehot(cards_on_table,cards_l):
     if len(cards_on_table)>2:
@@ -57,6 +78,7 @@ def parse_data(file,list_pt,order,max_num=1e5):
     pre_len=len(list_pt)
     cards_ll=None #list of list of cards, cards remain
     score_ll=None
+    void_ll=None
     ax=0
     f=open(file)
     for line in f:
@@ -73,11 +95,15 @@ def parse_data(file,list_pt,order,max_num=1e5):
                     for i in cards_on_table[1:-1]:
                         to_input.append(torch.zeros(52))
                         to_input[-1][ORDER_DICT[i]]=1
+                    for i in range(4):
+                        temp=(i+cards_on_table[0])%4
+                        to_input.append(score_ll[temp])
+                        to_input.append(void_ll[temp])
                     to_input=torch.cat(to_input)
                     list_pt.append([to_input,cards_legal,which])
             cards_ll[who][which]=0
-            if len(cards_on_table)==5:
-
+            if cards_on_table[-1][0]!=cards_on_table[1][0]:
+                void_ll[who][ORDER_DICT4[cards_on_table[1][0]]]=1
             continue
         s1=pattern_shuffle.search(line)
         if s1:
@@ -88,14 +114,23 @@ def parse_data(file,list_pt,order,max_num=1e5):
                 for c in cards_shuffle[i]:
                     cards_ll[i][ORDER_DICT[c]]=1
             score_ll=[torch.zeros(16),torch.zeros(16),torch.zeros(16),torch.zeros(16)]
+            void_ll=[torch.zeros(4),torch.zeros(4),torch.zeros(4),torch.zeros(4)]
             continue
         s2=pattern_gamend.search(line)
         if s2:
             cards_ll=None
+            score_ll=None
+            void_ll=None
             ax+=1
             if ax>=max_num:
                 break
             continue
+        s3=pattern_trick.search(line)
+        if s3:
+            scores=eval(s3.group(2))
+            for i in range(4):
+                for j in scores[i]:
+                    score_ll[i][ORDER_DICT5[j]]=1
     f.close()
     log("parse finish. got %d datas"%(len(list_pt)-pre_len,))
 
@@ -108,7 +143,7 @@ def correct_num(netout,target_index,legal_mask):
     _,max_i=torch.max(netout*legal_mask,1)
     return torch.sum(max_i==target_index).item()
 
-def train_last(net,order=3):
+def train(NetClass,order):
     files=["./Greed_batch/Greed_batch2.txt","./Greed_batch/Greed_batch3.txt"]
     traindata=[]
     for f_name in files:
@@ -120,7 +155,7 @@ def train_last(net,order=3):
     parse_data("./Greed_batch/Greed_batch1.txt",testdata,order,max_num=128)
     testloder=torch.utils.data.DataLoader(traindata,batch_size=len(testdata))
 
-    #net=NN_Last()
+    net=NetClass()
     log(net)
     for i in testloder:
         netout=net(i[0])
@@ -130,7 +165,7 @@ def train_last(net,order=3):
     log("epoch num: train_loss test_loss test_correct_ratio")
     optimizer=optim.SGD(net.parameters(),lr=0.01,momentum=0.9)
     optimizer.zero_grad()
-    scheduler=torch.optim.lr_scheduler.MultiStepLR(optimizer,[100,200],gamma=0.1)
+    scheduler=torch.optim.lr_scheduler.MultiStepLR(optimizer,[100,300],gamma=0.1)
     for epoch in range(5000):
         running_loss=0
         for i in trainloader:
@@ -150,18 +185,14 @@ def train_last(net,order=3):
             log("%3d: %f %f %f"%(epoch,running_loss/train_iter_num,test_loss,test_corr))
 
 def test_DataLoader():
-    datalist=[[i,2*i,torch.tensor([1,2,3])] for i in range(10)]
-    #datalist=[]
-    #parse_data("./Greed_batch/Greed_batch2.txt",datalist,3,max_num=2)
+    #datalist=[[i,2*i,torch.tensor([1,2,3])] for i in range(10)]
+    datalist=[]
+    parse_data("./Greed_batch/Greed_batch2.txt",datalist,3,max_num=1)
     #parse_data("./Greed_batch/Greed_batch3.txt",datalist,3,max_num=2)
-    dataloader=torch.utils.data.DataLoader(datalist,batch_size=4,drop_last=True)
+    dataloader=torch.utils.data.DataLoader(datalist,batch_size=1,drop_last=True)
     for i in dataloader:
         print(i)
-        #break
-    for i in dataloader:
-        print(i)
-
 
 if __name__=="__main__":
     #test_DataLoader()
-    train_last()
+    train(NN_Last,3)
