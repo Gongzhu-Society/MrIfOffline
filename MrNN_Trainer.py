@@ -35,9 +35,18 @@ class NN_Last(nn.Module):
 
     def num_paras(self):
         return sum([p.numel() for p in self.parameters()])
+    
+    def num_layers(self):
+        ax=0
+        for name,child in self.named_children():
+            ax+=1
+        return ax
 
     def __str__(self):
-        return "%s %d"%(super(NN_Last,self).__str__(),self.num_paras())
+        stru=[]
+        for name,child in self.named_children():
+            stru.append(tuple(child.state_dict()['weight'].t().size()))
+        return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
 
 class NN_Third(nn.Module):
     def __init__(self):
@@ -48,8 +57,45 @@ class NN_Third(nn.Module):
         self.fc4=nn.Linear(64,64)
         self.fc5=nn.Linear(64,64)
         self.fc6=nn.Linear(64,64)
+        self.fc7=nn.Linear(64,52)
+
+    def forward(self, x):
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        x=F.relu(self.fc3(x))
+        x=F.relu(self.fc4(x))
+        x=F.relu(self.fc5(x))
+        x=F.relu(self.fc6(x))
+        x=self.fc7(x)
+        return x
+
+    def num_paras(self):
+        return sum([p.numel() for p in self.parameters()])
+    
+    def num_layers(self):
+        ax=0
+        for name,child in self.named_children():
+            ax+=1
+        return ax
+
+    def __str__(self):
+        stru=[]
+        for name,child in self.named_children():
+            stru.append(tuple(child.state_dict()['weight'].t().size()))
+        return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
+
+class NN_Second(nn.Module):
+    def __init__(self):
+        super(NN_Second,self).__init__()
+        self.fc1=nn.Linear(52*3+16*4+4*4,256)
+        self.fc2=nn.Linear(256,128)
+        self.fc3=nn.Linear(128,64)
+        self.fc4=nn.Linear(64,64)
+        self.fc5=nn.Linear(64,64)
+        self.fc6=nn.Linear(64,64)
         self.fc7=nn.Linear(64,64)
-        self.fc8=nn.Linear(64,52)
+        self.fc8=nn.Linear(64,64)
+        self.fc9=nn.Linear(64,52)
 
     def forward(self, x):
         x=F.relu(self.fc1(x))
@@ -59,16 +105,68 @@ class NN_Third(nn.Module):
         x=F.relu(self.fc5(x))
         x=F.relu(self.fc6(x))
         x=F.relu(self.fc7(x))
-        x=self.fc8(x)
+        x=F.relu(self.fc8(x))
+        x=self.fc9(x)
         return x
 
     def num_paras(self):
         return sum([p.numel() for p in self.parameters()])
+    
+    def num_layers(self):
+        ax=0
+        for name,child in self.named_children():
+            ax+=1
+        return ax
 
     def __str__(self):
-        #for param in self.parameters():
-        #    s.append("%s"%(list(param.size()),))
-        return "%s %d"%(super(NN_Third,self).__str__(),self.num_paras())
+        stru=[]
+        for name,child in self.named_children():
+            stru.append(tuple(child.state_dict()['weight'].t().size()))
+        return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
+
+class NN_First(nn.Module):
+    def __init__(self):
+        super(NN_First,self).__init__()
+        self.fc1=nn.Linear(52*2+16*4+4*4,256)
+        self.fc2=nn.Linear(256,128)
+        self.fc3=nn.Linear(128,64)
+        self.fc4=nn.Linear(64,64)
+        self.fc5=nn.Linear(64,64)
+        self.fc6=nn.Linear(64,64)
+        self.fc7=nn.Linear(64,64)
+        self.fc8=nn.Linear(64,64)
+        self.fc9=nn.Linear(64,64)
+        self.fca=nn.Linear(64,64)
+        self.fcb=nn.Linear(64,52)
+
+    def forward(self, x):
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        x=F.relu(self.fc3(x))
+        x=F.relu(self.fc4(x))
+        x=F.relu(self.fc5(x))
+        x=F.relu(self.fc6(x))
+        x=F.relu(self.fc7(x))
+        x=F.relu(self.fc8(x))
+        x=F.relu(self.fc9(x))
+        x=F.relu(self.fca(x))
+        x=self.fcb(x)
+        return x
+
+    def num_paras(self):
+        return sum([p.numel() for p in self.parameters()])
+    
+    def num_layers(self):
+        ax=0
+        for name,child in self.named_children():
+            ax+=1
+        return ax
+
+    def __str__(self):
+        stru=[]
+        for name,child in self.named_children():
+            stru.append(tuple(child.state_dict()['weight'].t().size()))
+        return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
 
 def gen_legal_onehot(cards_on_table,cards_l):
     if len(cards_on_table)>2:
@@ -149,11 +247,12 @@ def loss_func_mul(netout,target_index,legal_mask):
 
 def correct_num(netout,target_index,legal_mask):
     _,max_i=torch.max(netout*legal_mask,1)
-    return torch.sum(max_i==target_index).item()
+    return (max_i==target_index).sum().item()
 
 def train(NetClass,order):
     files=["./Greed_batch/Greed_batch2.txt","./Greed_batch/Greed_batch3.txt",
-           "./Greed_batch/Greed_batch4.txt","./Greed_batch/Greed_batch5.txt"]
+           "./Greed_batch/Greed_batch4.txt","./Greed_batch/Greed_batch5.txt",
+           "./Greed_batch/Greed_batch6.txt","./Greed_batch/Greed_batch7.txt",]
     traindata=[]
     for f_name in files:
         parse_data(f_name,traindata,order)
@@ -162,7 +261,7 @@ def train(NetClass,order):
     train_iter_num=int(len(traindata)/batch_size)
     testdata=[]
     parse_data("./Greed_batch/Greed_batch1.txt",testdata,order,max_num=128)
-    testloder=torch.utils.data.DataLoader(traindata,batch_size=len(testdata))
+    testloder=torch.utils.data.DataLoader(testdata,batch_size=len(testdata))
 
     net=NetClass()
     log(net)
@@ -175,7 +274,7 @@ def train(NetClass,order):
     optimizer=optim.SGD(net.parameters(),lr=0.01,momentum=0.9)
     optimizer.zero_grad()
     scheduler=torch.optim.lr_scheduler.MultiStepLR(optimizer,[200,400],gamma=0.1)
-    for epoch in range(5000):
+    for epoch in range(1000):
         running_loss=0
         for i in trainloader:
             netout=net(i[0])
@@ -186,23 +285,74 @@ def train(NetClass,order):
             running_loss+=loss.item()
         scheduler.step()
         if epoch%50==0:
-            #log(optimizer.param_groups[0]['lr'],l=0)
-            for i in testloder:
+            with torch.no_grad():
+                test_iter=testloder.__iter__()
+                i=test_iter.__next__()
                 netout=net(i[0])
                 test_loss=loss_func_mul(netout,i[2],i[1])
                 test_corr=correct_num(netout,i[2],i[1])/len(i[2])
+                try:
+                    test_iter.__next__()
+                    log("testloader can still be loaded!")
+                    raise KeyBoardInterrupt
+                except StopIteration:
+                    log("testloader indeed stoped")
             log("%3d: %f %f %f"%(epoch,running_loss/train_iter_num,test_loss,test_corr))
+    #save_name='%s_%s_%s.ckpt'%(net.__class__.__name__,net.num_layers(),net.num_paras())
+    #torch.save(net.state_dict(),save_name)
+    #log("saved net to %s"%(save_name))
+
+def test_accu(NetClass,FileName,order):
+    net=NetClass()
+    log(net)
+    net.load_state_dict(torch.load(FileName))
+    testdata=[]
+    parse_data("./Greed_batch/Greed_batch1.txt",testdata,order,max_num=128)
+    testloder=torch.utils.data.DataLoader(testdata,batch_size=len(testdata))
+    with torch.no_grad():
+        test_iter=testloder.__iter__()
+        i=test_iter.__next__()
+        log("data size: %s"%(i[0].size(),))
+        netout=net(i[0])
+        test_loss=loss_func_mul(netout,i[2],i[1])
+        test_corr=correct_num(netout,i[2],i[1])/len(i[2])
+        try:
+            test_iter.__next__()
+            log("testloader can still be loaded!")
+            raise KeyBoardInterrupt
+        except StopIteration:
+            log("testloader indeed stoped")
+    log("%f %f"%(test_loss,test_corr))
 
 def test_DataLoader():
-    #datalist=[[i,2*i,torch.tensor([1,2,3])] for i in range(10)]
-    datalist=[]
-    parse_data("./Greed_batch/Greed_batch2.txt",datalist,3,max_num=1)
+    datalist=[[i,2*i,torch.tensor([1,2,3])] for i in range(2)]
+    #datalist=[]
+    #parse_data("./Greed_batch/Greed_batch2.txt",datalist,3,max_num=1)
     #parse_data("./Greed_batch/Greed_batch3.txt",datalist,3,max_num=2)
     dataloader=torch.utils.data.DataLoader(datalist,batch_size=1,drop_last=True)
+    it=dataloader.__iter__()
+    i=it.__next__()
     for i in dataloader:
         print(i)
+
 
 if __name__=="__main__":
     #test_DataLoader()
     #train(NN_Last,3)
-    train(NN_Third,2)
+    #train(NN_Third,2)
+    #train(NN_Second,1)
+    #train(NN_First,0)
+    #test_accu(NN_First,'./NetPara20200715/NN_First_11_121012.ckpt',0)
+    #test_accu(NN_Second,'./NetPara20200715/NN_Second_9_126004.ckpt',1)
+    #test_accu(NN_Third,'./NetPara20200715/NN_Third_7_130996.ckpt',2)
+    test_accu(NN_Last,'./NetPara20200715/NN_Last_5_135988.ckpt',3)
+
+"""
+# Save and load the entire model.
+torch.save(resnet, 'model.ckpt')
+model = torch.load('model.ckpt')
+
+# Save and load only the model parameters (recommended).
+torch.save(resnet.state_dict(), 'params.ckpt')
+resnet.load_state_dict(torch.load('params.ckpt'))
+"""

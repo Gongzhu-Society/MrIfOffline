@@ -10,7 +10,7 @@ class MrRandom():
         self.cards_list = [] #cards in hand
         self.history = [] #list of (int,str,str,str,str)
         self.cards_on_table = [] #[int,str,...]
-        self.score_cards = [[],[],[],[]]
+        self.score = [[],[],[],[]]
 
         #useless infos
         self.initial_cards = [] #cards initial

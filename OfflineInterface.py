@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log,calc_score,cards_order
-from Util import ORDER_DICT1,ORDER_DICT2,SCORE_DICT
+from Util import ORDER_DICT2,SCORE_DICT
 from MrRandom import MrRandom,Human
 from MrIf import MrIf
 from MrGreed import MrGreed
 from MrTree import MrTree
+from MrNN import MrNN
+from MrNN_Trainer import NN_First,NN_Second,NN_Third,NN_Last
 import random,itertools,numpy,copy,time
 
 class OfflineInterface():
@@ -51,13 +53,25 @@ class OfflineInterface():
         return True
 
     def step(self):
+        global identical_num
         #初始化玩家之后获得出牌
         self.players[self.pnext].cards_on_table=copy.copy(self.cards_on_table)
         self.players[self.pnext].history=copy.deepcopy(self.history)
         self.players[self.pnext].scores=copy.deepcopy(self.scores)
         choice=self.players[self.pnext].pick_a_card()
+        self.control.cards_list=copy.copy(self.players[self.pnext].cards_list)
+        self.control.cards_on_table=copy.copy(self.cards_on_table)
+        self.control.history=copy.deepcopy(self.history)
+        self.control.scores=copy.deepcopy(self.scores)
+        choice_control=self.control.pick_a_card()
+        log("control will play: %s"%(choice_control))
+        if choice_control==choice:
+            identical_num+=1
         if not self.judge_legal(choice):
             log("choice %s, %s illegal"%(choice,self.cards_on_table))
+            input()
+            self.step()
+            input()
             return 1
         self.cards_remain[self.pnext].remove(choice)
         self.players[self.pnext].cards_list.remove(choice)
@@ -110,12 +124,19 @@ class OfflineInterface():
         del self.scores_num
 
 def stat_ai():
+    r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
     g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
-    t=[MrTree(room=0,place=i,name='tree%d'%(i)) for i in range(4)]
-    offlineinterface=OfflineInterface([g[0],g[1],g[2],g[3]],print_flag=True)
+    #t=[MrTree(room=0,place=i,name='tree%d'%(i)) for i in range(4)]
+    n=[MrNN(room=0,place=i,name='net%d'%(i)) for i in range(4)]
+    for i in n:
+        i.prepare_net([(NN_First,'NN_First_11_121012.ckpt'),
+                       (NN_Second,'NN_Second_9_126004.ckpt'),
+                       (NN_Third,'NN_Third_7_130996.ckpt'),
+                       (NN_Last,'NN_Last_5_135988.ckpt')])
+    offlineinterface=OfflineInterface([n[0],r[1],n[2],r[3]],print_flag=False)
     stats=[]
-    N1=256;N2=4
+    N1=1024;N2=2
     tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
@@ -140,61 +161,30 @@ def stat_ai():
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log(" 0+2 - 1+3: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
 
-def stat_ai_2():
-    f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
-    g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
-    offlineinterface=OfflineInterface([g[0],f[1],g[2],f[3]],print_flag=False)
-    stats=[]
-    N1=256;N2=4
-    for k in range(N1):
-        for l in range(N2):
-            if l==0:
-                cards=offlineinterface.shuffle()
-            else:
-                cards=cards[39:52]+cards[0:39]
-                offlineinterface.shuffle(cards=cards)
-            for i,j in itertools.product(range(13),range(4)):
-                offlineinterface.step()
-            stats.append(offlineinterface.clear())
-            log("%d, %d: %s"%(k,l,stats[-1]))
-            offlineinterface.prepare_new()
-        stat_temp=[j[0]+j[2]-j[1]-j[3] for j in stats[-1*N2:]]
-        stat_temp=sum(stat_temp)/4
-        if stat_temp>0:
-            log("win: %d"%(stat_temp))
-            continue
-        elif stat_temp==0:
-            log("draw")
-            continue
-        log("lose: %d"%(stat_temp))
-        offlineinterface.print_flag=True
-        for l in range(N2):
-            cards=cards[13:52]+cards[0:13]
-            offlineinterface.shuffle(cards=cards)
-            input()
-            for i,j in itertools.product(range(13),range(4)):
-                offlineinterface.step()
-            s_temp=offlineinterface.clear()
-            log("%d, %d: %s"%(k,l,s_temp))
-            input()
-            offlineinterface.prepare_new()
-        offlineinterface.print_flag=False
-
 def play_with_ai():
-    r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
+    global identical_num
+    identical_num=0
+    #r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
     g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
-    t=[MrTree(room=0,place=i,name='tree%d'%(i)) for i in range(4)]
-    myself=Human(room=0,place=3,name="myself")
-    offlineinterface=OfflineInterface([t[0],g[1],t[2],g[3]])
+    #t=[MrTree(room=0,place=i,name='tree%d'%(i)) for i in range(4)]
+    n=[MrNN(room=0,place=i,name='net%d'%(i)) for i in range(4)]
+    for i in n:
+        i.prepare_net([(NN_First,'NN_First_11_121012.ckpt'),
+                       (NN_Second,'NN_Second_9_126004.ckpt'),
+                       (NN_Third,'NN_Third_7_130996.ckpt'),
+                       (NN_Last,'NN_Last_5_135988.ckpt')])
+    #myself=Human(room=0,place=3,name="myself")
+    offlineinterface=OfflineInterface([n[0],n[1],n[2],n[3]])
+    offlineinterface.control=MrGreed(room=0,place=0,name='greed_control')
     offlineinterface.shuffle()
     for i in range(13):
         for j in range(4):
             offlineinterface.step()
-            input()
+            #input()
     offlineinterface.clear()
+    log(identical_num)
 
 if __name__=="__main__":
-    stat_ai()
-    #stat_ai_2()
-    #play_with_ai()
+    #stat_ai()
+    play_with_ai()

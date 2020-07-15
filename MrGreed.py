@@ -368,13 +368,12 @@ class MrGreed(MrRandom):
         return impc_dict
 
     def pick_a_card(self):
-        assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place,"self.place and self.cards_on_table contrdict"
+        #assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place,"self.place and self.cards_on_table contrdict"
         global print_level
         #if len(self.history)==0 and print_level==0:
         #    print_level=1
         #    input("set print_level to 1")
-        if print_level>=1:
-            log("my turn %s %s"%(self.cards_on_table,self.cards_list))
+        log("my turn %s %s"%(self.cards_on_table,self.cards_list))
         suit=self.decide_suit()
         cards_dict=MrGreed.gen_cards_dict(self.cards_list)
         
@@ -622,7 +621,7 @@ def test_last():
 def test_c10():
     global print_level
     print_level=2
-    g0=MrGreed(room=0,place=0,name="if0")
+    g0=MrGreed(room=0,place=0,name="g0")
     g0.cards_list=['C3','CA','H2','H3','H4','H5','H6','H7','H8','H9','H10']
     g0.history=[(2,'D3','D4','DJ','D6'),(1,'S2','S3','S4','S5')]
     g0.cards_on_table=[2, 'C2', 'C10']
@@ -632,7 +631,7 @@ def test_c10():
 def test_sa():
     global print_level
     print_level=2
-    g0=MrGreed(room=0,place=0,name="if0")
+    g0=MrGreed(room=0,place=0,name="g0")
     g0.cards_list=['H2','H3','H4','H5','H6','H7','H8','H9','HJ','SK','SA']
     g0.history=[(2,'D3','D4','DJ','D6'),(1,'S2','S3','S4','S5')]
     g0.cards_on_table=[2, 'C2', 'C3']
@@ -642,7 +641,7 @@ def test_sa():
 def test_da():
     global print_level
     print_level=2
-    g0=MrGreed(room=0,place=0,name="if0")
+    g0=MrGreed(room=0,place=0,name="g0")
     g0.cards_list=['H2','H3','H4','H5','H6','H7','H8','H9','HJ','D9','DA']
     g0.history=[(2,'D3','D4','DJ','D6'),(1,'S2','S3','S4','S5')]
     g0.cards_on_table=[2, 'D7', 'D8']

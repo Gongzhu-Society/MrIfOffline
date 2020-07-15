@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log,cards_order
-from Util import ORDER_DICT1,ORDER_DICT2
+from Util import ORDER_DICT2
 from MrRandom import MrRandom
 import random
 

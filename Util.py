@@ -30,7 +30,7 @@ ORDER_DICT={'S2': 0,'S3': 1,'S4': 2,'S5': 3,'S6': 4,'S7': 5,'S8': 6,'S9': 7,'S10
 ORDER_DICT4={'S':0,'H':1,'D':2,'C':3}
 ORDER_DICT5={'H2':0,'H3':1,'H4':2,'H5':3,'H6':4,'H7':5,'H8':6,'H9':7,'H10':8,'HJ':9,'HQ':10,'HK':11,'HA':12,
              'SQ':13,'DJ':14,'C10':15}
-cards_order=lambda c:ORDER_DICT1[c[0]]+ORDER_DICT2[c[1]]
+cards_order=lambda c:ORDER_DICT[c]
 
 INIT_CARDS=['S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'SJ', 'SQ', 'SK', 'SA', 
             'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'H10', 'HJ', 'HQ', 'HK', 'HA', 
@@ -62,3 +62,9 @@ def calc_score(l):
 # git pull https://github.com/Gongzhu-Society/MrIfOffline.git
 # git add .
 # git commit
+"""
+with open(savefilename,'wb') as f2:
+    pickle.dump(train_data,f2)
+with open("./Greed_batch/Greed_batch1.4train",'rb') as f3:
+    train_data=pickle.load(f3)
+"""
