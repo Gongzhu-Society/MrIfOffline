@@ -25,3 +25,8 @@ x.view(-1,8)
 
 b=a.numpy()
 torch.from_numpy(a)
+
+with open(savefilename,'wb') as f2:
+    pickle.dump(train_data,f2)
+with open("./Greed_batch/Greed_batch1.4train",'rb') as f3:
+    train_data=pickle.load(f3)
