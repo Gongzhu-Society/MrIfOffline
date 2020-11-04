@@ -8,9 +8,6 @@ import random,numpy
 print_level=0
 
 class MrGreed(MrRandom):
-    #SCORE_DICT={'SQ':-100,'DJ':100,'C10':-60,
-    #        'H2':0,'H3':0,'H4':0,'H5':-10,'H6':-10,'H7':-10,'H8':-10,'H9':-10,'H10':-10,
-    #        'HJ':-20,'HQ':-30,'HK':-40,'HA':-50,'JP':-60,'JG':-70}
     BURDEN_DICT={'SA':11,'SK':9,'SQ':8,'SJ':7,'S10':6,'S9':5,'S8':4,'S7':3,'S6':2,'S5':1,'S4':1,
                  'CA':11,'CK':9,'CQ':8,'CJ':7,'C10':6,'C9':5,'C8':4,'C7':3,'C6':2,'C5':1,'C4':1,
                  'DA':11,'DK':9,'DQ':8,'DJ':7,'D10':6,'D9':5,'D8':4,'D7':3,'D6':2,'D5':1,'D4':1,
@@ -62,7 +59,7 @@ class MrGreed(MrRandom):
         if winner%2==0:
             delta_score*=-1
         return delta_score
-    
+
     def calc_relief(card,impc_dict,scs_rmn_avg,my_score):
         relief=MrGreed.BURDEN_DICT.get(card,0)
         if impc_dict['SQ']==False:
@@ -230,7 +227,7 @@ class MrGreed(MrRandom):
         cards_list_list[(exc_ind+2)%3].append(c0)
         #assert MrGreed.check_void_legal(cards_list_list[0],cards_list_list[1],cards_list_list[2],void_info)
         return 0
-        
+
     def check_void_legal(cards_list1,cards_list2,cards_list3,void_info):
         for i in range(3):
             s_temp=''.join((i[0] for i in cards_list1))
@@ -368,22 +365,19 @@ class MrGreed(MrRandom):
         return impc_dict
 
     def pick_a_card(self):
-        #assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place,"self.place and self.cards_on_table contrdict"
         global print_level
-        #if len(self.history)==0 and print_level==0:
-        #    print_level=1
-        #    input("set print_level to 1")
-        log("my turn %s %s"%(self.cards_on_table,self.cards_list))
+        assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place,"self.place and self.cards_on_table contrdict"
+        #log("my turn %s %s"%(self.cards_on_table,self.cards_list))
         suit=self.decide_suit()
         cards_dict=MrGreed.gen_cards_dict(self.cards_list)
-        
+
         #如果别无选择
         if cards_dict.get(suit)!=None and len(cards_dict[suit])==1:
             choice=cards_dict[suit][0]
             if print_level>=1:
                 log("I have no choice but %s"%(choice))
             return choice
-        
+
         #如果我是最后一个出的
         fmt_score_list=MrGreed.gen_fmt_scores(self.scores)
         impc_dict=MrGreed.gen_impc_dict(self.scores,self.cards_on_table)
@@ -406,7 +400,7 @@ class MrGreed(MrRandom):
             if print_level>=1:
                 log("%s, %s I choose %s"%(self.cards_on_table,self.cards_list,choice))
             return choice
-        
+
         #其他情况要估计先验概率了
         void_info=MrGreed.gen_void_info(self.place,self.history,self.cards_on_table)
         if print_level>=2:

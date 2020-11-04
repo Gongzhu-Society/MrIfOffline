@@ -4,19 +4,22 @@ from Util import log
 import random
 
 class MrRandom():
-    """ONLY for 4 players"""
+    """
+        ONLY for 4 players
+        See OfflineInterface.step to get a feel of how to use this
+    """
     def __init__(self,room=0,place=0,name="default"):
-        self.place = place
-        self.cards_list = [] #cards in hand
-        self.history = [] #list of (int,str,str,str,str)
-        self.cards_on_table = [] #[int,str,...]
-        self.score = [[],[],[],[]]
+        self.place=place
+        self.cards_list=[]       #cards in hand
+        self.history=[]          #list of (int,str,str,str,str)
+        self.cards_on_table=[]   #[int,str,...]
+        self.score=[[],[],[],[]]
 
         #useless infos
-        self.initial_cards = [] #cards initial
-        self.room = room
-        self.name = name
-        self.players_information = [None, None, None, None]
+        self.initial_cards=[]    #initial cards
+        self.room=room
+        self.name=name
+        self.players_information=[None, None, None, None]
 
     def decide_suit(self):
         if len(self.cards_on_table)==1:

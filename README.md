@@ -4,7 +4,9 @@ Offline(testing) version of several AIs.
 ### 文件描述
 
 * OfflineInterface.py: 线下游戏的接口, 用于对接不同的AI.
-* Util.py            : Utility data and functions.
+* Util.py            : Utility data and functions. Include
+    * functions: log, calc_score, cards_order
+    * datas    : ORDER_DICT, INIT_CARDS, SCORE_DICT
 * MrRandom.py        : 最基本的机器人, 按 Li Ruichen 接口定义了 `self.cards_list, self.history, self.cards_on_table, self.score` 等对象变量, 定义了几个 utility function, 之后的机器人都应该继承自 MrRandom. 同时给出了一个 Human 类表示人类, Human pick_a_card 时会请求人类输入.
 * MrIf.py, MrGreed.py: 两个使用一些 if statements 来打牌的 AI, MrGreed 更强, 也是目前为止最强的.
 * MrTree.py          : 蒙特卡罗树搜索接口, 未完成.
@@ -36,39 +38,6 @@ Offline(testing) version of several AIs.
 20/07/15 23:02:14 978 [WARN,stat_ai:149] 0 2 player: -54.09 2.65
 20/07/15 23:02:14 981 [WARN,stat_ai:151] 1 3 player: -209.23 3.10
 20/07/15 23:02:14 983 [WARN,stat_ai:153]  0+2 - 1+3: 155.14 5.39
-```
-
-### MrIf 和 MrRandom
-
-MrRandom是按规则随即出牌的玩家，也是将来等级分规则的0分的基准
-
-而MrIf是用Ifs判断几个最基础的规则其他情况随即出牌的玩家，他的规则包括：
-
-    如果随便出
-        从所剩张数少的花色开始，如果没有“危险牌”，就出这个花色大的
-        尽量不出猪、猪圈、变压器、比变压器大的、红桃AK、羊
-    如果是贴牌，按危险列表依次贴，没有危险列表了，贴短的
-    如果是猪牌并且我的猪剩两张以上
-        如果我有猪并且有人打过猪圈，贴猪
-        如果我是最后一个并且前面没认出过猪，打除了猪之外最大的
-        其他情况打不会得猪的
-    如果是变压器并且草花剩两张以上
-        类似于猪
-    如果是羊并且剩两张以上
-        如果我是最后一个，我有羊，并且前面的牌都比羊小，打羊
-        其他情况打不是羊的最大的
-    如果是红桃，尽可能躲，捡大的贴
-
-下面是 MrIf(0,2) 对战 MrRandom(1,3) 的战绩，对战局数为256x16
-
-```
-20/07/04 22:35:24 505 [INFO,stat_random:131] 0th player: -20.81 1.22
-20/07/04 22:35:24 506 [INFO,stat_random:131] 1th player: -119.55 2.14
-20/07/04 22:35:24 507 [INFO,stat_random:131] 2th player: -21.22 1.22
-20/07/04 22:35:24 507 [INFO,stat_random:131] 3th player: -116.48 2.19
-20/07/04 22:35:24 509 [INFO,stat_random:133] 0 2 player: -42.03 1.59
-20/07/04 22:35:24 510 [INFO,stat_random:135] 1 3 player: -236.03 2.26
-20/07/04 22:35:24 511 [INFO,stat_random:137]  0+2 - 1+3: 194.00 3.63
 ```
 
 ### MrGreed
@@ -147,22 +116,43 @@ N     |5    |10   |20
 vs If |72.7 |81.1 |89.3
 Sigma |7.9  |7.9  |7.7
 
+### MrIf 和 MrRandom
+
+MrRandom是按规则随即出牌的玩家，也是将来等级分规则的0分的基准
+
+而 MrIf 是用 Ifs 判断几个最基础的规则其他情况随即出牌的玩家，他的规则包括：
+
+    如果随便出
+        从所剩张数少的花色开始，如果没有“危险牌”，就出这个花色大的
+        尽量不出猪、猪圈、变压器、比变压器大的、红桃AK、羊
+    如果是贴牌，按危险列表依次贴，没有危险列表了，贴短的
+    如果是猪牌并且我的猪剩两张以上
+        如果我有猪并且有人打过猪圈，贴猪
+        如果我是最后一个并且前面没认出过猪，打除了猪之外最大的
+        其他情况打不会得猪的
+    如果是变压器并且草花剩两张以上
+        类似于猪
+    如果是羊并且剩两张以上
+        如果我是最后一个，我有羊，并且前面的牌都比羊小，打羊
+        其他情况打不是羊的最大的
+    如果是红桃，尽可能躲，捡大的贴
+
+下面是 MrIf(0,2) 对战 MrRandom(1,3) 的战绩，对战局数为256x16
+
+```
+20/07/04 22:35:24 505 [INFO,stat_random:131] 0th player: -20.81 1.22
+20/07/04 22:35:24 506 [INFO,stat_random:131] 1th player: -119.55 2.14
+20/07/04 22:35:24 507 [INFO,stat_random:131] 2th player: -21.22 1.22
+20/07/04 22:35:24 507 [INFO,stat_random:131] 3th player: -116.48 2.19
+20/07/04 22:35:24 509 [INFO,stat_random:133] 0 2 player: -42.03 1.59
+20/07/04 22:35:24 510 [INFO,stat_random:135] 1 3 player: -236.03 2.26
+20/07/04 22:35:24 511 [INFO,stat_random:137]  0+2 - 1+3: 194.00 3.63
+```
+
+More statistics for MrIf and MrRandom see Appendix A.
+
 ### MrTree
 MrTree是使用蒙特卡洛树搜索的经典算法。
-MrTree使用弱化版的MrGreed作为自己随机游戏的策略，首先为了测试这个随即策略的强弱，把它单拎出来和MrGreed还有MrIf对战，结果如下表。MrTree和MrGreed的采样均设置为20。
-
-     |N_S=5 vs If|N_S=20 vs If|N_S=20 vs Greed
------|:---------:|:----------:|:------:
-score|13.06      |23.9        |-66.4
-sigma|8.3        |8.4         |8.5
-
-现在是测试MrTree的时候了，MrTree跑起来非常慢，所以我把采样设为5，蒙塔卡罗树搜索次数取1、5、25，和MrIf对战，结果如下表。
-为了加快测试速度，打得盘数较少。
-
-N_MC  |1    |5    |25
-------|:---:|:---:|:---:
-vs If |9.1  |4.77 |
-Sigma |22.9 |21.4 |
 
 ### Appendix A: MrRandom 和 MrIf 的详细统计信息
 __第一个数字（比如下面第一行的-64.01）是平均每局得分，第二个（比如110.97）是得分的方差__
