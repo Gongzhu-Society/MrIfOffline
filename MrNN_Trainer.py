@@ -8,13 +8,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-train_flag=True
-if train_flag:
-    import re
-    pattern_shuffle=re.compile("shuffle: (.+)")
-    pattern_play=re.compile("greed([0-3]) played ([SHDC][0-9JQKA]{1,2}), (.+)")
-    pattern_gamend=re.compile("game end: (\\[.+?\\])")
-    pattern_trick=re.compile("trick end. winner is ([0-3]), (.+)")
+import re
+pattern_shuffle=re.compile("shuffle: (.+)")
+pattern_play=re.compile("greed([0-3]) played ([SHDC][0-9JQKA]{1,2}), (.+)")
+pattern_gamend=re.compile("game end: (\\[.+?\\])")
+pattern_trick=re.compile("trick end. winner is ([0-3]), (.+)")
 
 class NN_Last(nn.Module):
     def __init__(self):
@@ -35,7 +33,7 @@ class NN_Last(nn.Module):
 
     def num_paras(self):
         return sum([p.numel() for p in self.parameters()])
-    
+
     def num_layers(self):
         ax=0
         for name,child in self.named_children():
@@ -71,7 +69,7 @@ class NN_Third(nn.Module):
 
     def num_paras(self):
         return sum([p.numel() for p in self.parameters()])
-    
+
     def num_layers(self):
         ax=0
         for name,child in self.named_children():
@@ -111,7 +109,7 @@ class NN_Second(nn.Module):
 
     def num_paras(self):
         return sum([p.numel() for p in self.parameters()])
-    
+
     def num_layers(self):
         ax=0
         for name,child in self.named_children():
@@ -155,7 +153,7 @@ class NN_First(nn.Module):
 
     def num_paras(self):
         return sum([p.numel() for p in self.parameters()])
-    
+
     def num_layers(self):
         ax=0
         for name,child in self.named_children():

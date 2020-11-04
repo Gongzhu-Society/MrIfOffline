@@ -7,9 +7,8 @@ from Util import ORDER_DICT2,SCORE_DICT
 from MrRandom import MrRandom,Human
 from MrIf import MrIf
 from MrGreed import MrGreed
-#from MrTree import MrTree
-#from MrNN import MrNN
-#from MrNN_Trainer import NN_First,NN_Second,NN_Third,NN_Last
+from MrNN import MrNN
+from MrNN_Trainer import NN_First,NN_Second,NN_Third,NN_Last
 
 import random,itertools,numpy,copy,time
 
@@ -71,8 +70,6 @@ class OfflineInterface():
         if not self.judge_legal(choice):
             log("choice %s, %s illegal"%(choice,self.cards_on_table))
             input()
-            self.step()
-            input()
             return 1
         self.cards_remain[self.pnext].remove(choice)
         self.players[self.pnext].cards_list.remove(choice)
@@ -125,13 +122,17 @@ class OfflineInterface():
         del self.cards_remain
 
 def stat_ai():
+    #prepare AIs
     r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
     g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
-    #n=[MrNN(room=0,place=i,name='net%d'%(i)) for i in range(4)]
-    #for i in n:
-    #    i.prepare_net([(NN_First,'NN_First_11_121012.ckpt'),(NN_Second,'NN_Second_9_126004.ckpt'),(NN_Third,'NN_Third_7_130996.ckpt'),(NN_Last,'NN_Last_5_135988.ckpt')])
-    offlineinterface=OfflineInterface([g[0],f[1],g[2],f[3]],print_flag=False)
+    n=[MrNN(room=0,place=i,name='net%d'%(i)) for i in range(4)]
+    para_dir="./NetPara20200715/"
+    for i in n:
+        i.prepare_net([(NN_First,para_dir+'NN_First_11_121012.ckpt'),(NN_Second,para_dir+'NN_Second_9_126004.ckpt'),
+                       (NN_Third,para_dir+'NN_Third_7_130996.ckpt'),(NN_Last,para_dir+'NN_Last_5_135988.ckpt')])
+    #initialize OfflineInterface
+    offlineinterface=OfflineInterface([f[0],n[1],f[2],n[3]],print_flag=False)
     stats=[]
     N1=128;N2=2
     tik=time.time()
