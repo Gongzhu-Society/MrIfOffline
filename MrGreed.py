@@ -3,7 +3,7 @@
 from Util import log,cards_order
 from Util import ORDER_DICT2,INIT_CARDS,SCORE_DICT
 from MrRandom import MrRandom
-import random,numpy
+import random,itertools
 
 print_level=0
 
@@ -15,7 +15,8 @@ class MrGreed(MrRandom):
     BURDEN_DICT_S={'SA':40,'SK':30}
     BURDEN_DICT_D={'DA':-30,'DK':-20,'DQ':-10}
     BURDEN_DICT_C={'CA':0.4,'CK':0.3,'CQ':0.2,'CJ':0.1} #ratio of burden, see calc_relief
-    N_SAMPLE=20
+    SHORT_PREFERENCE=850 #will multiply (average suit count)-(my suit count), if play first
+    N_SAMPLE=10
 
     def gen_cards_dict(cards_list):
         cards_dict={"S":[],"H":[],"D":[],"C":[]}
@@ -177,6 +178,10 @@ class MrGreed(MrRandom):
         return list(cards_remain)
 
     def pick_best_from_dlegal(d_legal):
+        """
+            pick best choice from d_legal
+            will be called by pick_a_card only once
+        """
         best_choice,best_score=d_legal.popitem()
         for k in d_legal:
             if d_legal[k]>best_score:
@@ -292,18 +297,16 @@ class MrGreed(MrRandom):
 
     def pick_a_card(self):
         global print_level
+        #确认桌上牌的数量和自己坐的位置相符
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
+        #utility datas
         suit=self.decide_suit()
         cards_dict=MrGreed.gen_cards_dict(self.cards_list)
-
         #如果别无选择
         if cards_dict.get(suit)!=None and len(cards_dict[suit])==1:
             choice=cards_dict[suit][0]
-            if print_level>=1:
-                log("I have no choice but %s"%(choice))
             return choice
-
-
+        #more utility datas
         fmt_score_list=MrGreed.gen_fmt_scores(self.scores)
         impc_dict=MrGreed.gen_impc_dict(self.scores,self.cards_on_table) #TODO: relief!!!!
         for c in self.cards_list:
@@ -314,7 +317,6 @@ class MrGreed(MrRandom):
             elif c=='C10':
                 impc_dict['C10']=True
         scs_rmn_avg=(-200-sum([i[0] for i in fmt_score_list]))//4
-
         #如果我是最后一个出的
         if len(self.cards_on_table)==4:
             four_cards=self.cards_on_table[1:4]+[""]
@@ -323,121 +325,82 @@ class MrGreed(MrRandom):
             choice=four_cards[3]
             return choice
 
-        #其他情况要估计先验概率了
-        void_info=MrGreed.gen_void_info(self.place,self.history,self.cards_on_table)
+        #more utility datas
         cards_remain=MrGreed.calc_cards_remain(self.history,self.cards_on_table,self.cards_list)
-        d_legal={} #wtf???
-        for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list):
-            d_legal[c]=0
-        expire_date=0 #wtf???
+        assert len(cards_remain)==3*len(self.cards_list)-(len(self.cards_on_table)-1) #确认别人手里牌的数量和我手里的还有桌上牌的数量相符
+        void_info=MrGreed.gen_void_info(self.place,self.history,self.cards_on_table)
         #如果我是倒数第二个
         if len(self.cards_on_table)==3:
-            assert len(cards_remain)==3*len(self.cards_list)-2
             lens=[len(self.cards_list),len(self.cards_list)-1,len(self.cards_list)-1]
             four_cards=self.cards_on_table[1:3]+['','']
-            for ax in range(MrGreed.N_SAMPLE):
-                if expire_date==0:
-                    cards_list_list,exchange_info,bx=MrGreed.gen_scenario(void_info,cards_remain,lens)
-                    expire_date=max(bx-5,0)
-                    #log("expire_date set: %d"%(expire_date))
-                else:
-                    exhausted_flag=MrGreed.alter_scenario(cards_list_list,exchange_info,void_info)
-                    if exhausted_flag==1:
-                        #log("exhausted, break ax=%d"%(ax))
-                        break
-                    expire_date-=1
+        #如果我是倒数第三个
+        elif len(self.cards_on_table)==2:
+            lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)-1]
+            four_cards=[self.cards_on_table[1],'','','']
+        #如果我是第一个出
+        elif len(self.cards_on_table)==1:
+            lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)]
+            four_cards=['','','','']
+        expire_date=0 #for sampling
+        d_legal={c:0 for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)} #dict of legal choice
+        for ax in range(MrGreed.N_SAMPLE):
+            #sampling
+            if expire_date==0:
+                cards_list_list,exchange_info,bx=MrGreed.gen_scenario(void_info,cards_remain,lens)
+                expire_date=max(bx-5,0)
+            else:
+                exhausted_flag=MrGreed.alter_scenario(cards_list_list,exchange_info,void_info)
+                if exhausted_flag==1:
+                    break
+                expire_date-=1
+            #decide
+            if len(self.cards_on_table)==3:
                 cards_list_1=cards_list_list[0]
                 cards_dict_1=MrGreed.gen_cards_dict(cards_list_1)
-                if print_level>=2:
-                    log("gen scenario: %s"%(cards_list_1))
                 for c in d_legal:
                     four_cards[2]=c
                     MrGreed.as_last_player(suit,four_cards,cards_dict_1,cards_list_1
                                           ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
                     score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
-                         +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
-                    if print_level>=2:
-                        log("If I choose %s: %s, %d"%(c,four_cards,score))
+                          +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
                     d_legal[c]+=score
-        #如果我是倒数第三个
-        elif len(self.cards_on_table)==2:
-            assert len(cards_remain)==3*len(self.cards_list)-1
-            lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)-1]
-            four_cards=[self.cards_on_table[1],'','','']
-            for ax in range(MrGreed.N_SAMPLE):
-                if expire_date==0:
-                    cards_list_list,exchange_info,bx=MrGreed.gen_scenario(void_info,cards_remain,lens)
-                    expire_date=max(bx-5,0)
-                    #log("expire_date set: %d"%(expire_date))
-                else:
-                    exhausted_flag=MrGreed.alter_scenario(cards_list_list,exchange_info,void_info)
-                    if exhausted_flag==1:
-                        #log("exhausted, break ax=%d"%(ax))
-                        break
-                    expire_date-=1
+            elif len(self.cards_on_table)==2:
                 cards_list_1=cards_list_list[0]
                 cards_dict_1=MrGreed.gen_cards_dict(cards_list_1)
                 cards_list_2=cards_list_list[1]
                 cards_dict_2=MrGreed.gen_cards_dict(cards_list_2)
-                if print_level>=2:
-                    log("gen scenario: %s, %s"%(cards_list_1,cards_list_2))
                 for c in d_legal:
                     four_cards[1]=c
                     MrGreed.as_third_player(suit,four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2
                                            ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
                     score=MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
-                         +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
-                    if print_level>=2:
-                        log("If I choose %s: %s, %d"%(c,four_cards,score))
+                          +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
                     d_legal[c]+=score
-        #如果我是第一个出
-        elif len(self.cards_on_table)==1:
-            assert len(cards_remain)==3*len(self.cards_list)
-            lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)]
-            d_suit_extra={'S':0,'H':0,'D':0,'C':0}
-            if len(self.history)<3:
-                l_temp=[]
-                for h in self.history:
-                    for c in h[1:5]:
-                        l_temp.append(c[0])
-                s_temp=''.join(l_temp)
-                for s in 'SHDC':
-                    my_len=len(cards_dict[s])
-                    avg_len=(13-s_temp.count(s)-my_len)/3
-                    d_suit_extra[s]=int((avg_len-my_len)*20) #a_free_para_meter_here
-            four_cards=['','','','']
-            for ax in range(MrGreed.N_SAMPLE):
-                if expire_date==0:
-                    cards_list_list,exchange_info,bx=MrGreed.gen_scenario(void_info,cards_remain,lens)
-                    expire_date=max(bx-5,0)
-                    #log("expire_date set: %d"%(expire_date))
-                else:
-                    exhausted_flag=MrGreed.alter_scenario(cards_list_list,exchange_info,void_info)
-                    if exhausted_flag==1:
-                        #log("exhausted, break ax=%d"%(ax))
-                        break
-                    expire_date-=1
+            elif len(self.cards_on_table)==1:
                 cards_list_1=cards_list_list[0]
                 cards_dict_1=MrGreed.gen_cards_dict(cards_list_1)
                 cards_list_2=cards_list_list[1]
                 cards_dict_2=MrGreed.gen_cards_dict(cards_list_2)
                 cards_list_3=cards_list_list[2]
                 cards_dict_3=MrGreed.gen_cards_dict(cards_list_3)
-                if print_level>=2:
-                    log("gen scenario: %s, %s, %s"%(cards_list_1,cards_list_2,cards_list_3))
                 for c in d_legal:
                     four_cards[0]=c
                     MrGreed.as_second_player(c[0],four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2,cards_dict_3,cards_list_3
                                             ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
                     score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
                          +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
-                    if print_level>=2:
-                        log("If I choose %s: %s, %d"%(c,four_cards,score))
                     d_legal[c]+=score
+        if len(self.cards_on_table)==1 and len(self.history)<3:
+            suit_ct={'S':0,'H':0,'D':0,'C':0}
+            for h,i in itertools.product(self.history,range(1,5)):
+                suit_ct[h[i][0]]+=1
+            d_suit_extra={'S':0,'H':0,'D':0,'C':0}
+            for s in 'SHDC':
+                my_len=len(cards_dict[s])
+                avg_len=(13-suit_ct[s]-my_len)/3
+                d_suit_extra[s]=int((avg_len-my_len)*MrGreed.SHORT_PREFERENCE)
             for c in d_legal:
-                d_legal[c]+=d_suit_extra[c[0]]*(ax+1)
-        if print_level>=1:
-            log(d_legal)
+                d_legal[c]+=d_suit_extra[c[0]]
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
@@ -445,5 +408,46 @@ class MrGreed(MrRandom):
     def family_name():
         return 'MrGreed'
 
+def optimize_target(paras):
+    """
+        will be called by optimize_para to optimize parameters of MrGreed
+        should import:
+from MrIf import MrIf
+from OfflineInterface import OfflineInterface
+import numpy
+    """
+    print(paras,end=" ",flush=True)
+    g0=MrGreed(room=0,place=0,name='greed0')
+    g2=MrGreed(room=0,place=2,name='greed2')
+    f1=MrIf(room=0,place=1,name="if1")
+    f3=MrIf(room=0,place=3,name="if3")
+    for g in [g0,g2]:
+        g.SHORT_PREFERENCE=paras[0]*100
+    offlineinterface=OfflineInterface([g0,f1,g2,f3],print_flag=False)
+    N1=256;N2=2
+    stats=[]
+    for k,l in itertools.product(range(N1),range(N2)):
+        if l==0:
+            cards=offlineinterface.shuffle()
+        else:
+            cards=cards[39:52]+cards[0:39]
+            offlineinterface.shuffle(cards=cards)
+        for i,j in itertools.product(range(13),range(4)):
+            offlineinterface.step()
+        stats.append(offlineinterface.clear())
+        offlineinterface.prepare_new()
+    s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
+    print("%.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),))
+    return numpy.mean(s_temp)
+
+def optimize_para():
+    """
+        want to optimize MrGreed's parameter by scipy.optimize, but failed
+    """
+    import scipy.optimize
+    init_para=(8,)
+    res=scipy.optimize.minimize(optimize_target,init_para,options={'eps':1})#,bounds=np.array([2,None]))
+    print(res)
+
 if __name__=="__main__":
-    pass
+    optimize_para()
