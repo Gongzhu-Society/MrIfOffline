@@ -133,7 +133,7 @@ def stat_ai():
     #initialize OfflineInterface
     offlineinterface=OfflineInterface([g[0],f[1],g[2],f[3]],print_flag=False)
     stats=[]
-    N1=256;N2=2
+    N1=512;N2=2
     log("start %dx%d"%(N1,N2))
     tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):
@@ -148,7 +148,7 @@ def stat_ai():
         #log("%d, %d: %s"%(k,l,stats[-1]))
         offlineinterface.prepare_new()
         if l==N2-1:
-            print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-2:]])),end=" ",flush=True)
+            print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])),end=" ",flush=True)
     tok=time.time()
     log("time consume: %ds"%(tok-tik))
 
@@ -162,8 +162,6 @@ def stat_ai():
     #log("1 3 player: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log(" 0+2 - 1+3: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
-
-
 
 if __name__=="__main__":
     stat_ai()

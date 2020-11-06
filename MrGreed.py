@@ -3,7 +3,7 @@
 from Util import log,cards_order
 from Util import ORDER_DICT2,INIT_CARDS,SCORE_DICT
 from MrRandom import MrRandom
-import random,itertools
+import random,itertools,copy
 
 print_level=0
 
@@ -12,11 +12,11 @@ class MrGreed(MrRandom):
                  'CA':11,'CK':9,'CQ':8,'CJ':7,'C10':6,'C9':5,'C8':4,'C7':3,'C6':2,'C5':1,'C4':1,
                  'DA':11,'DK':9,'DQ':8,'DJ':7,'D10':6,'D9':5,'D8':4,'D7':3,'D6':2,'D5':1,'D4':1,
                  'H10':6,'H9':5,'H8':4,'H7':3,'H6':2,'H5':1,'H4':1}
-    BURDEN_DICT_S={'SA':40,'SK':30}
+    BURDEN_DICT_S={'SA':50,'SK':30}
     BURDEN_DICT_D={'DA':-30,'DK':-20,'DQ':-10}
     BURDEN_DICT_C={'CA':0.4,'CK':0.3,'CQ':0.2,'CJ':0.1} #ratio of burden, see calc_relief
-    SHORT_PREFERENCE=850 #will multiply (average suit count)-(my suit count), if play first
-    N_SAMPLE=10
+    SHORT_PREFERENCE=800 #will multiply (average suit count)-(my suit count), if play first
+    N_SAMPLE=20
 
     def gen_cards_dict(cards_list):
         cards_dict={"S":[],"H":[],"D":[],"C":[]}
@@ -112,6 +112,19 @@ class MrGreed(MrRandom):
                 impc_dict['C10']=True
         return impc_dict
 
+    def diy_impc_dict(impc_dict_base,cards_list):
+        """
+            modify impc_dict w.r.t cards in hand
+        """
+        impc_dict=copy.copy(impc_dict_base)
+        if 'SQ' in cards_list:
+            impc_dict['SQ']=True
+        if 'DJ' in cards_list:
+            impc_dict['DJ']=True
+        if 'C10' in cards_list:
+            impc_dict['C10']=True
+        return impc_dict
+
     def calc_relief(card,impc_dict,scs_rmn_avg,my_score):
         """
             If there is SQ, SA and SK have an effective "burden". Getting ride of them is a "relief".
@@ -127,7 +140,8 @@ class MrGreed(MrRandom):
         return relief
 
     def as_last_player(suit,four_cards,cards_dict,cards_list,
-        fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace):
+        fmt_score_list,trick_start,scs_rmn_avg,impc_dict_base,myplace):
+        impc_dict=MrGreed.diy_impc_dict(impc_dict_base,cards_list)
         best_score=-65535
         four_cards_tmp=four_cards[0:3]+['']
         for c in MrGreed.gen_legal_choice(suit,cards_dict,cards_list):
@@ -139,7 +153,8 @@ class MrGreed(MrRandom):
                 best_score=score_temp
 
     def as_third_player(suit,four_cards,cards_dict3,cards_list3,cards_dict4,cards_list4,
-        fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace):
+        fmt_score_list,trick_start,scs_rmn_avg,impc_dict_base,myplace):
+        impc_dict=MrGreed.diy_impc_dict(impc_dict_base,cards_list3)
         best_score=-65535
         four_cards_tmp=four_cards[0:2]+['','']
         for c in MrGreed.gen_legal_choice(suit,cards_dict3,cards_list3):
@@ -153,7 +168,8 @@ class MrGreed(MrRandom):
                 best_score=score_temp
 
     def as_second_player(suit,four_cards,cards_dict2,cards_list2,cards_dict3,cards_list3,cards_dict4,cards_list4,
-        fmt_score_list,trick_start,scs_rmn_avg,impc_dict,myplace):
+        fmt_score_list,trick_start,scs_rmn_avg,impc_dict_base,myplace):
+        impc_dict=MrGreed.diy_impc_dict(impc_dict_base,cards_list2)
         best_score=-65535
         four_cards_tmp=[four_cards[0],'','','']
         for c in MrGreed.gen_legal_choice(suit,cards_dict2,cards_list2):
@@ -190,6 +206,10 @@ class MrGreed(MrRandom):
         return best_choice
 
     def gen_void_info(myseat,history,cards_on_table):
+        """
+            generate void info
+            will be called in pick_a_card and used as the input for check_void_info in gen_scenario
+        """
         void_info=[{'S':False,'H':False,'D':False,'C':False},{'S':False,'H':False,'D':False,'C':False}\
                   ,{'S':False,'H':False,'D':False,'C':False}]
         for h in history:
@@ -261,10 +281,14 @@ class MrGreed(MrRandom):
         cards_list_list[(exc_ind+1)%3].append(c1)
         cards_list_list[(exc_ind+2)%3].remove(c1)
         cards_list_list[(exc_ind+2)%3].append(c0)
-        #assert MrGreed.check_void_legal(cards_list_list[0],cards_list_list[1],cards_list_list[2],void_info)
+        assert MrGreed.check_void_legal(cards_list_list[0],cards_list_list[1],cards_list_list[2],void_info)
         return 0
 
     def check_void_legal(cards_list1,cards_list2,cards_list3,void_info):
+        """
+            check the senario generated agree with void info or not
+            will be called by gen_scenario, asserted in alter_scenario
+        """
         for i in range(3):
             s_temp=''.join((i[0] for i in cards_list1))
             if void_info[0]['S'] and 'S' in s_temp:
@@ -308,20 +332,13 @@ class MrGreed(MrRandom):
             return choice
         #more utility datas
         fmt_score_list=MrGreed.gen_fmt_scores(self.scores)
-        impc_dict=MrGreed.gen_impc_dict(self.scores,self.cards_on_table) #TODO: relief!!!!
-        for c in self.cards_list:
-            if c=='SQ':
-                impc_dict['SQ']=True
-            elif c=='DJ':
-                impc_dict['DJ']=True
-            elif c=='C10':
-                impc_dict['C10']=True
+        impc_dict_base=MrGreed.gen_impc_dict(self.scores,self.cards_on_table) #TODO: relief!!!!
         scs_rmn_avg=(-200-sum([i[0] for i in fmt_score_list]))//4
         #如果我是最后一个出的
         if len(self.cards_on_table)==4:
             four_cards=self.cards_on_table[1:4]+[""]
             MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list
-                                  ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
+                                  ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
             choice=four_cards[3]
             return choice
 
@@ -329,6 +346,7 @@ class MrGreed(MrRandom):
         cards_remain=MrGreed.calc_cards_remain(self.history,self.cards_on_table,self.cards_list)
         assert len(cards_remain)==3*len(self.cards_list)-(len(self.cards_on_table)-1) #确认别人手里牌的数量和我手里的还有桌上牌的数量相符
         void_info=MrGreed.gen_void_info(self.place,self.history,self.cards_on_table)
+        impc_dict_mine=MrGreed.diy_impc_dict(impc_dict_base,self.cards_list)
         #如果我是倒数第二个
         if len(self.cards_on_table)==3:
             lens=[len(self.cards_list),len(self.cards_list)-1,len(self.cards_list)-1]
@@ -360,9 +378,9 @@ class MrGreed(MrRandom):
                 for c in d_legal:
                     four_cards[2]=c
                     MrGreed.as_last_player(suit,four_cards,cards_dict_1,cards_list_1
-                                          ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
+                                          ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
                     score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
-                          +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
+                          +MrGreed.calc_relief(c,impc_dict_mine,scs_rmn_avg,fmt_score_list[self.place][0])
                     d_legal[c]+=score
             elif len(self.cards_on_table)==2:
                 cards_list_1=cards_list_list[0]
@@ -372,9 +390,9 @@ class MrGreed(MrRandom):
                 for c in d_legal:
                     four_cards[1]=c
                     MrGreed.as_third_player(suit,four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2
-                                           ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
+                                           ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
                     score=MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
-                          +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
+                          +MrGreed.calc_relief(c,impc_dict_mine,scs_rmn_avg,fmt_score_list[self.place][0])
                     d_legal[c]+=score
             elif len(self.cards_on_table)==1:
                 cards_list_1=cards_list_list[0]
@@ -386,9 +404,9 @@ class MrGreed(MrRandom):
                 for c in d_legal:
                     four_cards[0]=c
                     MrGreed.as_second_player(c[0],four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2,cards_dict_3,cards_list_3
-                                            ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict,self.place)
+                                            ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
                     score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
-                         +MrGreed.calc_relief(c,impc_dict,scs_rmn_avg,fmt_score_list[self.place][0])
+                         +MrGreed.calc_relief(c,impc_dict_mine,scs_rmn_avg,fmt_score_list[self.place][0])
                     d_legal[c]+=score
         if len(self.cards_on_table)==1 and len(self.history)<3:
             suit_ct={'S':0,'H':0,'D':0,'C':0}
