@@ -511,7 +511,8 @@ class MrGreed(MrRandom):
         return best_choice
 
     def pick_a_card(self):
-        return self.pick_a_card_record_for_o()
+        return self.pick_a_card_pure()
+        #return self.pick_a_card_record_for_o()
 
     @staticmethod
     def family_name():
