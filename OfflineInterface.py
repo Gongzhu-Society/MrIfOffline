@@ -133,7 +133,7 @@ def stat_ai():
     #initialize OfflineInterface
     offlineinterface=OfflineInterface([g[0],f[1],g[2],f[3]],print_flag=False)
     stats=[]
-    N1=32;N2=2
+    N1=1024;N2=2
     log("start %dx%d"%(N1,N2))
     tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):

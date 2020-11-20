@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log,cards_order
-from Util import ORDER_DICT2,SCORE_DICT
+from Util import ORDER_DICT2,INIT_CARDS,SCORE_DICT
 from MrRandom import MrRandom
 from MrO_Trainer import cards_in_hand_oh,score_oh,four_cards_oh
-from ScenarioGen import ScenarioGen
 import random,itertools,copy,torch
 
 class MrGreed(MrRandom):
@@ -182,6 +181,17 @@ class MrGreed(MrRandom):
                 four_cards[1:4]=four_cards_tmp[1:4]
                 best_score=score_temp
 
+    def calc_cards_remain(history,cards_on_table,cards_list):
+        cards_remain=set(INIT_CARDS)
+        for h in history:
+            for c in h[1:5]:
+                cards_remain.remove(c)
+        for c in cards_on_table[1:]:
+            cards_remain.remove(c)
+        for c in cards_list:
+            cards_remain.remove(c)
+        return list(cards_remain)
+
     def pick_best_from_dlegal(d_legal):
         """
             pick best choice from d_legal
@@ -193,6 +203,119 @@ class MrGreed(MrRandom):
                 best_choice=k
                 best_score=d_legal[k]
         return best_choice
+
+    def gen_void_info(myseat,history,cards_on_table):
+        """
+            generate void info
+            will be called in pick_a_card and used as the input for check_void_info in gen_scenario
+        """
+        void_info=[{'S':False,'H':False,'D':False,'C':False},{'S':False,'H':False,'D':False,'C':False}\
+                  ,{'S':False,'H':False,'D':False,'C':False}]
+        for h in history:
+            for i,c in enumerate(h[2:5]):
+                seat=(h[0]+i-myseat)%4
+                if seat!=3 and c[0]!=h[1][0]:
+                    void_info[seat][h[1][0]]=True
+        for i,c in enumerate(cards_on_table[2:]):
+            seat=(cards_on_table[0]+i-myseat)%4
+            if seat!=3 and c[0]!=cards_on_table[1][0]:
+                void_info[seat][cards_on_table[1][0]]=True
+        return void_info
+
+    def gen_scenario(void_info,cards_remain,lens):
+        bx=0
+        while True:
+            bx+=1
+            random.shuffle(cards_remain)
+            if MrGreed.check_void_legal(cards_remain[0:lens[0]],cards_remain[lens[0]:lens[0]+lens[1]],cards_remain[lens[0]+lens[1]:],void_info):
+                break
+        cards_list_list=[cards_remain[0:lens[0]],cards_remain[lens[0]:lens[0]+lens[1]],cards_remain[lens[0]+lens[1]:sum(lens)]]
+        a2b=[];a2c=[]
+        for c in cards_list_list[0]:
+            if not void_info[1][c[0]]:
+                a2b.append(c)
+            if not void_info[2][c[0]]:
+                a2c.append(c)
+        b2c=[];b2a=[]
+        for c in cards_list_list[1]:
+            if not void_info[2][c[0]]:
+                b2c.append(c)
+            if not void_info[0][c[0]]:
+                b2a.append(c)
+        c2a=[];c2b=[]
+        for c in cards_list_list[2]:
+            if not void_info[0][c[0]]:
+                c2a.append(c)
+            if not void_info[1][c[0]]:
+                c2b.append(c)
+        exchange_info=[[b2c,c2b],[c2a,a2c],[a2b,b2a]]
+        return cards_list_list,exchange_info,bx
+
+    def alter_scenario(cards_list_list,exchange_info,void_info):
+        fsi_exc=[]
+        if len(exchange_info[0][0])!=0 and len(exchange_info[0][1])!=0:
+            fsi_exc.append(0)
+        if len(exchange_info[1][0])!=0 and len(exchange_info[1][1])!=0:
+            fsi_exc.append(1)
+        if len(exchange_info[2][0])!=0 and len(exchange_info[2][1])!=0:
+            fsi_exc.append(2)
+        if len(fsi_exc)==0:
+            return 1
+        exc_ind=random.choice(fsi_exc)
+        #from (exc_ind+1)%3 to (exc_ind+2)%3
+        c_ind_0=random.randrange(0,len(exchange_info[exc_ind][0]))
+        c_ind_1=random.randrange(0,len(exchange_info[exc_ind][1]))
+        c0=exchange_info[exc_ind][0].pop(c_ind_0)
+        c1=exchange_info[exc_ind][1].pop(c_ind_1)
+        exchange_info[exc_ind][0].append(c1)
+        exchange_info[exc_ind][1].append(c0)
+        if not void_info[exc_ind][c0[0]]:
+            exchange_info[(exc_ind+2)%3][1].remove(c0)
+            exchange_info[(exc_ind+1)%3][0].append(c0)
+        if not void_info[exc_ind][c1[0]]:
+            exchange_info[(exc_ind+2)%3][1].append(c1)
+            exchange_info[(exc_ind+1)%3][0].remove(c1)
+        cards_list_list[(exc_ind+1)%3].remove(c0)
+        cards_list_list[(exc_ind+1)%3].append(c1)
+        cards_list_list[(exc_ind+2)%3].remove(c1)
+        cards_list_list[(exc_ind+2)%3].append(c0)
+        #assert MrGreed.check_void_legal(cards_list_list[0],cards_list_list[1],cards_list_list[2],void_info)
+        return 0
+
+    def check_void_legal(cards_list1,cards_list2,cards_list3,void_info):
+        """
+            check the senario generated agree with void info or not
+            will be called by gen_scenario, asserted in alter_scenario
+        """
+        for i in range(3):
+            s_temp=''.join((i[0] for i in cards_list1))
+            if void_info[0]['S'] and 'S' in s_temp:
+                return False
+            if void_info[0]['H'] and 'H' in s_temp:
+                return False
+            if void_info[0]['D'] and 'D' in s_temp:
+                return False
+            if void_info[0]['C'] and 'C' in s_temp:
+                return False
+            s_temp=''.join((i[0] for i in cards_list2))
+            if void_info[1]['S'] and 'S' in s_temp:
+                return False
+            if void_info[1]['H'] and 'H' in s_temp:
+                return False
+            if void_info[1]['D'] and 'D' in s_temp:
+                return False
+            if void_info[1]['C'] and 'C' in s_temp:
+                return False
+            s_temp=''.join((i[0] for i in cards_list3))
+            if void_info[2]['S'] and 'S' in s_temp:
+                return False
+            if void_info[2]['H'] and 'H' in s_temp:
+                return False
+            if void_info[2]['D'] and 'D' in s_temp:
+                return False
+            if void_info[2]['C'] and 'C' in s_temp:
+                return False
+        return True
 
     def pick_a_card_pure(self):
         #确认桌上牌的数量和自己坐的位置相符
@@ -217,20 +340,34 @@ class MrGreed(MrRandom):
             return choice
 
         #more utility datas
+        cards_remain=MrGreed.calc_cards_remain(self.history,self.cards_on_table,self.cards_list)
+        assert len(cards_remain)==3*len(self.cards_list)-(len(self.cards_on_table)-1) #确认别人手里牌的数量和我手里的还有桌上牌的数量相符
+        void_info=MrGreed.gen_void_info(self.place,self.history,self.cards_on_table)
         impc_dict_mine=MrGreed.diy_impc_dict(impc_dict_base,self.cards_list)
         #如果我是倒数第二个
         if len(self.cards_on_table)==3:
+            lens=[len(self.cards_list),len(self.cards_list)-1,len(self.cards_list)-1]
             four_cards=self.cards_on_table[1:3]+['','']
         #如果我是倒数第三个
         elif len(self.cards_on_table)==2:
+            lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)-1]
             four_cards=[self.cards_on_table[1],'','','']
         #如果我是第一个出
         elif len(self.cards_on_table)==1:
+            lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)]
             four_cards=['','','','']
-        #expire_date=0 #for sampling
+        expire_date=0 #for sampling
         d_legal={c:0 for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)} #dict of legal choice
-        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=MrGreed.N_SAMPLE)
-        for cards_list_list in sce_gen:
+        for ax in range(MrGreed.N_SAMPLE):
+            #sampling
+            if expire_date==0:
+                cards_list_list,exchange_info,bx=MrGreed.gen_scenario(void_info,cards_remain,lens)
+                expire_date=max(bx-5,0)
+            else:
+                exhausted_flag=MrGreed.alter_scenario(cards_list_list,exchange_info,void_info)
+                if exhausted_flag==1:
+                    break
+                expire_date-=1
             #decide
             if len(self.cards_on_table)==3:
                 cards_list_1=cards_list_list[0]
