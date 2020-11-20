@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 from Util import log,cards_order
 from Util import INIT_CARDS
-import random,copy,numpy
+import random,copy,numpy,time
 
 class NumTable():
     """
@@ -66,8 +66,19 @@ class NumTable():
                     child.breed()
 
 class ScenarioGen():
-
     FACTORIAL={0:1,1:1,2:2,3:6,4:24,5:120,6:720,7:5040,8:40320,9:362880,10:3628800,11:39916800,12:479001600,13:6227020800}
+    METHOD1_PREFERENCE=0
+
+    def C(m,n):
+        """mCn, m is the larger one"""
+        if n==3:
+            return m*(m-1)*(m-2)//6
+        elif n==2:
+            return m*(m-1)//2
+        elif n==1:
+            return m
+        else:
+            return 1
 
     def __init__(self,myseat,history,cards_on_table,cards_list,number=20,method=None):
         """
@@ -81,9 +92,10 @@ class ScenarioGen():
         #void_info and cards_remain are all in relative order!
         self.void_info=ScenarioGen.gen_void_info(myseat,history,cards_on_table)
         self.cards_remain=ScenarioGen.gen_cards_remain(history,cards_on_table,cards_list)
+        #log(self.void_info)
+        #log(self.cards_remain)
         #确认别人手里牌的数量和我手里的还有桌上牌的数量相符
         assert len(self.cards_remain)==3*len(cards_list)-(len(cards_on_table)-1)
-        #log(self.void_info)
 
         #lens is like [[13],[12],[12]], also in relative order like void_info and cards_remain
         if len(cards_on_table)==1: #If I am the first
@@ -94,61 +106,85 @@ class ScenarioGen():
             self.lens=[len(cards_list),2*len(cards_list)-1,3*len(cards_list)-2]
         elif len(cards_on_table)==4: #I am the last one
             self.lens=[len(cards_list)-1,2*len(cards_list)-2,3*len(cards_list)-3]
+        #log(self.lens)
         assert self.lens[2]==len(self.cards_remain)
 
+        self.number=number
+        self.suc_ct=0 #success counter
+        if method==None:
+            self.decide_method()
+        elif method==1:
+            self.method=1
+            s_temp=''.join((i[0] for i in self.cards_remain))
+            self.suit_ct=[s_temp.count(s) for s in "SHDC"] #suit remain number count
+            self.reinforce_void_info()
+            #log(self.void_info)
+            self.gen_num_tables()
+            #log(self.num_tables)
+        else:
+            self.method=0
+            self.tot_ct=0 #total try counter
+
+    def decide_method(self):
         s_temp=''.join((i[0] for i in self.cards_remain))
         self.suit_ct=[s_temp.count(s) for s in "SHDC"] #suit remain number count
         self.reinforce_void_info()
-        #log(self.void_info)
-
-        self.number=number
         #predict success rate
-        d1={True:0,False:1}
-        s_cell_num=sum([d1[self.void_info[j]['S']] for j in range(3)])
-        h_cell_num=sum([d1[self.void_info[j]['H']] for j in range(3)])
-        d_cell_num=sum([d1[self.void_info[j]['D']] for j in range(3)])
-        c_cell_num=sum([d1[self.void_info[j]['C']] for j in range(3)])
-        self.suc_rate_predict=(s_cell_num/3)**(self.suit_ct[0])
-        self.suc_rate_predict*=(h_cell_num/3)**(self.suit_ct[1])
-        self.suc_rate_predict*=(d_cell_num/3)**(self.suit_ct[2])
-        self.suc_rate_predict*=(c_cell_num/3)**(self.suit_ct[3])
-        """def C(m,n):
-            if n==3:
-                return (m+2)*(m+1)/2
-            elif n==2:
-                return m+1
-            else:
-                return 1
-        self.tables_num_predict=C(self.suit_ct[0],s_cell_num)
-        self.tables_num_predict*=C(self.suit_ct[1],h_cell_num)
-        self.tables_num_predict*=C(self.suit_ct[2],d_cell_num)
-        self.tables_num_predict*=C(self.suit_ct[3],c_cell_num)"""
-        if method==None:
-            if self.suc_rate_predict<0.05:
-                self.gen_num_tables()
-                self.method=1
-            else:
-                self.tot_ct=0 #total try counter
-                self.method=0
-        self.suc_ct=0 #success counter
+        cell_num=[sum((1 for j in range(3) if not self.void_info[j]['S'])),sum((1 for j in range(3) if not self.void_info[j]['H'])),
+                  sum((1 for j in range(3) if not self.void_info[j]['D'])),sum((1 for j in range(3) if not self.void_info[j]['C']))]
+        self.suc_rate_predict=1
+        self.tables_num_predict=1
+        for i in range(4):
+            self.suc_rate_predict*=(cell_num[i]/3)**(self.suit_ct[i])
+            self.tables_num_predict*=ScenarioGen.C(self.suit_ct[i]+cell_num[i]-1,cell_num[i]-1)
+        col_res=1
+        for j in range(3):
+            p_suit=[self.suit_ct[i] for i in range(4) if not self.void_info[j]['SHDC'[i]]]
+            if len(p_suit)>0:
+                col_res*=(max(p_suit)+1)
+        self.tables_num_predict/=col_res**(2/3)
+        #log(self.suc_rate_predict)
+        #log(self.tables_num_predict)
+
+        method0_time=(0.39*len(self.cards_remain)+1.95)/self.suc_rate_predict
+        method1_time=self.tables_num_predict*60/self.number+30
+        if method1_time-ScenarioGen.METHOD1_PREFERENCE<method0_time:
+            self.method=1
+            self.gen_num_tables()
+        else:
+            self.method=0
+            self.tot_ct=0 #total try counter
+        #log("choose method: %d"%(self.method))
 
     def __iter__(self):
         return self
 
     def __next__(self):
         if self.suc_ct>=self.number:
-            """if self.method==0 and self.suc_ct/self.tot_ct<0.15:
-                print("suc rate: %5.2f(%d), %5.2f"%(self.suc_ct*100/self.tot_ct,self.number,self.suc_rate_predict*100))
+            """if self.suc_ct/self.tot_ct<0.1:
+                tik=time.time()
                 self.gen_num_tables()
-                print("tables_num: %d, %d"%(len(self.num_tables),self.tables_num_predict))
-                input()"""
+                tok=time.time()
+                #log("%.2fus, %d"%((tok-tik)*1e6,len(self.num_tables)))
+                tik=time.time()
+                for i in range(10000):
+                    self.construct_by_table()
+                tok=time.time()
+                log("%.2fus, %d"%((tok-tik)/10000*1e6,len(self.cards_remain)))"""
+            #for timing
+            """self.number=100001;self.tot_ct=0;tik=time.time()
+            for i in range(100000):
+                self.shot_and_test()
+            tok=time.time()
+            log("%5.2f, %5.2f, %d"%(100000*100/self.tot_ct,(tok-tik)/self.tot_ct*1e6,len(self.cards_remain)))
+            input()"""
             raise StopIteration
         if self.method==0:
             result=self.shot_and_test()
             self.suc_ct+=1
             return result
         elif self.method==1:
-            result=self.suit_by_suit()
+            result=self.construct_by_table()
             self.suc_ct+=1
             return result
 
@@ -168,7 +204,8 @@ class ScenarioGen():
             generate void info in __relative order__, True means is empty
             will be called in pick_a_card and used as the input for check_void_info in gen_scenario
         """
-        void_info=[{'S':False,'H':False,'D':False,'C':False},{'S':False,'H':False,'D':False,'C':False},{'S':False,'H':False,'D':False,'C':False}]
+        void_info=[{'S':False,'H':False,'D':False,'C':False},{'S':False,'H':False,'D':False,'C':False},
+                   {'S':False,'H':False,'D':False,'C':False}]
         for h in history:
             for i,c in enumerate(h[2:5]):
                 seat=(h[0]+i-myseat)%4
@@ -273,26 +310,23 @@ class ScenarioGen():
         self.num_table_count=sum(self.num_table_weights)
         self.num_table_weights=[i/self.num_table_count for i in self.num_table_weights]
 
-    def suit_by_suit(self):
+        self.s_cards=[i for i in self.cards_remain if i[0]=='S']
+        self.h_cards=[i for i in self.cards_remain if i[0]=='H']
+        self.d_cards=[i for i in self.cards_remain if i[0]=='D']
+        self.c_cards=[i for i in self.cards_remain if i[0]=='C']
+
+    def construct_by_table(self):
         vals=self.num_tables[numpy.random.choice(self.for_choice,p=self.num_table_weights)]
-        numpy.random.shuffle(self.cards_remain)
-        cards_list1=[];cards_list2=[];cards_list3=[]
-        s_cards=[i for i in self.cards_remain if i[0]=='S']
-        cards_list1+=s_cards[0:vals[0]]
-        cards_list2+=s_cards[vals[0]:vals[0]+vals[1]]
-        cards_list3+=s_cards[vals[0]+vals[1]:]
-        h_cards=[i for i in self.cards_remain if i[0]=='H']
-        cards_list1+=h_cards[0:vals[3]]
-        cards_list2+=h_cards[vals[3]:vals[3]+vals[4]]
-        cards_list3+=h_cards[vals[3]+vals[4]:]
-        d_cards=[i for i in self.cards_remain if i[0]=='D']
-        cards_list1+=d_cards[0:vals[6]]
-        cards_list2+=d_cards[vals[6]:vals[6]+vals[7]]
-        cards_list3+=d_cards[vals[6]+vals[7]:]
-        c_cards=[i for i in self.cards_remain if i[0]=='C']
-        cards_list1+=c_cards[0:vals[9]]
-        cards_list2+=c_cards[vals[9]:vals[9]+vals[10]]
-        cards_list3+=c_cards[vals[9]+vals[10]:]
+        numpy.random.shuffle(self.s_cards)
+        numpy.random.shuffle(self.h_cards)
+        numpy.random.shuffle(self.d_cards)
+        numpy.random.shuffle(self.c_cards)
+        cards_list1=self.s_cards[0:vals[0]]+self.h_cards[0:vals[3]]+self.d_cards[0:vals[6]]+self.c_cards[0:vals[9]]
+        cards_list2=self.s_cards[vals[0]:vals[0]+vals[1]]+self.h_cards[vals[3]:vals[3]+vals[4]]+\
+                    self.d_cards[vals[6]:vals[6]+vals[7]]+self.c_cards[vals[9]:vals[9]+vals[10]]
+        cards_list3=self.s_cards[vals[0]+vals[1]:]+self.h_cards[vals[3]+vals[4]:]+\
+                    self.d_cards[vals[6]+vals[7]:]+self.c_cards[vals[9]+vals[10]:]
+        """
         try:
             assert len(cards_list1)==self.lens[0]
             assert len(cards_list2)==self.lens[1]-self.lens[0]
@@ -304,19 +338,34 @@ class ScenarioGen():
             print(vals)
             print(self.cards_remain)
             print(self.suit_ct)
-            input()
+            input()"""
         return [cards_list1,cards_list2,cards_list3]
 
 def test_gen_num_tables():
+    """s=ScenarioGen(0,[[0,'S2','S3','S4','S5'],[0,'S6','S7','S8','S9'],[0,'S10','SJ','SQ','SK'],
+                     [0,'H2','H3','H4','H5'],[0,'H6','H7','H8','H9'],[0,'H10','HJ','HQ','HK'],
+                     [0,'C2','C3','C4','C5'],[0,'C6','C7','C8','C9'],[0,'C10','CJ','CQ','D7'],]
+                    ,[0,'SA','HA','D2'],['D3','D4','D5','D6'],number=10)
+    for i in s:
+        print(i)
+        input()"""
     s=ScenarioGen(0,[[0,'S2','S3','S4','S5'],[0,'S6','S7','S8','S9'],[0,'S10','SJ','SQ','SK'],
                      [0,'H2','H3','H4','H5'],[0,'H6','H7','H8','H9'],[0,'H10','HJ','HQ','HK'],
                      [0,'C2','C3','C4','C5'],[0,'C6','C7','C8','C9'],[0,'C10','CJ','CQ','D7'],]
-                    ,[0,'SA','HA','D2'],['D3','D4','D5','D6'])
-    s.gen_num_tables()
-    #print("tables_num: %d, %d"%(len(s.num_tables),s.tables_num_predict))
-    s.method=1;s.number=10
+                    ,[0,'SA','HA','D2'],['D3','D4','D5','D6'],number=10,method=1)
     for i in s:
         print(i)
+        input()
+
+def test_by_touchstone():
+    h=[[0, 'CA', 'C10', 'CQ', 'C3'], [0, 'D3', 'DQ', 'D6', 'D9'], [1, 'S10', 'SA', 'SQ', 'SK'], [2, 'S4', 'SJ', 'S3', 'S6'], [3, 'H5', 'H8', 'H7', 'H9'], [2, 'H6', 'HJ', 'HQ', 'H10'],
+       [0, 'S8', 'CK', 'CJ', 'S7'],
+       [0, 'S9', 'D10', 'C6', 'S2'], [0, 'C9', 'C8', 'C4', 'D8'], [0, 'DK', 'D7', 'D4', 'DA'],
+       [3, 'H4', 'HA', 'C7', 'HK']]
+    s=ScenarioGen(2,h,[0, 'D5', 'C5'],['C2', 'H3'],number=10,method=1)
+    for i in s:
+        print(s)
 
 if __name__=="__main__":
     test_gen_num_tables()
+    #test_by_touchstone()
