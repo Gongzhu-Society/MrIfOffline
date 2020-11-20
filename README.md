@@ -5,11 +5,10 @@ Offline(testing) version of several AIs.
 
 * OfflineInterface.py: 线下游戏的接口, 用于对接不同的AI.
 * Util.py            : Utility data and functions. Include
-    * functions: log, calc_score, cards_order
-    * datas    : ORDER_DICT, INIT_CARDS, SCORE_DICT
-* MrRandom.py        : 最基本的机器人, 按 Li Ruichen 接口定义了 `self.cards_list, self.history, self.cards_on_table, self.score` 等对象变量, 定义了几个 utility function, 之后的机器人都应该继承自 MrRandom. 同时给出了一个 Human 类表示人类, Human pick_a_card 时会请求人类输入.
+    * functions: `log, calc_score, cards_order, ...`
+    * datas    : `ORDER_DICT, INIT_CARDS, SCORE_DICT, ...`
+* MrRandom.py        : 最基本的机器人, 按 Ruichen Li 的接口定义了 `self.cards_list, self.history, self.cards_on_table, self.score` 等对象变量, 定义了几个 utility function, 之后的机器人都应该继承自 MrRandom. 同时给出了一个 Human 类表示人类, Human pick_a_card 时会请求人类输入.
 * MrIf.py, MrGreed.py: 两个使用一些 if statements 来打牌的 AI, MrGreed 更强, 也是目前为止最强的.
-* MrTree.py          : 蒙特卡罗树搜索接口, 未完成.
 * MrNN_Trainer.py    : 训练神经网络.
 * MrNN.py            : 使用神经网络.
 
