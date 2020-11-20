@@ -18,12 +18,6 @@ Offline(testing) version of several AIs.
 
 ```
 20/07/15 22:56:57 890 [INFO,stat_ai:143] time consume: 72s
-20/07/15 22:56:57 893 [WARN,stat_ai:146] 0th player: -80.46 2.94
-20/07/15 22:56:57 897 [WARN,stat_ai:146] 1th player: -54.08 2.15
-20/07/15 22:56:57 899 [WARN,stat_ai:146] 2th player: -77.72 2.86
-20/07/15 22:56:57 900 [WARN,stat_ai:146] 3th player: -53.31 2.24
-20/07/15 22:56:57 901 [WARN,stat_ai:148] 0 2 player: -158.18 3.30
-20/07/15 22:56:57 903 [WARN,stat_ai:150] 1 3 player: -107.39 2.75
 20/07/15 22:56:57 904 [WARN,stat_ai:152]  0+2 - 1+3: -50.79 5.72
 ```
 
@@ -31,12 +25,6 @@ Offline(testing) version of several AIs.
 
 ```
 20/07/15 23:02:14 962 [INFO,stat_ai:144] time consume: 72s
-20/07/15 23:02:14 967 [WARN,stat_ai:147] 0th player: -27.21 2.16
-20/07/15 23:02:14 969 [WARN,stat_ai:147] 1th player: -102.58 2.78
-20/07/15 23:02:14 971 [WARN,stat_ai:147] 2th player: -26.88 2.18
-20/07/15 23:02:14 975 [WARN,stat_ai:147] 3th player: -106.65 2.78
-20/07/15 23:02:14 978 [WARN,stat_ai:149] 0 2 player: -54.09 2.65
-20/07/15 23:02:14 981 [WARN,stat_ai:151] 1 3 player: -209.23 3.10
 20/07/15 23:02:14 983 [WARN,stat_ai:153]  0+2 - 1+3: 155.14 5.39
 ```
 
@@ -52,24 +40,12 @@ MrGreed不会再把猪塞给队友了。MrGreed会部分地考虑队友的感受
 下面是 MrGreed 在采样为10时对战 MrRandom 的战绩，对战局数为256x4
 
 ```
-20/07/05 15:36:46 055 [INFO,stat_ai:131] 0th player: -5.90 2.68
-20/07/05 15:36:46 056 [INFO,stat_ai:131] 1th player: -139.54 4.60
-20/07/05 15:36:46 056 [INFO,stat_ai:131] 2th player: -4.97 2.65
-20/07/05 15:36:46 057 [INFO,stat_ai:131] 3th player: -143.34 4.53
-20/07/05 15:36:46 057 [INFO,stat_ai:133] 0 2 player: -10.87 3.27
-20/07/05 15:36:46 057 [INFO,stat_ai:135] 1 3 player: -282.88 4.69
 20/07/05 15:36:46 058 [INFO,stat_ai:137]  0+2 - 1+3: 272.01 7.48
 ```
 
 下面是 MrGreed 在采样为10时对战 MrIf 的战绩，对战局数为256x4
 
 ```
-20/07/05 15:40:35 936 [INFO,stat_ai:131] 0th player: -45.13 3.45
-20/07/05 15:40:35 936 [INFO,stat_ai:131] 1th player: -84.90 3.89
-20/07/05 15:40:35 937 [INFO,stat_ai:131] 2th player: -52.75 3.61
-20/07/05 15:40:35 937 [INFO,stat_ai:131] 3th player: -83.76 3.90
-20/07/05 15:40:35 938 [INFO,stat_ai:133] 0 2 player: -97.88 4.29
-20/07/05 15:40:35 938 [INFO,stat_ai:135] 1 3 player: -168.66 4.63
 20/07/05 15:40:35 939 [INFO,stat_ai:137]  0+2 - 1+3: 70.78 8.41
 ```
 
