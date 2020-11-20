@@ -16,7 +16,7 @@ class MrGreed(MrRandom):
     BURDEN_DICT_D={'DA':-30,'DK':-20,'DQ':-10}
     BURDEN_DICT_C={'CA':0.4,'CK':0.3,'CQ':0.2,'CJ':0.1} #ratio of burden, see calc_relief
     SHORT_PREFERENCE=30 #will multiply (average suit count)-(my suit count), if play first
-    N_SAMPLE=40
+    N_SAMPLE=20
 
     def gen_cards_dict(cards_list):
         cards_dict={"S":[],"H":[],"D":[],"C":[]}
