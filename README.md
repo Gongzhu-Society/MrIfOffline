@@ -27,7 +27,7 @@ for cards_list_list in sce_gen:
 
 现在进行 benchmark, 使用两个 MrGreed 对战两个 MrIf 256x2 局, sample number 设为20, cpu 为 Intel i9-9960X, METHOD1_PREFERENCE=0. 结果如下
 
-       |Using Shot and Test|Full ScenarioGen|
+Item   |Using Shot and Test|Full ScenarioGen|
 :-----:|:-----------------:|:--------------:|
 Time(s)|49                 |47              |
 
