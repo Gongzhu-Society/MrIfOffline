@@ -355,7 +355,7 @@ class ScenarioGen():
                              for s,h,d,c in itertools.product(s_cases,h_cases,d_cases,c_cases)]
         assert len(self.exhaustive)==self.num_table_count
         #log("exhaust: %d cases, %s\n%s\n%s\n%s"%(self.num_table_count,self.cards_remain,self.void_info,self.num_tables,self.exhaustive))
-        input()
+        #input()
 
     def construct_by_table(self):
         vals=self.num_tables[numpy.random.choice(self.for_choice,p=self.num_table_weights)]
