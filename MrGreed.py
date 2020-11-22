@@ -229,7 +229,7 @@ class MrGreed(MrRandom):
             four_cards=['','','','']
         #expire_date=0 #for sampling
         d_legal={c:0 for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)} #dict of legal choice
-        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=MrGreed.N_SAMPLE,method=0)
+        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=MrGreed.N_SAMPLE)
         for cards_list_list in sce_gen:
             #decide
             if len(self.cards_on_table)==3:

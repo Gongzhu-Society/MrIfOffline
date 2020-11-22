@@ -67,7 +67,7 @@ class NumTable():
 
 class ScenarioGen():
     FACTORIAL={0:1,1:1,2:2,3:6,4:24,5:120,6:720,7:5040,8:40320,9:362880,10:3628800,11:39916800,12:479001600,13:6227020800}
-    METHOD1_PREFERENCE=100
+    METHOD1_PREFERENCE=0
 
     def C(m,n):
         """mCn, m is the larger one"""
@@ -118,7 +118,9 @@ class ScenarioGen():
             s_temp=''.join((i[0] for i in self.cards_remain))
             self.suit_ct=[s_temp.count(s) for s in "SHDC"] #suit remain number count
             self.reinforce_void_info()
+            #log(self.void_info)
             self.gen_num_tables()
+            #log(self.num_tables)
         else:
             self.method=0
             self.tot_ct=0 #total try counter
@@ -155,10 +157,7 @@ class ScenarioGen():
         #log("choose method: %d"%(self.method))
 
     def __iter__(self):
-        if self.method==2:
-            return self.exhaustive
-        else:
-            return self
+        return self
 
     def __next__(self):
         if self.suc_ct>=self.number:
@@ -306,7 +305,7 @@ class ScenarioGen():
         nt_root.breed()
 
         self.num_tables=[tuple(i) for i in self.num_tables]
-        self.for_choice=list(range(len(self.num_tables))) #a [0,1,...,len(num_tables)] list to used by numpy.choice
+        self.for_choice=list(range(len(self.num_tables)))
         self.num_table_weights=[self.calc_weight(i) for i in self.num_tables]
         self.num_table_count=sum(self.num_table_weights)
         self.num_table_weights=[i/self.num_table_count for i in self.num_table_weights]
@@ -315,13 +314,6 @@ class ScenarioGen():
         self.h_cards=[i for i in self.cards_remain if i[0]=='H']
         self.d_cards=[i for i in self.cards_remain if i[0]=='D']
         self.c_cards=[i for i in self.cards_remain if i[0]=='C']
-
-        if self.num_table_count<=self.number:
-            self.method=2
-            self.exhaustive()
-
-    def exhaustive(self):
-        pass
 
     def construct_by_table(self):
         vals=self.num_tables[numpy.random.choice(self.for_choice,p=self.num_table_weights)]
@@ -334,18 +326,33 @@ class ScenarioGen():
                     self.d_cards[vals[6]:vals[6]+vals[7]]+self.c_cards[vals[9]:vals[9]+vals[10]]
         cards_list3=self.s_cards[vals[0]+vals[1]:]+self.h_cards[vals[3]+vals[4]:]+\
                     self.d_cards[vals[6]+vals[7]:]+self.c_cards[vals[9]+vals[10]:]
-
-        assert len(cards_list1)==self.lens[0]
-        assert len(cards_list2)==self.lens[1]-self.lens[0]
-        assert len(cards_list3)==self.lens[2]-self.lens[1]
-        assert ScenarioGen.check_void_legal(cards_list1,cards_list2,cards_list3,self.void_info)
+        """
+        try:
+            assert len(cards_list1)==self.lens[0]
+            assert len(cards_list2)==self.lens[1]-self.lens[0]
+            assert len(cards_list3)==self.lens[2]-self.lens[1]
+            assert ScenarioGen.check_void_legal(cards_list1,cards_list2,cards_list3,self.void_info)
+        except:
+            print(cards_list1,cards_list2,cards_list3)
+            print(self.lens)
+            print(vals)
+            print(self.cards_remain)
+            print(self.suit_ct)
+            input()"""
         return [cards_list1,cards_list2,cards_list3]
 
 def test_gen_num_tables():
+    """s=ScenarioGen(0,[[0,'S2','S3','S4','S5'],[0,'S6','S7','S8','S9'],[0,'S10','SJ','SQ','SK'],
+                     [0,'H2','H3','H4','H5'],[0,'H6','H7','H8','H9'],[0,'H10','HJ','HQ','HK'],
+                     [0,'C2','C3','C4','C5'],[0,'C6','C7','C8','C9'],[0,'C10','CJ','CQ','D7'],]
+                    ,[0,'SA','HA','D2'],['D3','D4','D5','D6'],number=10)
+    for i in s:
+        print(i)
+        input()"""
     s=ScenarioGen(0,[[0,'S2','S3','S4','S5'],[0,'S6','S7','S8','S9'],[0,'S10','SJ','SQ','SK'],
                      [0,'H2','H3','H4','H5'],[0,'H6','H7','H8','H9'],[0,'H10','HJ','HQ','HK'],
                      [0,'C2','C3','C4','C5'],[0,'C6','C7','C8','C9'],[0,'C10','CJ','CQ','D7'],]
-                    ,[0,'SA','HA','D2'],['D3','D4','D5','D6'],number=10)#,method=1)
+                    ,[0,'SA','HA','D2'],['D3','D4','D5','D6'],number=10,method=1)
     for i in s:
         print(i)
         input()
