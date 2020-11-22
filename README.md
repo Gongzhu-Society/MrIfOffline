@@ -9,8 +9,29 @@ Offline(testing) version of several AIs.
     * datas    : `ORDER_DICT, INIT_CARDS, SCORE_DICT, ...`
 * __MrRandom.py__        : 最基本的机器人, 按 Ruichen Li 的接口定义了 `self.cards_list, self.history, self.cards_on_table, self.score` 等对象变量, 定义了几个 utility function, 之后的机器人都应该继承自 MrRandom. 同时给出了一个 Human 类表示人类, Human pick_a_card 时会请求人类输入.
 * __MrIf.py, MrGreed.py__: 两个使用一些 if statements 来打牌的 AI, MrGreed 更强, 也是目前为止最强的.
+* __ScenarioGen.py__: 生成可能的手牌情形(Scenario).
 * MrNN_Trainer.py    : 训练神经网络.
 * MrNN.py            : 使用神经网络.
+
+### ScenarioGen
+
+生成可能的手牌情形(Scenario). 用法如
+
+```
+sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=20,method=None)
+for cards_list_list in sce_gen:
+    print(cards_list_list) #will get things like [['C4', 'C2', 'C6'], ['SQ', 'D8'], ['D2', 'DJ']]
+```
+
+其中`number`是要sample的数量; `method=None` 表示让程序自动选择 sample 方法, 程序会自动从 shot and test 和 constryct by table 中选一个, 如果选择了 constryct by table 并且可能的所有情况数小于想要的 sample 数, 则返回所有情况. 如果想指定方法请自行阅读代码或咨询作者.
+
+现在进行 benchmark, 使用两个 MrGreed 对战两个 MrIf 256x2 局, sample number 设为20, cpu 为 Intel i9-9960X, METHOD1_PREFERENCE=0. 结果如下
+
+       |Using Shot and Test|Full ScenarioGen|
+:-----:|:-----------------:|:--------------:|
+Time(s)|49                 |47              |
+
+平均每个 sample 需要`48/(256*2*26*20)=180us`.
 
 ### MrNN
 以下是两个MrNN对战两个MrIf 1024x2 盘的结果, 结果不尽如人意. 但是好在他很快, 出每张牌只需要大约 72/(1024x2)/26=1.3ms
