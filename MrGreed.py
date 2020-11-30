@@ -34,6 +34,7 @@ class MrGreed(MrRandom):
         """
             generate formatted scores which is easy for computation
             [0,0,False,False] stands for [score, #hearts, C10 flag, has score flag]
+            in absolute order!
         """
         fmt_score_list=[[0,0,False,False],[0,0,False,False],[0,0,False,False],[0,0,False,False]]
         for i,cs in enumerate(scards):

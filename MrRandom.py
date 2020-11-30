@@ -10,16 +10,18 @@ class MrRandom():
     """
     def __init__(self,room=0,place=0,name="default"):
         self.place=place
-        self.cards_list=[]       #cards in hand
-        self.history=[]          #list of (int,str,str,str,str)
-        self.cards_on_table=[]   #[int,str,...]
-        self.score=[[],[],[],[]] #绝对坐次
+        self.cards_list=[]        #cards in hand
+        self.history=[]           #list of (int,str,str,str,str)
+        self.cards_on_table=[]    #[int,str,...]
+        self.score=[[],[],[],[]]  #绝对坐次
 
-        #useless infos
-        self.initial_cards=[]    #initial cards
+        #useless but still be set infos
         self.room=room
         self.name=name
-        self.players_information=[None, None, None, None]
+
+        #useless and not be set infos
+        self.initial_cards=[]
+        self.players_information=[None,None,None,None]
 
     def decide_suit(self):
         if len(self.cards_on_table)==1:
@@ -28,11 +30,12 @@ class MrRandom():
             suit=self.cards_on_table[1][0]
         return suit
 
-    def gen_cards_dict(self):
+    # I am wondering is this function be used or not. So I comment it temp-ly.
+    """def gen_cards_dict(self):
         cards_dict={"S":[],"H":[],"D":[],"C":[]}
         for i in self.cards_list:
             cards_dict[i[0]].append(i)
-        return cards_dict
+        return cards_dict"""
 
     def pick_a_card(self):
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place,"self.place and self.cards_on_table contrdict"
