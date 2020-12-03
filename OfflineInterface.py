@@ -102,6 +102,16 @@ class OfflineInterface():
 
     def clear(self):
         self.scores_num=[calc_score(i) for i in self.scores]
+        """scores_temp=copy.copy(self.scores_num)
+        c10=(i for i in range(4) if 'C10' in self.scores[i]).__next__()
+        if len(self.scores[c10])==1:
+            scores_temp[c10]=0
+        else:
+            scores_temp[c10]/=2
+        try:
+            assert sum(scores_temp)==-200
+        except:
+            log("clear score: %s, %s"%(self.scores,self.scores_num))"""
         if self.print_flag:
             log("game end: %s, %s"%(self.scores_num,self.scores))
         return self.scores_num

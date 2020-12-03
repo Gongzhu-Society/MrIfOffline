@@ -43,10 +43,7 @@ SCORE_DICT={'SQ':-100,'DJ':100,'C10':0,
             'HJ':-20,'HQ':-30,'HK':-40,'HA':-50,'JP':-60,'JG':-70}
 
 def calc_score(l):
-    s=0
-    h_num=0
-    has_score_flag=False
-    c10_flag=False
+    s=0;h_num=0;has_score_flag=False;c10_flag=False
     for i in l:
         if i=="C10":
             c10_flag=True
@@ -63,5 +60,4 @@ def calc_score(l):
         else:
             assert h_num==0 and s==0
             s=50
-
     return s
