@@ -30,12 +30,14 @@ class MrRandom():
             suit=self.cards_on_table[1][0]
         return suit
 
-    # I am wondering is this function be used or not. So I comment it temp-ly.
-    """def gen_cards_dict(self):
+    def gen_cards_dict(self):
+        """
+            will be used in self.pick_a_card
+        """
         cards_dict={"S":[],"H":[],"D":[],"C":[]}
         for i in self.cards_list:
             cards_dict[i[0]].append(i)
-        return cards_dict"""
+        return cards_dict
 
     def pick_a_card(self):
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place,"self.place and self.cards_on_table contrdict"
