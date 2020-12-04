@@ -83,7 +83,7 @@ class ScenarioGen():
         else:
             return 1
 
-    def __init__(self,myseat,history,cards_on_table,cards_list,number=20,method=None,METHOD1_PREFERENCE=0):
+    def __init__(self,myseat,history,cards_on_table,cards_list,number=20,method=None,METHOD1_PREFERENCE=0,exhaust_threshold=None):
         """
             myseat, history and cards_on_table will be fed to gen_void_info to get void_info
             history, cards_on_table and cards_list will be fed to gen_cards_remain to get cards_remain
@@ -91,6 +91,7 @@ class ScenarioGen():
             number: the max number of sampling
             method: 0 for "shot and test", 1 for
             METHOD1_PREFERENCE: will be used in decide_method
+            exhaust_threshold:
         """
 
         #void_info and cards_remain are all in relative order!
@@ -114,6 +115,10 @@ class ScenarioGen():
         assert self.lens[2]==len(self.cards_remain)
 
         self.number=number
+        if exhaust_threshold==None:
+            self.exhaust_threshold=self.number*2
+        else:
+            self.exhaust_threshold=exhaust_threshold
         self.METHOD1_PREFERENCE=METHOD1_PREFERENCE
         self.suc_ct=0 #success counter
         if method==None:
@@ -323,7 +328,7 @@ class ScenarioGen():
         self.d_cards=[i for i in self.cards_remain if i[0]=='D']
         self.c_cards=[i for i in self.cards_remain if i[0]=='C']
 
-        if self.num_table_count<=self.number:
+        if self.num_table_count<=self.exhaust_threshold:
             self.method=2
             self.exhaust()
 

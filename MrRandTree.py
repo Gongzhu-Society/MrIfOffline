@@ -9,6 +9,8 @@ from ScenarioGen import ScenarioGen
 from MCTS.mcts import mcts
 import copy,itertools,numpy,time
 
+print_level=0
+
 class GameState():
     def __init__(self,cards_lists,fmt_scores,cards_on_table,play_for):
         self.cards_lists=cards_lists
@@ -72,7 +74,6 @@ class GameState():
             neo_state.suit='A'
             #log(neo_state.cards_on_table)
             #log(neo_state.fmt_scores)
-
         return neo_state
 
     def isTerminal(self):
@@ -93,11 +94,13 @@ class GameState():
             assert sum(scores_temp)==-200
         except:
             log("%s %s"%(self.fmt_scores,scores))"""
-        return scores[0]+scores[2]-scores[1]-scores[3]
+        #!TODO remember to change it later!
+        return scores[0]-(scores[1]+scores[2]+scores[3])/3
+        #return scores[0]+scores[2]-scores[1]-scores[3]
 
 class MrRandTree(MrRandom):
 
-    N_SAMPLE=3
+    N_SAMPLE=5
 
     def clear_fmt_score(fmt_score):
         """
@@ -124,30 +127,34 @@ class MrRandTree(MrRandom):
         #如果别无选择
         if cards_dict.get(suit)!=None and len(cards_dict[suit])==1:
             choice=cards_dict[suit][0]
-            #log("I have no choice but %s"%(choice))
+            if print_level>=1:
+                log("I have no choice but %s"%(choice))
             return choice
 
-        #log("my turn: %s, %s"%(self.cards_on_table,self.cards_list))
-        fmt_scores=MrGreed.gen_fmt_scores(self.scores)
+        if print_level>=1:
+            log("my turn: %s, %s"%(self.cards_on_table,self.cards_list))
+        fmt_scores=MrGreed.gen_fmt_scores(self.scores) #in absolute order， because self.scores is in absolute order
         #log("fmt scores: %s"%(fmt_scores))
-        """ fmt_scores looks like [[0,0,False,False],[0,0,False,False],[0,0,False,False],[0,0,False,False]]
-            fmt_scores is in absolute order"""
         d_legal={c:0 for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)} #dict of legal choice
-        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=MrRandTree.N_SAMPLE)
+        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=MrRandTree.N_SAMPLE,METHOD1_PREFERENCE=100,exhaust_threshold=6)
         for cards_list_list in sce_gen:
             cards_lists=[None,None,None,None]
             cards_lists[self.place]=copy.copy(self.cards_list)
             for i in range(3):
                 cards_lists[(self.place+i+1)%4]=cards_list_list[i]
-            #log("get scenario: %s"%(cards_lists))
+            if print_level>=1:
+                log("get scenario: %s"%(cards_lists))
             cards_on_table_copy=copy.copy(self.cards_on_table)
             gamestate=GameState(cards_lists,fmt_scores,cards_on_table_copy,self.place)
-            searcher=mcts(iterationLimit=50)
-            action,value=searcher.search(initialState=gamestate,needNodeValue=True)
-            #for action,node in searcher.root.children.items():
-            #    print(node)
-            #input()
-            d_legal[action]+=value
+            searcher=mcts(iterationLimit=200,explorationConstant=100)
+            searcher.search(initialState=gamestate,needNodeValue=False)
+            for action,node in searcher.root.children.items():
+                if print_level>=1:
+                    log("%s: %s"%(action,node))
+                d_legal[action]+=node.totalReward/node.numVisits
+        if print_level>=1:
+            log("d_legal: %s"%(d_legal))
+            input("press any key to continue...")
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
@@ -164,8 +171,8 @@ def benchmark():
     r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     rt=[MrRandTree(room=0,place=i,name='randtree%d'%(i)) for i in range(4)]
 
-    offlineinterface=OfflineInterface([rt[0],r[1],r[2],r[3]],print_flag=False)
-    N1=32;N2=4;stats=[]
+    offlineinterface=OfflineInterface([r[0],rt[1],r[2],r[3]],print_flag=False)
+    N1=16;N2=4;stats=[]
     log("%s vs. %s for %dx%d"%(offlineinterface.players[0].family_name(),offlineinterface.players[1].family_name(),N1,N2))
     tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):
@@ -176,10 +183,17 @@ def benchmark():
             offlineinterface.shuffle(cards=cards)
         for i,j in itertools.product(range(13),range(4)):
             offlineinterface.step()
+            """if i==8 and j==2:
+                global print_level
+                print_level=1
+                offlineinterface.print_flag=True
+                log("start outputs")"""
         stats.append(offlineinterface.clear())
         offlineinterface.prepare_new()
-        if l==N2-1:
-            print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
+        #log(stats[-1])
+        #if l==N2-1:
+        #    print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
+        print("%s"%(stats[-1]),end=" ",flush=True)
     tok=time.time()
     log("time consume: %ds"%(tok-tik))
     for i in range(4):

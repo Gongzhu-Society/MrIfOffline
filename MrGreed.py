@@ -188,12 +188,18 @@ class MrGreed(MrRandom):
             pick best choice from d_legal
             will be called by pick_a_card only once
         """
-        best_choice,best_score=d_legal.popitem()
-        for k in d_legal:
-            if d_legal[k]>best_score:
-                best_choice=k
-                best_score=d_legal[k]
-        return best_choice
+        best_score=float("-inf")
+        for k,v in d_legal.items():
+            if v>best_score:
+                best_score=v
+                best_choices=[k]
+            elif v==best_score:
+                best_choices.append(k)
+        """if len(best_choices)>1:
+            log("have to choice: %s"%(d_legal))
+            for i in range(10):
+                print(random.choice(best_choices))"""
+        return random.choice(best_choices)
 
     def pick_a_card_pure(self):
         #确认桌上牌的数量和自己坐的位置相符
