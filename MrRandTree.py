@@ -95,8 +95,8 @@ class GameState():
         except:
             log("%s %s"%(self.fmt_scores,scores))"""
         #!TODO remember to change it later!
-        return scores[0]-(scores[1]+scores[2]+scores[3])/3
-        #return scores[0]+scores[2]-scores[1]-scores[3]
+        #return scores[0]-(scores[1]+scores[2]+scores[3])/3
+        return scores[0]+scores[2]-scores[1]-scores[3]
 
 class MrRandTree(MrRandom):
 
@@ -136,7 +136,7 @@ class MrRandTree(MrRandom):
         fmt_scores=MrGreed.gen_fmt_scores(self.scores) #in absolute order， because self.scores is in absolute order
         #log("fmt scores: %s"%(fmt_scores))
         d_legal={c:0 for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)} #dict of legal choice
-        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=MrRandTree.N_SAMPLE,METHOD1_PREFERENCE=100,exhaust_threshold=6)
+        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=MrRandTree.N_SAMPLE,METHOD1_PREFERENCE=100)
         for cards_list_list in sce_gen:
             cards_lists=[None,None,None,None]
             cards_lists[self.place]=copy.copy(self.cards_list)
@@ -171,8 +171,8 @@ def benchmark():
     r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     rt=[MrRandTree(room=0,place=i,name='randtree%d'%(i)) for i in range(4)]
 
-    offlineinterface=OfflineInterface([r[0],rt[1],r[2],r[3]],print_flag=False)
-    N1=16;N2=4;stats=[]
+    offlineinterface=OfflineInterface([rt[0],g[1],rt[2],g[3]],print_flag=False)
+    N1=128;N2=2;stats=[]
     log("%s vs. %s for %dx%d"%(offlineinterface.players[0].family_name(),offlineinterface.players[1].family_name(),N1,N2))
     tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):
@@ -183,14 +183,13 @@ def benchmark():
             offlineinterface.shuffle(cards=cards)
         for i,j in itertools.product(range(13),range(4)):
             offlineinterface.step()
-            """if i==8 and j==2:
+            """if i==7 and j==2:
                 global print_level
                 print_level=1
                 offlineinterface.print_flag=True
                 log("start outputs")"""
         stats.append(offlineinterface.clear())
         offlineinterface.prepare_new()
-        #log(stats[-1])
         #if l==N2-1:
         #    print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
         print("%s"%(stats[-1]),end=" ",flush=True)
