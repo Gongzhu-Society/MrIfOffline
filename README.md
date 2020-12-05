@@ -3,22 +3,21 @@ Offline(testing) version of several AIs.
 
 ### 文件描述
 
-* __OfflineInterface.py__: 线下游戏的接口, 用于对接不同的AI.
-* __Util.py__            : Utility data and functions. Include
-    * functions: `log, calc_score, cards_order, ...`
-    * datas    : `ORDER_DICT, INIT_CARDS, SCORE_DICT, ...`
 * __MrRandom.py__        : 最基本的机器人, 按 Ruichen Li 的接口定义了 `self.cards_list, self.history, self.cards_on_table, self.score` 等对象变量, 定义了几个 utility function, 之后的机器人都应该继承自 MrRandom. 同时给出了一个 Human 类表示人类, Human pick_a_card 时会请求人类输入.
 * __MrIf.py, MrGreed.py__: 两个使用一些 if statements 来打牌的 AI, MrGreed 更强, 也是目前为止最强的.
-* __ScenarioGen.py__: 生成可能的手牌情形(Scenario).
-* MrNN_Trainer.py    : 训练神经网络.
-* MrNN.py            : 使用神经网络.
+* __MrRandTree.py__      : MCTS AI using random rollout policy. MrRandTree and MrGreed are the most powerful AI so far.
+* __ScenarioGen.py__     : 生成可能的手牌情形(Scenario).
+* __OfflineInterface.py__: 线下游戏的接口, 用于对接不同的AI.
+* __Util.py__            : Utility data and functions. Including
+    * functions: `log, calc_score, cards_order, ...`
+    * datas    : `ORDER_DICT, INIT_CARDS, SCORE_DICT, ...`
 
 ### ScenarioGen
 
 生成可能的手牌情形(Scenario). 用法如
 
 ```
-sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=20,method=None)
+sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=20,method=None,METHOD1_PREFERENCE=0,exhaust_threshold=None)
 for cards_list_list in sce_gen:
     print(cards_list_list) #will get things like [['C4', 'C2', 'C6'], ['SQ', 'D8'], ['D2', 'DJ']]
 ```
@@ -33,20 +32,16 @@ Time(s)|49                 |47              |
 
 平均每个 sample 需要`48/(256*2*26*20)=180us`.
 
-### MrNN
-以下是两个MrNN对战两个MrIf 1024x2 盘的结果, 结果不尽如人意. 但是好在他很快, 出每张牌只需要大约 72/(1024x2)/26=1.3ms
+### MrRandTree
 
-```
-20/07/15 22:56:57 890 [INFO,stat_ai:143] time consume: 72s
-20/07/15 22:56:57 904 [WARN,stat_ai:152]  0+2 - 1+3: -50.79 5.72
-```
+MrRandTree is an MCTS AI with random rollout policy. The table below contains benchmarks for MrRandTree. Its scenario number is set to 5, iteration number to 200. MrIf's stats are from stats in Appendix A. One can see that MrRandTree is rather strong.
 
-对战MrRandom试试, 局数不变.
-
-```
-20/07/15 23:02:14 962 [INFO,stat_ai:144] time consume: 72s
-20/07/15 23:02:14 983 [WARN,stat_ai:153]  0+2 - 1+3: 155.14 5.39
-```
+|Item  |MrIf v.s. MrRandom|MrRandTree v.s. MrRandom|MrRandTree v.s. MrIf|MrRandTree v.s. MrGreed|
+|:----:|:----------------:|:----------------------:|:------------------:|:---------------------:|
+|Mode  |1 v.s. 3          |1 v.s. 3                |1 v.s. 3            |2 v.s. 2               |
+|Result|-2.3/87.8         |22.7/-88.2              |-29.4/-56.3         |-90.8/-92.3            |
+|Sigma |1.5/2.7           |13.2/15.1               |20.3/13.6           |11.8/9.3               |
+|Time  |                  |981s(16x4)              |1023s(16x4)         |7847s(128x2)           |
 
 ### MrGreed
 
