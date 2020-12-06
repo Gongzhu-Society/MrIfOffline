@@ -13,7 +13,7 @@ class MrRandom():
         self.cards_list=[]        #cards in hand
         self.history=[]           #list of (int,str,str,str,str)
         self.cards_on_table=[]    #[int,str,...]
-        self.score=[[],[],[],[]]  #绝对坐次
+        self.scores=[[],[],[],[]]  #绝对坐次
 
         #useless but still be set infos
         self.room=room
