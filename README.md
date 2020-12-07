@@ -59,6 +59,16 @@ $N_{sample}$    |5             |10            |20            |40
 Points over MrIf|$71.82\pm5.76$|$75.41\pm5.55$|$83.73\pm5.62$|$86.44\pm5.63$
 Time Comsumed   |61s           |114s          |218s          |419s
 
+Fix $N_{sample}$ to 20, let MrGreed play against MrRandom and MrIf in 2 v.s. 2 mode, the results are as following table. Number of play is set to 1024x2
+
+Opponent       |MrRandom|MrIf |
+:-------------:|:------:|:---:|
+Points(0+2-1-3)|275.21  |80.28|
+Sigma          |5.28    |5.71 |
+Time           |167s    |187s |
+
+We can see that, by using new sampling package, our MrGreed gets faster(see the Table above above).
+
 ### MrIf 和 MrRandom
 
 MrRandom是按规则随机出牌的玩家，也是将来等级分规则的0分的基准

@@ -88,12 +88,12 @@ class PV_NET(nn.Module):
         return 52 policy and 1 value
     """
 
-    VALUE_RENORMAL=200
+    VALUE_RENORMAL=500
 
     def __init__(self):
         super(PV_NET,self).__init__()
         #cards in four player(52*4), two cards on table(52*3*2), scores in four players
-        #totally 584
+        #totally 688
         self.fc0=nn.Linear(52*4+(52*3+13*4)*2+16*4,1024)
         self.fc1=nn.Linear(1024,1024)
         self.fc2=nn.Linear(1024,256)
@@ -144,7 +144,6 @@ class MrZeroTree(MrRandom):
         if self.train_mode:
             self.train_datas=[]
             self.BETA=BETA
-
 
     def cards_lists_oh(cards_lists,place):
         """
@@ -237,26 +236,36 @@ class MrZeroTree(MrRandom):
 
             #save data for train
             if self.train_mode:
+                value_max=max(d_legal_temp.values())
                 target_p=torch.zeros(52)
-                for k,v in d_legal_temp.items():
-                    target_p[ORDER_DICT[k]]=math.exp(self.BETA*v)
+                try:
+                    for k,v in d_legal_temp.items():
+                        target_p[ORDER_DICT[k]]=math.exp(self.BETA*(v-value_max))
+                except:
+                    log("value_max: %s"%(value_max),l=3)
                 target_p/=target_p.sum()
                 target_v=torch.tensor(max([v for k,v in d_legal_temp.items()]))
-                #log("get target: %s, %s"%(target_p,target_v))
                 netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                 netin=netin.tolist()
                 target_p=target_p.tolist()
                 target_v=target_v.tolist()
                 self.train_datas.append([netin,target_p,target_v])
-
+                """if len(self.cards_list)<8:
+                    log("d_legal_temp: %s"%(d_legal_temp),l=0)
+                    log("get target_p: %s"%(target_p),l=0)
+                    log("get target_v: %s"%(target_v),l=0)
+                    input()
+                    log("place: %d"%(self.place))
+                    #log("cards_lists: %s\n%s\n%s\n%s\n%s"%(cards_lists,netin[0:52],netin[52:104],netin[104:156],netin[156:208]),l=0)
+                    log("scores: %s\n%s\n%s\n%s\n%s"%(self.scores,netin[208:224],netin[224:240],netin[240:256],netin[256:272]),l=0)
+                    log("cards_on_table: %s\n%s\n%s\n%s\n%s"%(self.cards_on_table,netin[272:324],netin[324:376],netin[376:428],netin[428:480]),l=0)
+                    input()"""
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
 def prepare_train_data(pv_net,device_train_num,data_queue):
     N1=2
-    #log("preparing train datas using %d games"%(N1))
 
-    #log("device num: %d"%(device_train_num))
     device_train=torch.device("cuda:%d"%(device_train_num))
     pv_net.to(device_train)
     zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,BETA=0.05) for i in range(4)]
@@ -270,27 +279,24 @@ def prepare_train_data(pv_net,device_train_num,data_queue):
         stats.append(interface.clear())
         interface.prepare_new()
         #print("%s"%(stats[-1]),end=" ",flush=True)
-    else:
-        #print("")
-        pass
     #s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     #log(" 0+2 - 1+3: %.2f %.2f"%(numpy.mean(s_temp), numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)) ))
     datas=zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
     data_queue.put(datas,block=False)
-    #log("get %d datas"%len(datas))
-    time.sleep(1)
+    #log("get %d datas"%len(datas),l=0)
     while not data_queue.empty():
         time.sleep(1)
+    time.sleep(3)
 
 def benchmark(save_name,epoch,device_bench_num=3):
-    N1=48;N2=2
+    N1=32;N2=2
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
     device_bench=torch.device("cuda:%d"%(device_bench_num))
     pv_net=torch.load(save_name)
     pv_net.to(device_bench)
-    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench) for i in range(4)]
-    g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in range(4)]
-    interface=OfflineInterface([zt[0],g[1],zt[2],g[3]],print_flag=False)
+    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench) for i in [0,2]]
+    g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
+    interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
     stats=[]
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
@@ -303,16 +309,17 @@ def benchmark(save_name,epoch,device_bench_num=3):
         stats.append(interface.clear())
         interface.prepare_new()
         #log("benchmark: %s"%(stats[-1]))
+        if l==N2-1:
+            time.sleep(5)
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
-    log("benchmark at epoch %d result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
+    log("benchmark at epoch %d's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
-def train(pv_net,device_train_nums=[0,1,2,1,2]):
-    device_trains=[torch.device("cuda:%d"%(i)) for i in device_train_nums]
+def train(pv_net,device_train_nums=[0,1,2]):
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
-    optimizer=optim.SGD(pv_net.parameters(),lr=0.05,momentum=0.8)
+    optimizer=optim.SGD(pv_net.parameters(),lr=0.02,momentum=0.8)
     #optimizer=optim.Adam(pnet.parameters(),lr=initial_lr_1,betas=(0.9,0.999),eps=1e-04,weight_decay=1e-4,amsgrad=False)
-    for epoch in range(7200):
+    for epoch in range(2000):
         if epoch%20==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -324,33 +331,47 @@ def train(pv_net,device_train_nums=[0,1,2,1,2]):
             p_benchmark.start()
 
         data_queue=Queue()
-        data_processes=[]
+        #prepare_train_data(copy.deepcopy(pv_net),device_train_nums[0],data_queue)
         for i in device_train_nums:
-            data_processes.append(Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_queue)))
-            data_processes[-1].start()
+            p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_queue))
+            p.start()
 
         train_datas=[]
         for i in device_train_nums:
             try:
-                train_datas+=data_queue.get(block=True,timeout=120)
+                train_datas+=data_queue.get(block=True,timeout=300)
             except:
                 log("get data failed, has got %d datas"%(len(train_datas)),l=3)
-        train_datas=[[torch.tensor(i[0],device=device_main),torch.tensor(i[1],device=device_main),torch.tensor(i[2],device=device_main)] for i in train_datas]
-        trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
-        batch=trainloader.__iter__().__next__()
-        assert len(batch[0])==len(train_datas)
+        try:
+            train_datas=[[torch.tensor(i[0],device=device_main),torch.tensor(i[1],device=device_main),torch.tensor(i[2],device=device_main)] for i in train_datas]
+            trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
+            batch=trainloader.__iter__().__next__()
+            assert len(batch[0])==len(train_datas)
+        except:
+            log("",l=3)
+            continue
 
         optimizer.zero_grad()
         p,v=pv_net(batch[0])
         log_p=F.log_softmax(p,dim=1)
         loss1=F.kl_div(log_p,batch[1],reduction="batchmean") #normally 2.5~3 at most
         loss2=F.l1_loss(v.view(-1),batch[2],reduction='mean') #normally 40-60
-        loss=loss1+loss2*0.1
+        #loss2=F.mse_loss(v.view(-1),batch[2],reduction='mean')
+
+        """loss1.backward(retain_graph=True)
+        log("%s"%(pv_net.fc0.bias.grad.norm(1).item(),))
+        optimizer.zero_grad()
+        loss2.backward()
+        log("%s"%(pv_net.fc0.bias.grad.norm(1).item(),))
+        input()"""
+
+        loss=loss1+loss2*0.005
         loss.backward()
         optimizer.step()
 
         if epoch%5==0:
-            log("%3d: %f %f %d"%(epoch,loss1.item(),loss2.item(),len(train_datas)))
+            grad_probe=pv_net.fc0.bias.grad.norm(1).item()
+            log("%3d: %f %f %d %f"%(epoch,loss1.item(),loss2.item(),len(train_datas),grad_probe))
 
 def spy_paras():
     pv_net1=torch.load("PV_NET-11-2319413-20.pkl")
@@ -358,9 +379,15 @@ def spy_paras():
     print(pv_net1.fc0.weight)
     print(pv_net2.fc0.weight)
 
-if __name__=="__main__":
-    torch.multiprocessing.set_start_method('spawn')
+def main():
     pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))
-    train(pv_net)
+    try:
+        train(pv_net)
+    except:
+        log("",l=3)
+
+if __name__=="__main__":
+    torch.multiprocessing.set_start_method('spawn')
+    main()
     #spy_paras()

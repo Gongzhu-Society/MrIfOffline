@@ -171,8 +171,8 @@ def benchmark():
     r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     rt=[MrRandTree(room=0,place=i,name='randtree%d'%(i)) for i in range(4)]
 
-    offlineinterface=OfflineInterface([rt[0],g[1],rt[2],g[3]],print_flag=False)
-    N1=128;N2=2;stats=[]
+    offlineinterface=OfflineInterface([f[0],g[1],f[2],g[3]],print_flag=False)
+    N1=1024;N2=2;stats=[]
     log("%s vs. %s for %dx%d"%(offlineinterface.players[0].family_name(),offlineinterface.players[1].family_name(),N1,N2))
     tik=time.time()
     for k,l in itertools.product(range(N1),range(N2)):
@@ -190,16 +190,16 @@ def benchmark():
                 log("start outputs")"""
         stats.append(offlineinterface.clear())
         offlineinterface.prepare_new()
-        #if l==N2-1:
-        #    print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
-        print("%s"%(stats[-1]),end=" ",flush=True)
+        if l==N2-1:
+            print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
+        #print("%s"%(stats[-1]),end=" ",flush=True)
     tok=time.time()
     log("time consume: %ds"%(tok-tik))
     for i in range(4):
         s_temp=[j[i] for j in stats]
         log("%dth player: %.2f %.2f"%(i,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
-    #s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
-    #log("%.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
+    s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
+    log("%.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
 if __name__=="__main__":
 	benchmark()
