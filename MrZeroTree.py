@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log,calc_score
-from Util import ORDER_DICT,ORDER_DICT2,ORDER_DICT5,SCORE_DICT
+from Util import ORDER_DICT,ORDER_DICT2,ORDER_DICT5,SCORE_DICT,INIT_CARDS
 from MrRandom import MrRandom
 from MrGreed import MrGreed
 from ScenarioGen import ScenarioGen
@@ -135,7 +135,7 @@ class PV_NET(nn.Module):
         return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
 
 class MrZeroTree(MrRandom):
-    def __init__(self,room=0,place=0,name="default",pv_net=None,N_SAMPLE=5,mcts_searchnum=200,device=None,train_mode=False,BETA=None):
+    def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,N_SAMPLE=5,mcts_searchnum=200,train_mode=False,BETA=None):
         MrRandom.__init__(self,room,place,name)
         self.pv_net=pv_net
         self.train_mode=train_mode
@@ -143,6 +143,7 @@ class MrZeroTree(MrRandom):
         self.mcts_searchnum=mcts_searchnum
         self.device=device
         if self.train_mode:
+            assert self.mcts_searchnum>=0
             self.train_datas=[]
             self.BETA=BETA
 
@@ -227,13 +228,23 @@ class MrZeroTree(MrRandom):
                 log("gened scenario: %s"%(cards_lists))
 
             #mcts
-            searcher=mcts(iterationLimit=self.mcts_searchnum,rolloutPolicy=self.pv_policy,explorationConstant=200)
-            searcher.search(initialState=gamestate,needNodeValue=False)
-            d_legal_temp={}
-            for action,node in searcher.root.children.items():
-                d_legal[action]+=node.totalReward/node.numVisits
-                d_legal_temp[action]=node.totalReward/node.numVisits
-                #print(action,node)
+            if self.mcts_searchnum>=0:
+                searcher=mcts(iterationLimit=self.mcts_searchnum,rolloutPolicy=self.pv_policy,explorationConstant=200)
+                searcher.search(initialState=gamestate,needNodeValue=False)
+                d_legal_temp={}
+                for action,node in searcher.root.children.items():
+                    d_legal[action]+=node.totalReward/node.numVisits
+                    d_legal_temp[action]=node.totalReward/node.numVisits
+                    #print(action,node)
+            else:
+                netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
+                with torch.no_grad():
+                    p,v=self.pv_net(netin.to(self.device))
+                    p=F.softmax(p,dim=0).cpu().numpy()
+                p_legal=numpy.array([p[ORDER_DICT[c]] for c in legal_choice])
+                p_legal/=p_legal.sum()
+                c=numpy.random.choice(legal_choice,p=p_legal)
+                d_legal[c]+=1
 
             #save data for train
             if self.train_mode:
@@ -284,14 +295,14 @@ def prepare_train_data(pv_net,device_train_num,data_queue):
     time.sleep(3)
 
 def benchmark(save_name,epoch,device_bench_num=3):
-    N1=64;N2=2
+    N1=1024;N2=2
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
 
     device_bench=torch.device("cuda:%d"%(device_bench_num))
     pv_net=torch.load(save_name)
     pv_net.to(device_bench)
 
-    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench) for i in [0,2]]
+    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=-1) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
 
@@ -314,11 +325,11 @@ def train(pv_net,device_train_nums=[0,1,2]):
     pv_net=pv_net.to(device_main)
     #optimizer=optim.SGD(pv_net.parameters(),lr=0.05,momentum=0.8)
     #log("optimizer: %f %f"%(optimizer.__dict__['defaults']['lr'],optimizer.__dict__['defaults']['momentum']))
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.01,betas=(0.9,0.99),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.005,betas=(0.9,0.99),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
     log("#epoch: loss1 loss2 grad_probe amp_probe #train_datas")
     for epoch in range(2000):
-        if epoch%50==0:
+        if epoch%20==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
             if epoch>0:
@@ -362,7 +373,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
         loss.backward()
         optimizer.step()
 
-        if epoch%10==0:
+        if epoch%5==0:
             grad_probe=pv_net.fc0.bias.grad.abs().mean().item()
             amp_probe=pv_net.fc0.bias.abs().mean().item()
             log("%3d: %.4f %.4f %f %f %d"%(epoch,loss1.item(),loss2.item(),grad_probe,amp_probe,len(train_datas)))
