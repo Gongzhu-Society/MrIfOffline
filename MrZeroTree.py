@@ -135,11 +135,12 @@ class PV_NET(nn.Module):
         return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
 
 class MrZeroTree(MrRandom):
-    def __init__(self,room=0,place=0,name="default",pv_net=None,N_SAMPLE=5,device=None,train_mode=False,BETA=None):
+    def __init__(self,room=0,place=0,name="default",pv_net=None,N_SAMPLE=5,mcts_searchnum=200,device=None,train_mode=False,BETA=None):
         MrRandom.__init__(self,room,place,name)
         self.pv_net=pv_net
         self.train_mode=train_mode
         self.N_SAMPLE=N_SAMPLE
+        self.mcts_searchnum=mcts_searchnum
         self.device=device
         if self.train_mode:
             self.train_datas=[]
@@ -226,7 +227,7 @@ class MrZeroTree(MrRandom):
                 log("gened scenario: %s"%(cards_lists))
 
             #mcts
-            searcher=mcts(iterationLimit=200,rolloutPolicy=self.pv_policy,explorationConstant=200)
+            searcher=mcts(iterationLimit=self.mcts_searchnum,rolloutPolicy=self.pv_policy,explorationConstant=200)
             searcher.search(initialState=gamestate,needNodeValue=False)
             d_legal_temp={}
             for action,node in searcher.root.children.items():
@@ -313,7 +314,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
     pv_net=pv_net.to(device_main)
     #optimizer=optim.SGD(pv_net.parameters(),lr=0.05,momentum=0.8)
     #log("optimizer: %f %f"%(optimizer.__dict__['defaults']['lr'],optimizer.__dict__['defaults']['momentum']))
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.01,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.01,betas=(0.9,0.99),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
     log("#epoch: loss1 loss2 grad_probe amp_probe #train_datas")
     for epoch in range(2000):
