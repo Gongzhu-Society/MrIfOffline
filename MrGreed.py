@@ -145,6 +145,7 @@ class MrGreed(MrRandom):
         impc_dict=MrGreed.diy_impc_dict(impc_dict_base,cards_list)
         best_score=-65535
         four_cards_tmp=four_cards[0:3]+['']
+        d_return={}
         for c in MrGreed.gen_legal_choice(suit,cards_dict,cards_list):
             four_cards_tmp[3]=c
             score_temp=MrGreed.clear_score(four_cards_tmp,fmt_score_list,trick_start,scs_rmn_avg)\
@@ -152,6 +153,8 @@ class MrGreed(MrRandom):
             if score_temp>best_score:
                 four_cards[3]=four_cards_tmp[3]
                 best_score=score_temp
+            d_return[c]=score_temp+scs_rmn_avg*2
+        return d_return #add d_return for training MrZeroTree
 
     def as_third_player(suit,four_cards,cards_dict3,cards_list3,cards_dict4,cards_list4,
         fmt_score_list,trick_start,scs_rmn_avg,impc_dict_base,myplace):
@@ -201,7 +204,7 @@ class MrGreed(MrRandom):
                 print(random.choice(best_choices))"""
         return random.choice(best_choices)
 
-    def pick_a_card_pure(self):
+    def pick_a_card(self,need_details=False):
         #确认桌上牌的数量和自己坐的位置相符
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
         #utility datas
@@ -210,7 +213,10 @@ class MrGreed(MrRandom):
         #如果别无选择
         if cards_dict.get(suit)!=None and len(cards_dict[suit])==1:
             choice=cards_dict[suit][0]
-            return choice
+            if need_details:
+                return choice,None
+            else:
+                return choice
         #more utility datas
         fmt_score_list=MrGreed.gen_fmt_scores(self.scores)
         impc_dict_base=MrGreed.gen_impc_dict(self.scores,self.cards_on_table)
@@ -218,10 +224,13 @@ class MrGreed(MrRandom):
         #如果我是最后一个出的
         if len(self.cards_on_table)==4:
             four_cards=self.cards_on_table[1:4]+[""]
-            MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list
+            d_return=MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list
                                   ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
             choice=four_cards[3]
-            return choice
+            if need_details:
+                return choice,d_return
+            else:
+                return choice
 
         #more utility datas
         impc_dict_mine=MrGreed.diy_impc_dict(impc_dict_base,self.cards_list)
@@ -275,6 +284,7 @@ class MrGreed(MrRandom):
                     score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)\
                          +MrGreed.calc_relief(c,impc_dict_mine,scs_rmn_avg,fmt_score_list[self.place][0])
                     d_legal[c]+=score
+
         if len(self.cards_on_table)==1 and len(self.history)<3:
             suit_ct={'S':0,'H':0,'D':0,'C':0}
             for h,i in itertools.product(self.history,range(1,5)):
@@ -286,103 +296,14 @@ class MrGreed(MrRandom):
                 d_suit_extra[s]=int((avg_len-my_len)*MrGreed.SHORT_PREFERENCE*MrGreed.N_SAMPLE)
             for c in d_legal:
                 d_legal[c]+=d_suit_extra[c[0]]
-        best_choice=MrGreed.pick_best_from_dlegal(d_legal)
-        return best_choice
 
-    def pick_a_card_record_for_o(self):
-        assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
-        suit=self.decide_suit()
-        cards_dict=MrGreed.gen_cards_dict(self.cards_list)
-        fmt_score_list=MrGreed.gen_fmt_scores(self.scores)
-        scs_rmn_avg=(-200-sum([i[0] for i in fmt_score_list]))//4
-        cards_remain=MrGreed.calc_cards_remain(self.history,self.cards_on_table,self.cards_list)
-        void_info=MrGreed.gen_void_info(self.place,self.history,self.cards_on_table)
-        impc_dict_base=MrGreed.gen_impc_dict(self.scores,self.cards_on_table)
-        impc_dict_mine=MrGreed.diy_impc_dict(impc_dict_base,self.cards_list)
-        expire_date=0 #for sampling
-        d_legal={c:0 for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)} #dict of legal choice
-        if len(self.cards_on_table)==4:
-            lens=[len(self.cards_list)-1,len(self.cards_list)-1,len(self.cards_list)-1]
-            four_cards=self.cards_on_table[1:4]+['']
-        elif len(self.cards_on_table)==3:
-            lens=[len(self.cards_list),len(self.cards_list)-1,len(self.cards_list)-1]
-            four_cards=self.cards_on_table[1:3]+['','']
-        elif len(self.cards_on_table)==2:
-            lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)-1]
-            four_cards=[self.cards_on_table[1],'','','']
-        elif len(self.cards_on_table)==1:
-            lens=[len(self.cards_list),len(self.cards_list),len(self.cards_list)]
-            four_cards=['','','','']
-        if len(self.cards_on_table)==1 and len(self.history)<3:
-            suit_ct={'S':0,'H':0,'D':0,'C':0}
-            for h,i in itertools.product(self.history,range(1,5)):
-                suit_ct[h[i][0]]+=1
-            d_suit_extra={'S':0,'H':0,'D':0,'C':0}
-            for s in 'SHDC':
-                my_len=len(cards_dict[s])
-                avg_len=(13-suit_ct[s]-my_len)/3
-                d_suit_extra[s]=int((avg_len-my_len)*MrGreed.SHORT_PREFERENCE)
-            del suit_ct
-        for ax in range(MrGreed.N_SAMPLE):
-            #sampling
-            if expire_date==0:
-                cards_list_list,exchange_info,bx=MrGreed.gen_scenario(void_info,cards_remain,lens)
-                expire_date=max(bx-5,0)
-            else:
-                exhausted_flag=MrGreed.alter_scenario(cards_list_list,exchange_info,void_info)
-                if exhausted_flag==1:
-                    break
-                expire_date-=1
-            cards_list_1=cards_list_list[0]
-            cards_dict_1=MrGreed.gen_cards_dict(cards_list_1)
-            cards_list_2=cards_list_list[1]
-            cards_dict_2=MrGreed.gen_cards_dict(cards_list_2)
-            cards_list_3=cards_list_list[2]
-            cards_dict_3=MrGreed.gen_cards_dict(cards_list_3)
-            #decide
-            for c in d_legal:
-                if len(self.cards_on_table)==4:
-                    four_cards[3]=c
-                    score=MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)
-                elif len(self.cards_on_table)==3:
-                    four_cards[2]=c
-                    MrGreed.as_last_player(suit,four_cards,cards_dict_1,cards_list_1
-                                          ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
-                    score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)
-                elif len(self.cards_on_table)==2:
-                    four_cards[1]=c
-                    MrGreed.as_third_player(suit,four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2
-                                           ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
-                    score=MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)
-                elif len(self.cards_on_table)==1:
-                    four_cards[0]=c
-                    MrGreed.as_second_player(c[0],four_cards,cards_dict_1,cards_list_1,cards_dict_2,cards_list_2,cards_dict_3,cards_list_3
-                                            ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
-                    score=-1*MrGreed.clear_score(four_cards,fmt_score_list,self.cards_on_table[0],scs_rmn_avg)
-                    if len(self.history)<3:
-                        score+=d_suit_extra[c[0]]
-                score+=MrGreed.calc_relief(c,impc_dict_mine,scs_rmn_avg,fmt_score_list[self.place][0])
-                score+=fmt_score_list[self.place][0]+scs_rmn_avg
-                d_legal[c]+=score
-                #记录, 只有有的选才记录
-                if len(d_legal)>1:
-                    netin=[[],]
-                    netin[0].append(cards_in_hand_oh(cards_list_list,self.cards_list))
-                    netin[0].append(four_cards_oh(self.cards_on_table,c))
-                    netin[0].append(score_oh(self.score,self.place))
-                    netin[0]=torch.cat(netin[0])
-                    netin.append(torch.tensor(score))
-                    global for_o
-                    for_o[len(self.cards_on_table)-1].append(netin)
-                del score
-            #clear temp_data
-            del cards_list_1,cards_dict_1,cards_list_2,cards_dict_2,cards_list_3,cards_dict_3
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
-        return best_choice
 
-    def pick_a_card(self):
-        return self.pick_a_card_pure()
-        #return self.pick_a_card_record_for_o()
+        if need_details:
+            d_return={c:d_legal[c]/MrGreed.N_SAMPLE+scs_rmn_avg*2 for c in d_legal}
+            return best_choice,d_return
+        else:
+            return best_choice
 
     @staticmethod
     def family_name():

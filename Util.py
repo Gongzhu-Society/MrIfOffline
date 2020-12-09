@@ -42,6 +42,8 @@ SCORE_DICT={'SQ':-100,'DJ':100,'C10':0,
             'H2':0,'H3':0,'H4':0,'H5':-10,'H6':-10,'H7':-10,'H8':-10,'H9':-10,'H10':-10,
             'HJ':-20,'HQ':-30,'HK':-40,'HA':-50,'JP':-60,'JG':-70}
 
+# will be used in MrZeroTree
+# change carefully!
 def calc_score(l):
     s=0;h_num=0;
     has_score_flag=False;c10_flag=False
