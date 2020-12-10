@@ -89,7 +89,7 @@ class PV_NET(nn.Module):
         return 52 policy and 1 value
     """
 
-    VALUE_RENORMAL=200
+    VALUE_RENORMAL=1000
 
     def __init__(self):
         super(PV_NET,self).__init__()
@@ -238,6 +238,7 @@ class MrZeroTree(MrRandom):
                     d_legal_temp[action]=node.totalReward/node.numVisits
                     #print(action,node)
             else:
+                raise Exception("not finish")
                 netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                 with torch.no_grad():
                     p,v=self.pv_net(netin.to(self.device))
@@ -245,21 +246,23 @@ class MrZeroTree(MrRandom):
                 p_legal=numpy.array([p[ORDER_DICT[c]] for c in legal_choice])
                 p_legal/=p_legal.sum()
                 c=numpy.random.choice(legal_choice,p=p_legal)
-                d_legal[c]+=1
+                d_legal[best[0]]+=1
 
             #save data for train
             if self.train_mode:
                 value_max=max(d_legal_temp.values())
                 target_p=torch.zeros(52)
+                legal_mask=torch.zeros(52)
                 try:
                     for k,v in d_legal_temp.items():
                         target_p[ORDER_DICT[k]]=math.exp(self.BETA*(v-value_max))
+                        legal_mask[ORDER_DICT[k]]=1
                 except:
                     log("value_max: %s"%(value_max),l=3)
                 target_p/=target_p.sum()
-                target_v=torch.tensor(max([v for k,v in d_legal_temp.items()])) #todo: change
+                target_v=torch.tensor(value_max) #todo: change
                 netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
-                self.train_datas.append([netin,target_p,target_v])
+                self.train_datas.append([netin,target_p,target_v,legal_mask])
                 """if len(self.cards_list)<8:
                     log("d_legal_temp: %s"%(d_legal_temp),l=0)
                     log("get target_p: %s"%(target_p),l=0)
@@ -275,14 +278,14 @@ class MrZeroTree(MrRandom):
 
 def benchmark(save_name,epoch,device_num=3):
     """benchmark raw network against MrGreed"""
-    N1=1024;N2=2
-    log("start benchmark against MrGreed for %dx%d"%(N1,N2))
+    N1=360;N2=2;search_num=20
+    log("start benchmark against MrGreed for %dx%d with search_num %d"%(N1,N2,search_num))
 
     device_bench=torch.device("cuda:%d"%(device_num))
     pv_net=torch.load(save_name)
     pv_net.to(device_bench)
 
-    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=-1) for i in [0,2]]
+    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=search_num) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
 
@@ -365,7 +368,8 @@ def prepare_train_data(pv_net,device_num,data_queue):
 
     datas=[]
     for i in range(4):
-        datas+=[[i[0],i[1].cpu(),i[2].cpu()] for i in zt[0].train_datas]
+        #datas+=[[i[0],i[1],i[2],i[3]] for i in zt[0].train_datas]
+        datas+=zt[0].train_datas
     data_queue.put(datas,block=False)
     while not data_queue.empty():
         time.sleep(1)
@@ -379,7 +383,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
     #log("optimizer: %f %f"%(optimizer.__dict__['defaults']['lr'],optimizer.__dict__['defaults']['momentum']))
     optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
-    LOSS2_WEIGHT=0.2
+    LOSS2_WEIGHT=0.01
     log("LOSS2_WEIGHT: %f"%(LOSS2_WEIGHT))
 
     train_datas=[]
@@ -392,6 +396,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")
                 p_benchmark.join()
+            #benchmark(save_name,epoch)
             p_benchmark=Process(target=benchmark,args=(save_name,epoch))
             p_benchmark.start()
 
@@ -402,26 +407,26 @@ def train(pv_net,device_train_nums=[0,1,2]):
             #p=Process(target=prepare_train_data_greed,args=(data_queue,i))
             p.start()
 
-        train_datas=[j for i,j in enumerate(train_datas) if i%2==0]
+        train_datas=train_datas[0:len(train_datas)//2]
         for i in device_train_nums:
             try:
                 queue_get=data_queue.get(block=True,timeout=300)
-                train_datas+=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main)] for i in queue_get]
+                train_datas+=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in queue_get]
             except:
                 log("get data failed, has got %d datas"%(len(train_datas)),l=3)
         trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
         batch=trainloader.__iter__().__next__()
         assert len(batch[0])==len(train_datas)
 
-        if (epoch<40 and epoch%5==0) or epoch%20==0: #rememnber to correct the other output
+        if (epoch<40 and epoch%5==0) or epoch%20==0:
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
             output_flag=True
 
             p,v=pv_net(batch[0])
-            log_p=F.log_softmax(p,dim=1)
 
             optimizer.zero_grad()
+            log_p=F.log_softmax(p*batch[3],dim=1)
             loss1_t=F.kl_div(log_p,batch[1],reduction="batchmean")
             loss1_t.backward(retain_graph=True)
             grad1=pv_net.fc0.bias.grad.abs().mean().item()
@@ -434,9 +439,9 @@ def train(pv_net,device_train_nums=[0,1,2]):
             amp_probe=pv_net.fc0.bias.abs().mean().item()
             log("%d: %.2f %.2f %.4f %.4f %d"%(epoch,loss1_t.item(),loss2_t.item(),grad1/grad2,amp_probe,len(train_datas)))
 
-        for age in range(20+1):
+        for age in range(15+1):
             p,v=pv_net(batch[0])
-            log_p=F.log_softmax(p,dim=1)
+            log_p=F.log_softmax(p*batch[3],dim=1)
             loss1=F.kl_div(log_p,batch[1],reduction="batchmean")
             #loss2=(v.view(-1)-batch[2]).norm(2)
             #loss2=F.l1_loss(v.view(-1),batch[2],reduction='mean')
@@ -447,7 +452,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
             loss.backward()
             optimizer.step()
 
-            if output_flag and age%10==0:
+            if output_flag and age%5==0:
                 log("        epoch %d age %d: %.2f %.2f"%(epoch,age,loss1,loss2))
 
 def spy_paras():
