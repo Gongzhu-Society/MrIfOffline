@@ -374,11 +374,17 @@ def prepare_train_data(pv_net,device_num,data_queue):
 def train(pv_net,device_train_nums=[0,1,2]):
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
+
     #optimizer=optim.SGD(pv_net.parameters(),lr=0.05,momentum=0.8)
     #log("optimizer: %f %f"%(optimizer.__dict__['defaults']['lr'],optimizer.__dict__['defaults']['momentum']))
     optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
+    LOSS2_WEIGHT=0.2
+    log("LOSS2_WEIGHT: %f"%(LOSS2_WEIGHT))
+
+    train_datas=[]
     for epoch in range(2000):
+        output_flag=False
         if epoch%20==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -396,20 +402,22 @@ def train(pv_net,device_train_nums=[0,1,2]):
             #p=Process(target=prepare_train_data_greed,args=(data_queue,i))
             p.start()
 
-        train_datas=[]
+        train_datas=[j for i,j in enumerate(train_datas) if i%2==0]
         for i in device_train_nums:
             try:
-                train_datas+=data_queue.get(block=True,timeout=300)
+                queue_get=data_queue.get(block=True,timeout=300)
+                train_datas+=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main)] for i in queue_get]
             except:
                 log("get data failed, has got %d datas"%(len(train_datas)),l=3)
-        train_datas=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main)] for i in train_datas]
         trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
         batch=trainloader.__iter__().__next__()
         assert len(batch[0])==len(train_datas)
 
-        if epoch%10==0:
+        if (epoch<40 and epoch%5==0) or epoch%20==0: #rememnber to correct the other output
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
+            output_flag=True
+
             p,v=pv_net(batch[0])
             log_p=F.log_softmax(p,dim=1)
 
@@ -426,7 +434,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
             amp_probe=pv_net.fc0.bias.abs().mean().item()
             log("%d: %.2f %.2f %.4f %.4f %d"%(epoch,loss1_t.item(),loss2_t.item(),grad1/grad2,amp_probe,len(train_datas)))
 
-        for age in range(40+1):
+        for age in range(20+1):
             p,v=pv_net(batch[0])
             log_p=F.log_softmax(p,dim=1)
             loss1=F.kl_div(log_p,batch[1],reduction="batchmean")
@@ -435,11 +443,11 @@ def train(pv_net,device_train_nums=[0,1,2]):
             loss2=F.mse_loss(v.view(-1),batch[2],reduction='mean').sqrt()
 
             optimizer.zero_grad()
-            loss=loss1+loss2*0.05
+            loss=loss1+loss2*LOSS2_WEIGHT
             loss.backward()
             optimizer.step()
 
-            if epoch%10==0 and age%10==0:
+            if output_flag and age%10==0:
                 log("        epoch %d age %d: %.2f %.2f"%(epoch,age,loss1,loss2))
 
 def spy_paras():
