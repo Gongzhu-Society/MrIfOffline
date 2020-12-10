@@ -383,7 +383,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
     #log("optimizer: %f %f"%(optimizer.__dict__['defaults']['lr'],optimizer.__dict__['defaults']['momentum']))
     optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
-    LOSS2_WEIGHT=0.01
+    LOSS2_WEIGHT=0.05
     log("LOSS2_WEIGHT: %f"%(LOSS2_WEIGHT))
 
     train_datas=[]
@@ -439,7 +439,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
             amp_probe=pv_net.fc0.bias.abs().mean().item()
             log("%d: %.2f %.2f %.4f %.4f %d"%(epoch,loss1_t.item(),loss2_t.item(),grad1/grad2,amp_probe,len(train_datas)))
 
-        for age in range(15+1):
+        for age in range(20+1):
             p,v=pv_net(batch[0])
             log_p=F.log_softmax(p*batch[3],dim=1)
             loss1=F.kl_div(log_p,batch[1],reduction="batchmean")
