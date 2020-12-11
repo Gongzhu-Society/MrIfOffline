@@ -300,7 +300,7 @@ class MrGreed(MrRandom):
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
 
         if need_details:
-            d_return={c:d_legal[c]/MrGreed.N_SAMPLE+scs_rmn_avg*2 for c in d_legal}
+            d_return={c:d_legal[c]/MrGreed.N_SAMPLE+scs_rmn_avg*2 for c in d_legal} #todo, no need for scs_rmn_avg
             return best_choice,d_return
         else:
             return best_choice
