@@ -383,7 +383,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
     #log("optimizer: %f %f"%(optimizer.__dict__['defaults']['lr'],optimizer.__dict__['defaults']['momentum']))
     optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
-    LOSS2_WEIGHT=0.05
+    LOSS2_WEIGHT=0.1
     log("LOSS2_WEIGHT: %f"%(LOSS2_WEIGHT))
 
     train_datas=[]
