@@ -193,7 +193,7 @@ class MrZeroTree(MrRandom):
             netin=MrZeroTree.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.pnext)
             with torch.no_grad():
                 _,v=self.pv_net(netin.to(self.device))
-            return v.item()
+            return v.item()*state.getCurrentPlayer()
 
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
@@ -313,7 +313,6 @@ def benchmark(save_name,epoch,device_num=3,print_process=False):
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
 
-
 class MrGreedData(MrGreed):
     def __init__(self,room=0,place=0,name="default"):
         MrGreed.__init__(self,room,place,name)
@@ -378,7 +377,7 @@ def prepare_train_data(pv_net,device_num,data_queue):#,data_lock):
     N1=2;
     for k in range(N1):
         cards=interface.shuffle()
-        for i,j in itertools.product(range(13),range(4)):
+        for i in range(52):
             interface.step()
         interface.clear()
         interface.prepare_new()
@@ -396,10 +395,11 @@ def prepare_train_data(pv_net,device_num,data_queue):#,data_lock):
 
 
 print_level=0
-BENCHMARK_METHOD=-1
+
 LOSS2_WEIGHT=0.05
-BETA=0.5
+BETA=0.2
 VALUE_RENORMAL=100
+BENCHMARK_METHOD=-1
 
 def train(pv_net,device_train_nums=[0,1,2]):
     device_main=torch.device("cuda:0")
@@ -408,7 +408,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
     #log("optimizer: %f %f"%(optimizer.__dict__['defaults']['lr'],optimizer.__dict__['defaults']['momentum']))
     optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
-    log("LOSS2_WEIGHT: %f, VALUE_RENORMAL: %f, BETA: %f, BENCHMARK_METHOD: %d"%(LOSS2_WEIGHT,VALUE_RENORMAL,BETA,BENCHMARK_METHOD))
+    log("LOSS2_WEIGHT: %.4f, BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d"%(LOSS2_WEIGHT,BETA,VALUE_RENORMAL,BENCHMARK_METHOD))
 
     train_datas=[];p_benchmark=None
     for epoch in range(1000):
@@ -479,15 +479,12 @@ def train(pv_net,device_train_nums=[0,1,2]):
             if output_flag and age%3==0:
                 log("        epoch %d age %d: %.2f %.2f"%(epoch,age,loss1,loss2))
 
-def spy_paras():
-    pv_net1=torch.load("PV_NET-11-2319413-20.pkl")
-    pv_net2=torch.load("PV_NET-11-2319413-40.pkl")
-    print(pv_net1.fc0.weight)
-    print(pv_net2.fc0.weight)
-
 def main():
-    pv_net=PV_NET()
-    log("init pv_net: %s"%(pv_net))
+    #pv_net=PV_NET()
+    #log("init pv_net: %s"%(pv_net))
+    start_from="./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl"
+    pv_net=torch.load(start_from)
+    log("start from: %s"%(start_from))
     try:
         train(pv_net)
     except:
@@ -516,6 +513,5 @@ if __name__=="__main__":
     #torch.multiprocessing.set_sharing_strategy('file_system')
 
     main()
-    #manually_test("./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl")
     #benchmark("./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl","manual",print_process=True)
-    #spy_paras()
+    #manually_test("./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl")
