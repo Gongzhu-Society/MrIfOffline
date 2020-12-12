@@ -90,7 +90,7 @@ class PV_NET(nn.Module):
         super(PV_NET,self).__init__()
         #cards in four player(52*4), two cards on table(52*3*2), scores in four players
         #totally 688
-        self.fc0=nn.Linear(52*4+(52*3+13*4)*2+16*4,1024)
+        self.fc0=nn.Linear(52*4+(16*4)*2+52*3,1024)
         self.fc1=nn.Linear(1024,1024)
         self.fc2=nn.Linear(1024,256)
         self.fc3=nn.Linear(256,256)
@@ -171,10 +171,13 @@ class MrZeroTree(MrRandom):
             the order is [me-1,me-2,me-3]
         """
         assert (cards_on_table[0]+len(cards_on_table)-1)%4==place
-        oh=torch.zeros(52*3+13*4)#,dtype=torch.uint8)
+        """oh=torch.zeros(52*3+13*4)#,dtype=torch.uint8)
         for i,c in enumerate(cards_on_table[:0:-1]):
             oh[52*i+ORDER_DICT[c]]=1
-        oh[52*3+13*len(cards_on_table)-13:52*3+13*len(cards_on_table)]=1
+        oh[52*3+13*len(cards_on_table)-13:52*3+13*len(cards_on_table)]=1"""
+        oh=torch.zeros(52*3)
+        for i,c in enumerate(cards_on_table[:0:-1]):
+            oh[52*i+ORDER_DICT[c]]=1
         return oh
 
     def prepare_ohs(cards_lists,cards_on_table,score_lists,place):
@@ -184,7 +187,7 @@ class MrZeroTree(MrRandom):
         oh_card=MrZeroTree.cards_lists_oh(cards_lists,place)
         oh_score=MrZeroTree.score_lists_oh(score_lists,place)
         oh_table=MrZeroTree.four_cards_oh(cards_on_table,place)
-        return torch.cat([oh_card,oh_score,oh_table,oh_table])
+        return torch.cat([oh_card,oh_score,oh_score,oh_table])
 
     def pv_policy(self,state):
         if state.isTerminal():
