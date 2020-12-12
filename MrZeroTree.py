@@ -284,7 +284,11 @@ class MrZeroTree(MrRandom):
         return best_choice
 
 def benchmark(save_name,epoch,device_num=3,print_process=False):
-    """benchmark raw network against MrGreed"""
+    """
+        benchmark raw network against MrGreed
+        METHOD=-1, N1=512, 7min
+        METHOD=-2, N1=512, 3.5min
+    """
     N1=512;N2=2;
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
 
@@ -320,7 +324,6 @@ class MrGreedData(MrGreed):
 
     def pick_a_card(self):
         best_choice,d_legal_temp=MrGreed.pick_a_card(self,need_details=True)
-        #log("%s %s"%(best_choice,d_legal_temp))
         if d_legal_temp!=None:
             value_max=max(d_legal_temp.values())
             target_p=torch.zeros(52);legal_mask=torch.zeros(52)
@@ -372,13 +375,14 @@ def prepare_train_data(pv_net,device_num,data_queue):#,data_lock):
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True) for i in range(4)]
-    interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
+    interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=True)
 
-    N1=2;
+    N1=1;
     for k in range(N1):
         cards=interface.shuffle()
         for i in range(52):
             interface.step()
+            input()
         interface.clear()
         interface.prepare_new()
 
@@ -395,11 +399,17 @@ def prepare_train_data(pv_net,device_num,data_queue):#,data_lock):
 
 
 print_level=0
-
-LOSS2_WEIGHT=0.05
-BETA=0.2
 VALUE_RENORMAL=100
-BENCHMARK_METHOD=-1
+
+#self-play paras
+"""LOSS2_WEIGHT=0.05
+BETA=0.2
+BENCHMARK_METHOD=-1"""
+
+#learn from Greed paras
+LOSS2_WEIGHT=0.01
+BETA=0.2
+BENCHMARK_METHOD=-2
 
 def train(pv_net,device_train_nums=[0,1,2]):
     device_main=torch.device("cuda:0")
@@ -413,22 +423,21 @@ def train(pv_net,device_train_nums=[0,1,2]):
     train_datas=[];p_benchmark=None
     for epoch in range(1000):
         output_flag=False
-        if epoch%20==0:# and epoch!=0:
+        if epoch%100==0 and epoch!=0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
             if p_benchmark!=None:
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")
                 p_benchmark.join()
-            #benchmark(save_name,epoch)
             p_benchmark=Process(target=benchmark,args=(save_name,epoch))
             p_benchmark.start()
 
         data_queue=Queue()
         #data_lock=Lock();data_lock.acquire()
         for i in device_train_nums:
-            p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_queue))
-            #p=Process(target=MrGreedData.prepare_train_data_greed,args=(data_queue,))
+            #p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_queue))
+            p=Process(target=MrGreedData.prepare_train_data_greed,args=(data_queue,))
             p.start()
 
         train_datas=train_datas[len(train_datas)//2:len(train_datas)]
@@ -442,7 +451,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
         batch=trainloader.__iter__().__next__()
         assert len(batch[0])==len(train_datas)
 
-        if (epoch<5) or (epoch<40 and epoch%5==0) or epoch%20==0:
+        if (epoch<=3) or (epoch<40 and epoch%5==0) or epoch%20==0:
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
             output_flag=True
@@ -476,15 +485,15 @@ def train(pv_net,device_train_nums=[0,1,2]):
             loss.backward()
             optimizer.step()
 
-            if output_flag and age%3==0:
+            if output_flag and age in (0,3,6,9):
                 log("        epoch %d age %d: %.2f %.2f"%(epoch,age,loss1,loss2))
 
 def main():
-    #pv_net=PV_NET()
-    #log("init pv_net: %s"%(pv_net))
-    start_from="./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl"
+    pv_net=PV_NET()
+    log("init pv_net: %s"%(pv_net))
+    """start_from="./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl"
     pv_net=torch.load(start_from)
-    log("start from: %s"%(start_from))
+    log("start from: %s"%(start_from))"""
     try:
         train(pv_net)
     except:
@@ -515,3 +524,4 @@ if __name__=="__main__":
     main()
     #benchmark("./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl","manual",print_process=True)
     #manually_test("./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl")
+    #MrGreedData.prepare_train_data_greed(None)

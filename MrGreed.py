@@ -141,11 +141,15 @@ class MrGreed(MrRandom):
         return relief
 
     def as_last_player(suit,four_cards,cards_dict,cards_list,
-        fmt_score_list,trick_start,scs_rmn_avg,impc_dict_base,myplace):
+        fmt_score_list,trick_start,scs_rmn_avg,impc_dict_base,myplace,need_details=False):
         impc_dict=MrGreed.diy_impc_dict(impc_dict_base,cards_list)
         best_score=-65535
         four_cards_tmp=four_cards[0:3]+['']
-        d_return={}
+        if need_details:
+            scores_had=[MrGreed.clear_fmt_score(fmt_score_list[(myplace+i)%4]) for i in range(4)]
+            scores_had=scores_had[0]+scores_had[2]-scores_had[1]-scores_had[3]
+            #log("scores had: %s"%(scores_had))
+            d_return={}
         for c in MrGreed.gen_legal_choice(suit,cards_dict,cards_list):
             four_cards_tmp[3]=c
             score_temp=MrGreed.clear_score(four_cards_tmp,fmt_score_list,trick_start,scs_rmn_avg)\
@@ -153,8 +157,11 @@ class MrGreed(MrRandom):
             if score_temp>best_score:
                 four_cards[3]=four_cards_tmp[3]
                 best_score=score_temp
-            d_return[c]=score_temp+scs_rmn_avg*2
-        return d_return #add d_return for training MrZeroTree
+            if need_details:
+                d_return[c]=score_temp+scores_had
+                #log("%s %s %s"%(c,score_temp,d_return[c]))
+        if need_details:
+            return d_return #add d_return for training MrZeroTree
 
     def as_third_player(suit,four_cards,cards_dict3,cards_list3,cards_dict4,cards_list4,
         fmt_score_list,trick_start,scs_rmn_avg,impc_dict_base,myplace):
@@ -218,18 +225,22 @@ class MrGreed(MrRandom):
             else:
                 return choice
         #more utility datas
-        fmt_score_list=MrGreed.gen_fmt_scores(self.scores)
+        fmt_score_list=MrGreed.gen_fmt_scores(self.scores) #in absolute order， because self.scores is in absolute order
         impc_dict_base=MrGreed.gen_impc_dict(self.scores,self.cards_on_table)
         scs_rmn_avg=(-200-sum([i[0] for i in fmt_score_list]))//4
+
         #如果我是最后一个出的
         if len(self.cards_on_table)==4:
             four_cards=self.cards_on_table[1:4]+[""]
-            d_return=MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list
-                                  ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
-            choice=four_cards[3]
             if need_details:
+                d_return=MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list
+                    ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place,need_details=True)
+                choice=four_cards[3]
                 return choice,d_return
             else:
+                MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list
+                    ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place,need_details=True)
+                choice=four_cards[3]
                 return choice
 
         #more utility datas
@@ -300,10 +311,31 @@ class MrGreed(MrRandom):
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
 
         if need_details:
-            d_return={c:d_legal[c]/MrGreed.N_SAMPLE+scs_rmn_avg*2 for c in d_legal} #todo, no need for scs_rmn_avg
+            scores_had=[MrGreed.clear_fmt_score(fmt_score_list[(self.place+i)%4]) for i in range(4)]
+            scores_had=scores_had[0]+scores_had[2]-scores_had[1]-scores_had[3]
+            d_return={c:d_legal[c]/MrGreed.N_SAMPLE+scores_had for c in d_legal} #todo, no need for scs_rmn_avg
+            #log("scores had: %s"%(scores_had))
+            #log(d_return)
+            #log(d_legal)
             return best_choice,d_return
         else:
             return best_choice
+
+    def clear_fmt_score(fmt_score):
+        """
+            [0,0,False,False] stands for [score, #hearts, C10 flag, has score flag]
+        """
+        s=fmt_score[0]
+        if fmt_score[1]==13:
+            s+=400
+        if fmt_score[2]:
+            if fmt_score[3]:
+                s*=2
+            else:
+                assert fmt_score[0]==0
+                assert fmt_score[1]==0
+                s=50
+        return s
 
     @staticmethod
     def family_name():
