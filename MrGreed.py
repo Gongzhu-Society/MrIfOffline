@@ -146,9 +146,6 @@ class MrGreed(MrRandom):
         best_score=-65535
         four_cards_tmp=four_cards[0:3]+['']
         if need_details:
-            scores_had=[MrGreed.clear_fmt_score(fmt_score_list[(myplace+i)%4]) for i in range(4)]
-            scores_had=scores_had[0]+scores_had[2]-scores_had[1]-scores_had[3]
-            #log("scores had: %s"%(scores_had))
             d_return={}
         for c in MrGreed.gen_legal_choice(suit,cards_dict,cards_list):
             four_cards_tmp[3]=c
@@ -158,8 +155,7 @@ class MrGreed(MrRandom):
                 four_cards[3]=four_cards_tmp[3]
                 best_score=score_temp
             if need_details:
-                d_return[c]=score_temp+scores_had
-                #log("%s %s %s"%(c,score_temp,d_return[c]))
+                d_return[c]=score_temp
         if need_details:
             return d_return #add d_return for training MrZeroTree
 
@@ -239,7 +235,7 @@ class MrGreed(MrRandom):
                 return choice,d_return
             else:
                 MrGreed.as_last_player(suit,four_cards,cards_dict,self.cards_list
-                    ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place,need_details=True)
+                    ,fmt_score_list,self.cards_on_table[0],scs_rmn_avg,impc_dict_base,self.place)
                 choice=four_cards[3]
                 return choice
 
@@ -311,9 +307,9 @@ class MrGreed(MrRandom):
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
 
         if need_details:
-            scores_had=[MrGreed.clear_fmt_score(fmt_score_list[(self.place+i)%4]) for i in range(4)]
-            scores_had=scores_had[0]+scores_had[2]-scores_had[1]-scores_had[3]
-            d_return={c:d_legal[c]/MrGreed.N_SAMPLE+scores_had for c in d_legal} #todo, no need for scs_rmn_avg
+            #scores_had=[MrGreed.clear_fmt_score(fmt_score_list[(self.place+i)%4]) for i in range(4)]
+            #scores_had=scores_had[0]+scores_had[2]-scores_had[1]-scores_had[3]
+            d_return={c:d_legal[c]/MrGreed.N_SAMPLE for c in d_legal} #todo, no need for scs_rmn_avg
             #log("scores had: %s"%(scores_had))
             #log(d_return)
             #log(d_legal)

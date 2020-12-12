@@ -78,7 +78,7 @@ class GameState():
             return False
 
     def getReward(self):
-        assert sum([len(i) for i in self.score_lists])==16
+        #assert sum([len(i) for i in self.score_lists])==16
         scores=[calc_score(self.score_lists[(self.play_for+i)%4]) for i in range(4)]
         return scores[0]+scores[2]-scores[1]-scores[3]
 
@@ -86,11 +86,46 @@ class PV_NET(nn.Module):
     """
         return 52 policy and 1 value
     """
+    #ORDER_DICT5={            'H2''H3''H4''H5''H6''H7''H8''H9''H10''HJ''HQ''HK''HA' 'SQ''DJ''C10'}
+    """VALUE_AUX_1=torch.tensor([  [   0,  0,  0,-10,-10,-10,-10,-10, -10,-20,-30,-40,-50,-100,100,0.0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,  0,  0,-10,-10,-10,-10,-10, -10,-20,-30,-40,-50,-100,100,0.0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,  0,  0,-10,-10,-10,-10,-10, -10,-20,-30,-40,-50,-100,100,0.0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,  0,  0,-10,-10,-10,-10,-10, -10,-20,-30,-40,-50,-100,100,0.0,]])
+    VALUE_AUX_2=torch.tensor([  [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.0,]])
+    VALUE_AUX_3=torch.tensor([[1.0,-1.0,1.0,-1.0]])"""
+
     def __init__(self):
         super(PV_NET,self).__init__()
         #cards in four player(52*4), two cards on table(52*3*2), scores in four players
         #totally 688
-        self.fc0=nn.Linear(52*4+16*4+(54*3+26*4),1024)
+        self.fc0=nn.Linear(52*4+(54*3+20*4)+16*4,1024)
         self.fc1=nn.Linear(1024,1024)
         self.fc2=nn.Linear(1024,256)
         self.fc3=nn.Linear(256,256)
@@ -103,6 +138,8 @@ class PV_NET(nn.Module):
         self.fcv=nn.Linear(256,1)
 
     def forward(self, x):
+        #v_init=F.linear(x[:,-64:],PV_NET.VALUE_AUX_1)*(F.linear(x[:,-64:],PV_NET.VALUE_AUX_2)+1)
+        #v_init=F.linear(v_init,PV_NET.VALUE_AUX_3)
         x=F.relu(self.fc0(x))
         x=F.relu(self.fc1(x))
         x=F.relu(self.fc2(x))
@@ -110,7 +147,7 @@ class PV_NET(nn.Module):
         x=F.relu(self.fc6(F.relu(self.fc5(x))))+x
         x=F.relu(self.fc8(F.relu(self.fc7(x))))+x
         p=self.fcp(x)
-        v=self.fcv(x)*VALUE_RENORMAL
+        v=self.fcv(x)*VALUE_RENORMAL#+v_init
         return p,v
 
     def num_paras(self):
@@ -178,11 +215,11 @@ class MrZeroTree(MrRandom):
         """oh=torch.zeros(52*3)
         for i,c in enumerate(cards_on_table[:0:-1]):
             oh[52*i+ORDER_DICT[c]]=1"""
-        oh=torch.zeros(54*3+26*4)#,dtype=torch.uint8)
+        oh=torch.zeros(54*3+20*4)#,dtype=torch.uint8)
         for i,c in enumerate(cards_on_table[:0:-1]):
             index=54*i+ORDER_DICT[c]
             oh[index-1:index+2]=1
-        oh[54*3+26*len(cards_on_table)-13:54*3+26*len(cards_on_table)]=1
+        oh[54*3+20*len(cards_on_table)-13:54*3+20*len(cards_on_table)]=1
         return oh
 
     def prepare_ohs(cards_lists,cards_on_table,score_lists,place):
@@ -201,7 +238,7 @@ class MrZeroTree(MrRandom):
             netin=MrZeroTree.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.pnext)
             with torch.no_grad():
                 _,v=self.pv_net(netin.to(self.device))
-            return v.item()*state.getCurrentPlayer()
+            return v.item()*state.getCurrentPlayer()+state.getReward()
 
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
@@ -229,7 +266,7 @@ class MrZeroTree(MrRandom):
             for i in range(3):
                 cards_lists[(self.place+i+1)%4]=cards_list_list[i]
             gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.place)
-            if print_level>=1:
+            if print_level>=2:
                 log("gened scenario: %s"%(cards_lists))
 
             #mcts
@@ -261,25 +298,12 @@ class MrZeroTree(MrRandom):
                     log("output: %s, %s"%(["%.4f"%(i) for i in p],v))
                     input()
                     """
-                    """
-                    if len(self.cards_list)<8:
-                        log("d_legal_temp: %s"%(d_legal_temp),l=0)
-                        log("get target_p: %s"%(target_p),l=0)
-                        log("get target_v: %s"%(target_v),l=0)
-                        input()
-                        log("place: %d"%(self.place))
-                        #log("cards_lists: %s\n%s\n%s\n%s\n%s"%(cards_lists,netin[0:52],netin[52:104],netin[104:156],netin[156:208]),l=0)
-                        log("scores: %s\n%s\n%s\n%s\n%s"%(self.scores,netin[208:224],netin[224:240],netin[240:256],netin[256:272]),l=0)
-                        log("cards_on_table: %s\n%s\n%s\n%s\n%s"%(self.cards_on_table,netin[272:324],netin[324:376],netin[376:428],netin[428:480]),l=0)
-                        input()
-                    """
+
             elif self.mcts_searchnum==-1:
                 searcher=mcts(iterationLimit=len(legal_choice),rolloutPolicy=self.pv_policy,explorationConstant=200)
                 searcher.search(initialState=gamestate,needNodeValue=False)
                 for action,node in searcher.root.children.items():
                     d_legal[action]+=node.totalReward/node.numVisits
-                if print_level>=1:
-                    log(d_legal)
             elif self.mcts_searchnum==-2:
                 netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                 with torch.no_grad():
@@ -287,7 +311,8 @@ class MrZeroTree(MrRandom):
                 p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
                 p_legal.sort(key=lambda x:x[1],reverse=True)
                 d_legal[p_legal[0][0]]+=1
-
+        if print_level>=1:
+            log(d_legal)
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
@@ -299,6 +324,8 @@ def benchmark(save_name,epoch,device_num=3,print_process=False):
     """
     N1=512;N2=2;
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
+    if epoch=="manual":
+        log("benchmark method: %d, file: %s"%(BENCHMARK_METHOD,save_name))
 
     device_bench=torch.device("cuda:%d"%(device_num))
     pv_net=torch.load(save_name)
@@ -341,7 +368,7 @@ class MrGreedData(MrGreed):
             target_p/=target_p.sum()
             target_v=torch.tensor(value_max)
             #prepare netin
-            sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=1,METHOD1_PREFERENCE=100)
+            sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=1)
             cards_list_list=sce_gen.__iter__().__next__()
             cards_lists=[None,None,None,None]
             cards_lists[self.place]=copy.copy(self.cards_list)
@@ -349,10 +376,10 @@ class MrGreedData(MrGreed):
                 cards_lists[(self.place+i+1)%4]=cards_list_list[i]
             netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
             #append
-            self.train_datas.append([netin,target_p,target_v,legal_mask])
+            self.train_datas.append((netin,target_p,target_v,legal_mask))
         return best_choice
 
-    def prepare_train_data_greed(data_queue):
+    def prepare_train_data(data_queue):
         """
             prepare train data using MrGreed
         """
@@ -373,8 +400,8 @@ class MrGreedData(MrGreed):
         data_queue.put(datas,block=False)
 
         while not data_queue.empty():
-            time.sleep(2)
-        time.sleep(4)
+            time.sleep(1)
+        time.sleep(2)
 
 def prepare_train_data(pv_net,device_num,data_queue):#,data_lock):
     """
@@ -383,14 +410,13 @@ def prepare_train_data(pv_net,device_num,data_queue):#,data_lock):
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True) for i in range(4)]
-    interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=True)
+    interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
 
-    N1=1;
+    N1=2;
     for k in range(N1):
         cards=interface.shuffle()
         for i in range(52):
             interface.step()
-            input()
         interface.clear()
         interface.prepare_new()
 
@@ -399,18 +425,16 @@ def prepare_train_data(pv_net,device_num,data_queue):#,data_lock):
         datas+=zt[0].train_datas
     data_queue.put(datas,block=False)
 
-    #data_lock.acquire()
-    #data_lock.release()
     while not data_queue.empty():
         time.sleep(2)
-    time.sleep(4)
+    time.sleep(30)
 
 
 print_level=0
-VALUE_RENORMAL=100
+VALUE_RENORMAL=10
 
 #self-play paras
-"""LOSS2_WEIGHT=0.05
+"""LOSS2_WEIGHT=0.01
 BETA=0.2
 BENCHMARK_METHOD=-1"""
 
@@ -428,7 +452,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
     log("LOSS2_WEIGHT: %.4f, BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d"%(LOSS2_WEIGHT,BETA,VALUE_RENORMAL,BENCHMARK_METHOD))
 
-    train_datas=[];p_benchmark=None
+    train_datas=[];
+    p_benchmark=None
     for epoch in range(1000):
         output_flag=False
         if epoch%100==0 and epoch!=0:
@@ -442,24 +467,23 @@ def train(pv_net,device_train_nums=[0,1,2]):
             p_benchmark.start()
 
         data_queue=Queue()
-        #data_lock=Lock();data_lock.acquire()
         for i in device_train_nums:
             #p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_queue))
-            p=Process(target=MrGreedData.prepare_train_data_greed,args=(data_queue,))
+            p=Process(target=MrGreedData.prepare_train_data,args=(data_queue,))
             p.start()
 
         train_datas=train_datas[len(train_datas)//2:len(train_datas)]
         for i in device_train_nums:
             try:
                 queue_get=data_queue.get(block=True,timeout=300)
-                train_datas+=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in queue_get]
+                train_datas+=[(i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)) for i in queue_get]
             except:
                 log("get data failed, has got %d datas"%(len(train_datas)),l=3)
         trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
         batch=trainloader.__iter__().__next__()
         assert len(batch[0])==len(train_datas)
 
-        if (epoch<=3) or (epoch<25 and epoch%5==0) or epoch%50==0:
+        if (epoch<=3) or (epoch<21 and epoch%5==0) or epoch%50==0:
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
             output_flag=True
@@ -500,7 +524,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
 def main():
     pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))
-    """start_from="./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl"
+    """start_from="./ZeroNets/mimic-greed-514/PV_NET-11-2247733-300.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))"""
     try:
@@ -524,13 +548,21 @@ def manually_test(save_name):
     log(interface.clear())
     interface.prepare_new()
 
+def test_value_init():
+    pv_net=PV_NET()
+    netin1=MrZeroTree.prepare_ohs([[],[],[],[]],[1,],[['SQ','C10','H7','H2','H9'],['H8','DJ','HA','HK','H10'],['HQ','H3'],['H5','H4','H6','HJ']],1)
+    netin2=MrZeroTree.prepare_ohs([[],[],[],[]],[1,],[['SQ','H7','H2','H9'],['H8','DJ','HA','HK','H10','C10'],['HQ','H3','C10'],['H5','H4','H6','HJ','C10']],1)
+    trainloader=torch.utils.data.DataLoader([[netin1,0],[netin2,0]],batch_size=2)
+    batch=trainloader.__iter__().__next__()
+    print(pv_net.forward(batch[0]))
+
 if __name__=="__main__":
     torch.multiprocessing.set_start_method('spawn')
     #print(torch.multiprocessing.get_all_sharing_strategies())
-    #print(torch.multiprocessing.get_sharing_strategy())
-    #torch.multiprocessing.set_sharing_strategy('file_system')
+    log("sharing_strategy: %s"%(torch.multiprocessing.get_sharing_strategy()))
 
     main()
-    #benchmark("./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl","manual",print_process=True)
-    #manually_test("./ZeroNets/mimic-Greed-1st/PV_NET-11-2425909-300.pkl")
+    #benchmark("./ZeroNets/mimic-greed-514/PV_NET-11-2247733-300.pkl","manual",print_process=True)
+    #manually_test("./ZeroNets/start-from-one-2nd/PV_NET-11-2247733-80.pkl")
     #MrGreedData.prepare_train_data_greed(None)
+    #test_value_init()
