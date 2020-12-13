@@ -1,0 +1,49 @@
+20/12/13 01:11:49 723 [INFO,<module>:562] sharing_strategy: file_system
+20/12/13 01:11:51 650 [INFO,main:529] start from: ./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl
+20/12/13 01:11:51 650 [INFO,train:452] optimizer: {'lr': 0.001, 'betas': (0.9, 0.999), 'eps': 1e-07, 'weight_decay': 0.0001, 'amsgrad': False}
+20/12/13 01:11:51 650 [INFO,train:453] LOSS2_WEIGHT: 0.0300, BETA: 0.20, VALUE_RENORMAL: 10, BENCHMARK_METHOD: -1
+20/12/13 01:11:52 237 [INFO,benchmark:326] start benchmark against MrGreed for 512x2
+20/12/13 01:13:07 316 [INFO,train:488] #epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas
+20/12/13 01:13:07 327 [INFO,train:505] 0: 0.81 47.46 0.0395 0.0559 1516
+20/12/13 01:13:07 339 [INFO,train:521]         epoch 0 age 0: 0.81 47.46
+20/12/13 01:13:07 361 [INFO,train:521]         epoch 0 age 3: 0.25 34.50
+20/12/13 01:13:07 385 [INFO,train:521]         epoch 0 age 6: 0.19 26.01
+20/12/13 01:13:07 409 [INFO,train:521]         epoch 0 age 9: 0.15 19.15
+20/12/13 01:14:21 161 [INFO,train:505] 1: 0.48 53.95 0.0125 0.0544 2226
+20/12/13 01:14:21 169 [INFO,train:521]         epoch 1 age 0: 0.48 53.95
+20/12/13 01:14:21 190 [INFO,train:521]         epoch 1 age 3: 0.33 43.30
+20/12/13 01:14:21 214 [INFO,train:521]         epoch 1 age 6: 0.24 36.97
+20/12/13 01:14:21 240 [INFO,train:521]         epoch 1 age 9: 0.18 31.97
+20/12/13 01:15:33 305 [INFO,train:505] 2: 0.57 46.30 0.0124 0.0534 2553
+20/12/13 01:15:33 313 [INFO,train:521]         epoch 2 age 0: 0.57 46.30
+20/12/13 01:15:33 342 [INFO,train:521]         epoch 2 age 3: 0.39 37.30
+20/12/13 01:15:33 372 [INFO,train:521]         epoch 2 age 6: 0.32 29.65
+20/12/13 01:15:33 401 [INFO,train:521]         epoch 2 age 9: 0.26 24.20
+20/12/13 01:16:46 686 [INFO,train:505] 3: 0.46 41.25 0.0094 0.0527 2769
+20/12/13 01:16:46 692 [INFO,train:521]         epoch 3 age 0: 0.46 41.25
+20/12/13 01:16:46 713 [INFO,train:521]         epoch 3 age 3: 0.36 28.00
+20/12/13 01:16:46 737 [INFO,train:521]         epoch 3 age 6: 0.30 21.50
+20/12/13 01:16:46 761 [INFO,train:521]         epoch 3 age 9: 0.24 16.84
+20/12/13 01:19:12 979 [INFO,train:505] 5: 0.37 39.80 0.0094 0.0525 2947
+20/12/13 01:19:12 989 [INFO,train:521]         epoch 5 age 0: 0.37 39.80
+20/12/13 01:19:13 010 [INFO,train:521]         epoch 5 age 3: 0.30 34.04
+20/12/13 01:19:13 034 [INFO,train:521]         epoch 5 age 6: 0.24 28.61
+20/12/13 01:19:13 059 [INFO,train:521]         epoch 5 age 9: 0.20 23.34
+20/12/13 01:19:47 819 [INFO,benchmark:352] benchmark at epoch 0's result: -115.94 8.18
+20/12/13 01:25:13 950 [INFO,train:505] 10: 0.48 46.29 0.0218 0.0535 2961
+20/12/13 01:25:13 956 [INFO,train:521]         epoch 10 age 0: 0.48 46.29
+20/12/13 01:25:13 977 [INFO,train:521]         epoch 10 age 3: 0.30 39.70
+20/12/13 01:25:13 001 [INFO,train:521]         epoch 10 age 6: 0.26 33.33
+20/12/13 01:25:14 024 [INFO,train:521]         epoch 10 age 9: 0.22 23.62
+20/12/13 01:31:11 557 [INFO,train:505] 15: 0.57 55.58 0.0156 0.0546 2894
+20/12/13 01:31:11 563 [INFO,train:521]         epoch 15 age 0: 0.57 55.58
+20/12/13 01:31:11 582 [INFO,train:521]         epoch 15 age 3: 0.36 44.53
+20/12/13 01:31:11 602 [INFO,train:521]         epoch 15 age 6: 0.30 34.18
+20/12/13 01:31:11 624 [INFO,train:521]         epoch 15 age 9: 0.25 27.61
+20/12/13 01:35:55 479 [INFO,benchmark:326] start benchmark against MrGreed for 512x2
+20/12/13 01:37:07 119 [INFO,train:505] 20: 0.46 59.49 0.0087 0.0554 3029
+20/12/13 01:37:07 125 [INFO,train:521]         epoch 20 age 0: 0.46 59.49
+20/12/13 01:37:07 144 [INFO,train:521]         epoch 20 age 3: 0.34 44.21
+20/12/13 01:37:07 168 [INFO,train:521]         epoch 20 age 6: 0.27 34.36
+20/12/13 01:37:07 193 [INFO,train:521]         epoch 20 age 9: 0.23 29.50
+20/12/13 01:44:04 747 [INFO,benchmark:352] benchmark at epoch 20's result: -186.65 7.96
