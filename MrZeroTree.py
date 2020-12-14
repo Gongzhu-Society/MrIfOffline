@@ -432,7 +432,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0002,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
-    data_rounds=6;data_timeout=12
+    data_rounds=6;data_timeout=16
     log("LOSS2_WEIGHT: %.4f, BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d, REVIEW_NUMBER: %d, DATA_ROUNDS: %dx%d"
         %(LOSS2_WEIGHT,BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE,REVIEW_NUMBER,len(device_train_nums),data_rounds))
 
@@ -464,18 +464,23 @@ def train(pv_net,device_train_nums=[0,1,2]):
         for i in device_train_nums:
             try:
                 queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
-                train_datas+=[(i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)) for i in queue_get]
+                train_datas+=[(i[0],i[1],i[2],i[3]) for i in queue_get]
             except:
                 log("get data failed at epoch %d, has got %d datas"%(epoch,len(train_datas)),l=3)
-                time.sleep(data_timeout*2)
+                time.sleep(data_timeout*3)
                 log("enough rest")
-        trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
-        batch=trainloader.__iter__().__next__()
+        #trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
+        #batch=trainloader.__iter__().__next__()
+        batch=[]
+        batch.append(torch.stack([i[0] for i in train_datas]).to(device_main))
+        batch.append(torch.stack([i[1] for i in train_datas]).to(device_main))
+        batch.append(torch.stack([i[2] for i in train_datas]).to(device_main))
+        batch.append(torch.stack([i[3] for i in train_datas]).to(device_main))
         assert len(batch[0])==len(train_datas)
 
         output_flag=False
-        #if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%50==0:
-        if epoch%50==0:
+        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%50==0:
+        #if epoch%50==0:
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
             output_flag=True
@@ -517,7 +522,7 @@ def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
     #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    start_from="./ZeroNets/from-one-6e/PV_NET-11-2247733-600.pkl"
+    start_from="./ZeroNets/from-one-6f/PV_NET-11-2247733-600.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:

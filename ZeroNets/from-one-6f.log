@@ -1,0 +1,125 @@
+20/12/14 21:48:49 466 [INFO,<module>:548] sharing_strategy: file_system
+20/12/14 21:48:52 389 [INFO,main:522] start from: ./ZeroNets/from-one-6e/PV_NET-11-2247733-600.pkl
+20/12/14 21:48:52 389 [INFO,train:433] optimizer: {'lr': 0.0002, 'betas': (0.9, 0.999), 'eps': 1e-07, 'weight_decay': 0.0001, 'amsgrad': False}
+20/12/14 21:48:52 390 [INFO,train:437] LOSS2_WEIGHT: 0.0300, BETA: 0.20, VALUE_RENORMAL: 10, BENCHMARK_METHOD: -1, TRAIN_SAMPLE: -1, REVIEW_NUMBER: 3, DATA_ROUNDS: 3x6
+20/12/14 21:48:52 961 [INFO,benchmark:311] start benchmark against MrGreed for 512x2
+20/12/14 21:49:13 665 [INFO,train:480] #epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas
+20/12/14 21:49:13 704 [INFO,train:497] 0: 0.24 35.09 0.0046 0.0556 13208
+20/12/14 21:49:13 725 [INFO,train:513]         epoch 0 age 0: 0.24 35.09
+20/12/14 21:49:13 747 [INFO,train:513]         epoch 0 age 1: 0.23 31.41
+20/12/14 21:49:13 768 [INFO,train:513]         epoch 0 age 2: 0.22 29.35
+20/12/14 21:56:58 004 [INFO,benchmark:337] benchmark at epoch 0's result: -48.28 8.19
+20/12/14 21:57:53 541 [INFO,train:497] 50: 0.25 32.06 0.0085 0.0552 13227
+20/12/14 21:57:53 562 [INFO,train:513]         epoch 50 age 0: 0.25 32.06
+20/12/14 21:57:53 584 [INFO,train:513]         epoch 50 age 1: 0.25 30.85
+20/12/14 21:57:53 605 [INFO,train:513]         epoch 50 age 2: 0.24 29.63
+20/12/14 22:06:17 310 [INFO,benchmark:311] start benchmark against MrGreed for 512x2
+20/12/14 22:06:27 556 [INFO,train:497] 100: 0.24 29.56 0.0075 0.0555 13237
+20/12/14 22:06:27 577 [INFO,train:513]         epoch 100 age 0: 0.24 29.56
+20/12/14 22:06:27 599 [INFO,train:513]         epoch 100 age 1: 0.24 28.77
+20/12/14 22:06:27 621 [INFO,train:513]         epoch 100 age 2: 0.23 27.86
+20/12/14 22:14:23 746 [INFO,benchmark:337] benchmark at epoch 100's result: -44.38 8.48
+20/12/14 22:15:35 393 [INFO,train:497] 150: 0.23 28.29 0.0072 0.0558 13182
+20/12/14 22:15:35 415 [INFO,train:513]         epoch 150 age 0: 0.23 28.29
+20/12/14 22:15:35 436 [INFO,train:513]         epoch 150 age 1: 0.23 27.54
+20/12/14 22:15:35 458 [INFO,train:513]         epoch 150 age 2: 0.22 26.77
+20/12/14 22:27:23 311 [INFO,benchmark:311] start benchmark against MrGreed for 512x2
+20/12/14 22:27:38 066 [INFO,train:497] 200: 0.24 39.31 0.0044 0.0559 13313
+20/12/14 22:27:38 088 [INFO,train:513]         epoch 200 age 0: 0.24 39.31
+20/12/14 22:27:38 107 [INFO,train:513]         epoch 200 age 1: 0.23 37.03
+20/12/14 22:27:38 126 [INFO,train:513]         epoch 200 age 2: 0.22 34.85
+20/12/14 22:35:15 509 [INFO,benchmark:337] benchmark at epoch 200's result: -39.50 8.16
+20/12/14 22:39:50 132 [INFO,train:497] 250: 0.26 29.26 0.0066 0.0564 13231
+20/12/14 22:39:50 154 [INFO,train:513]         epoch 250 age 0: 0.26 29.26
+20/12/14 22:39:50 175 [INFO,train:513]         epoch 250 age 1: 0.26 28.60
+20/12/14 22:39:50 197 [INFO,train:513]         epoch 250 age 2: 0.25 27.83
+20/12/14 22:51:36 968 [INFO,benchmark:311] start benchmark against MrGreed for 512x2
+20/12/14 22:51:51 784 [INFO,train:497] 300: 0.25 31.83 0.0049 0.0567 13290
+20/12/14 22:51:51 806 [INFO,train:513]         epoch 300 age 0: 0.25 31.83
+20/12/14 22:51:51 827 [INFO,train:513]         epoch 300 age 1: 0.24 30.89
+20/12/14 22:51:51 847 [INFO,train:513]         epoch 300 age 2: 0.24 29.98
+20/12/14 22:59:30 316 [INFO,benchmark:337] benchmark at epoch 300's result: -41.70 8.12
+20/12/14 23:04:03 629 [INFO,train:497] 350: 0.24 30.09 0.0109 0.0571 13234
+20/12/14 23:04:03 651 [INFO,train:513]         epoch 350 age 0: 0.24 30.09
+20/12/14 23:04:03 672 [INFO,train:513]         epoch 350 age 1: 0.23 29.45
+20/12/14 23:04:03 694 [INFO,train:513]         epoch 350 age 2: 0.23 28.63
+20/12/14 23:15:50 329 [INFO,benchmark:311] start benchmark against MrGreed for 512x2
+20/12/14 23:16:04 698 [INFO,train:497] 400: 0.22 29.10 0.0035 0.0573 13160
+20/12/14 23:16:04 719 [INFO,train:513]         epoch 400 age 0: 0.22 29.10
+20/12/14 23:16:04 740 [INFO,train:513]         epoch 400 age 1: 0.22 28.15
+20/12/14 23:16:04 761 [INFO,train:513]         epoch 400 age 2: 0.21 27.10
+20/12/14 23:23:51 183 [INFO,benchmark:337] benchmark at epoch 400's result: -44.00 8.13
+20/12/14 23:28:18 924 [INFO,train:497] 450: 0.23 28.12 0.0044 0.0573 13207
+20/12/14 23:28:18 946 [INFO,train:513]         epoch 450 age 0: 0.23 28.12
+20/12/14 23:28:18 968 [INFO,train:513]         epoch 450 age 1: 0.23 27.09
+20/12/14 23:28:18 990 [INFO,train:513]         epoch 450 age 2: 0.22 26.13
+20/12/14 23:40:07 702 [INFO,benchmark:311] start benchmark against MrGreed for 512x2
+20/12/14 23:40:22 081 [INFO,train:497] 500: 0.24 30.44 0.0095 0.0575 13210
+20/12/14 23:40:22 102 [INFO,train:513]         epoch 500 age 0: 0.24 30.44
+20/12/14 23:40:22 124 [INFO,train:513]         epoch 500 age 1: 0.23 29.57
+20/12/14 23:40:22 145 [INFO,train:513]         epoch 500 age 2: 0.23 29.04
+20/12/14 23:47:58 508 [INFO,benchmark:337] benchmark at epoch 500's result: -30.59 8.08
+20/12/14 23:52:33 141 [INFO,train:497] 550: 0.26 27.31 0.0097 0.0578 13300
+20/12/14 23:52:33 163 [INFO,train:513]         epoch 550 age 0: 0.26 27.31
+20/12/14 23:52:33 184 [INFO,train:513]         epoch 550 age 1: 0.25 26.74
+20/12/14 23:52:33 205 [INFO,train:513]         epoch 550 age 2: 0.24 26.08
+20/12/15 00:04:20 331 [INFO,benchmark:311] start benchmark against MrGreed for 512x2
+20/12/15 00:04:34 987 [INFO,train:497] 600: 0.25 28.11 0.0095 0.0576 13122
+20/12/15 00:04:35 008 [INFO,train:513]         epoch 600 age 0: 0.25 28.11
+20/12/15 00:04:35 030 [INFO,train:513]         epoch 600 age 1: 0.25 27.08
+20/12/15 00:04:35 051 [INFO,train:513]         epoch 600 age 2: 0.24 26.02
+20/12/15 00:11:16 882 [ERR,train:469] get data failed at epoch 622, has got 11718 datas:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 466, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/15 00:11:40 908 [INFO,train:471] enough rest
+20/12/15 00:12:07 830 [INFO,benchmark:337] benchmark at epoch 600's result: -29.52 8.00
+20/12/15 00:18:26 525 [INFO,train:497] 650: 0.25 30.77 0.0102 0.0581 13194
+20/12/15 00:18:26 547 [INFO,train:513]         epoch 650 age 0: 0.25 30.77
+20/12/15 00:18:26 568 [INFO,train:513]         epoch 650 age 1: 0.25 30.18
+20/12/15 00:18:26 590 [INFO,train:513]         epoch 650 age 2: 0.24 29.52
+20/12/15 00:23:42 877 [ERR,train:469] get data failed at epoch 667, has got 11686 datas:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 466, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/15 00:24:06 916 [INFO,train:471] enough rest
+20/12/15 00:28:37 808 [ERR,train:469] get data failed at epoch 679, has got 11735 datas:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 466, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/15 00:29:01 834 [INFO,train:471] enough rest
+20/12/15 00:34:35 974 [ERR,train:469] get data failed at epoch 685, has got 11668 datas:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 466, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/15 00:34:59 994 [INFO,train:471] enough rest
+20/12/15 00:35:45 718 [ERR,main:526] :
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 524, in main
+    train(pv_net)
+  File "./MrZeroTree.py", line 460, in train
+    p.start()
+  File "/usr/lib/python3.6/multiprocessing/process.py", line 105, in start
+    self._popen = self._Popen(self)
+  File "/usr/lib/python3.6/multiprocessing/context.py", line 223, in _Popen
+    return _default_context.get_context().Process._Popen(process_obj)
+  File "/usr/lib/python3.6/multiprocessing/context.py", line 284, in _Popen
+    return Popen(process_obj)
+KeyboardInterrupt
+
