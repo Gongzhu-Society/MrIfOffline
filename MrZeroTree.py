@@ -388,11 +388,10 @@ class MrGreedData(MrGreed):
             time.sleep(1)
         time.sleep(2)
 
-def prepare_train_data(pv_net,device_num,data_rounds,data_timeout,data_queue):#,data_lock):
+def prepare_train_data(pv_net,device_num,data_rounds,data_queue):#,data_lock):
     """
         prepare train data by self-learning
     """
-    #log("start")
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,mcts_searchnum=TRAIN_SAMPLE) for i in range(4)]
@@ -408,13 +407,7 @@ def prepare_train_data(pv_net,device_num,data_rounds,data_timeout,data_queue):#,
     datas=[]
     for i in range(4):
         datas+=zt[0].train_datas
-    #log("finished, got %d datas"%(len(datas)))
     data_queue.put(datas,block=False)
-    #log("put in data_queue")
-
-    """while not data_queue.empty():
-        time.sleep(1)
-    time.sleep(data_timeout//2+1)"""
 
 
 print_level=0
@@ -439,13 +432,13 @@ def train(pv_net,device_train_nums=[0,1,2]):
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0002,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
-    data_rounds=6;data_timeout=10
+    data_rounds=6;data_timeout=12
     log("LOSS2_WEIGHT: %.4f, BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d, REVIEW_NUMBER: %d, DATA_ROUNDS: %dx%d"
         %(LOSS2_WEIGHT,BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE,REVIEW_NUMBER,len(device_train_nums),data_rounds))
 
     data_rounds*=REVIEW_NUMBER;data_timeout*=REVIEW_NUMBER;train_datas=[]
     p_benchmark=None
-    for epoch in range(1000):
+    for epoch in range(2000):
         if epoch%100==0:# and epoch!=0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -462,11 +455,11 @@ def train(pv_net,device_train_nums=[0,1,2]):
 
         data_queue=Queue()
         for i in device_train_nums:
-            p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,data_timeout,data_queue))
+            p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,data_queue))
             #p=Process(target=MrGreedData.prepare_train_data,args=(data_queue,))
             p.start()
-            #data_processes.append(p)
 
+        #train_datas=copy.deepcopy(train_datas[len(train_datas)//REVIEW_NUMBER:])
         train_datas=train_datas[len(train_datas)//REVIEW_NUMBER:]
         for i in device_train_nums:
             try:
@@ -475,13 +468,14 @@ def train(pv_net,device_train_nums=[0,1,2]):
             except:
                 log("get data failed at epoch %d, has got %d datas"%(epoch,len(train_datas)),l=3)
                 time.sleep(data_timeout*2)
-                log("enough rest, continue")
+                log("enough rest")
         trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
         batch=trainloader.__iter__().__next__()
         assert len(batch[0])==len(train_datas)
 
         output_flag=False
-        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%50==0 or (epoch>315 and epoch<320):
+        #if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%50==0:
+        if epoch%50==0:
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
             output_flag=True
@@ -523,7 +517,7 @@ def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
     #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    start_from="./ZeroNets/from-one-6d/PV_NET-11-2247733-300.pkl"
+    start_from="./ZeroNets/from-one-6e/PV_NET-11-2247733-600.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:
@@ -547,13 +541,6 @@ def manually_test(save_name):
     log(interface.clear())
     interface.prepare_new()
 
-def test_value_init():
-    pv_net=PV_NET()
-    netin1=MrZeroTree.prepare_ohs([[],[],[],[]],[1,],[['SQ','C10','H7','H2','H9'],['H8','DJ','HA','HK','H10'],['HQ','H3'],['H5','H4','H6','HJ']],1)
-    netin2=MrZeroTree.prepare_ohs([[],[],[],[]],[1,],[['SQ','H7','H2','H9'],['H8','DJ','HA','HK','H10','C10'],['HQ','H3','C10'],['H5','H4','H6','HJ','C10']],1)
-    trainloader=torch.utils.data.DataLoader([[netin1,0],[netin2,0]],batch_size=2)
-    batch=trainloader.__iter__().__next__()
-    print(pv_net.forward(batch[0]))
 
 if __name__=="__main__":
     torch.multiprocessing.set_start_method('spawn')
