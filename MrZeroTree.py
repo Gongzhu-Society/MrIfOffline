@@ -436,13 +436,13 @@ def train(pv_net,device_train_nums=[0,1,2]):
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0002,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
-    data_rounds=6;data_timeout=6
+    data_rounds=6;data_timeout=8
     log("LOSS2_WEIGHT: %.4f, BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d, REVIEW_NUMBER: %d, DATA_ROUNDS: %dx%d"
         %(LOSS2_WEIGHT,BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE,REVIEW_NUMBER,len(device_train_nums),data_rounds))
 
     data_rounds*=REVIEW_NUMBER;data_timeout*=REVIEW_NUMBER;train_datas=[]
     p_benchmark=None
-    for epoch in range(1000):
+    for epoch in range(310):
         if epoch%100==0:# and epoch!=0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -475,7 +475,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
         assert len(batch[0])==len(train_datas)
 
         output_flag=False
-        if (epoch<=3) or (epoch<40 and epoch%5==0) or epoch%20==0:
+        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%50==0:
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
             output_flag=True
@@ -516,7 +516,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
 def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
-    start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
+    #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
+    start_from="./ZeroNets/from-one-6b/PV_NET-11-2247733-300.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:
