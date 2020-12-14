@@ -392,6 +392,7 @@ def prepare_train_data(pv_net,device_num,data_rounds,data_timeout,data_queue):#,
     """
         prepare train data by self-learning
     """
+    #log("start")
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,mcts_searchnum=TRAIN_SAMPLE) for i in range(4)]
@@ -407,11 +408,13 @@ def prepare_train_data(pv_net,device_num,data_rounds,data_timeout,data_queue):#,
     datas=[]
     for i in range(4):
         datas+=zt[0].train_datas
+    #log("finished, got %d datas"%(len(datas)))
     data_queue.put(datas,block=False)
+    #log("put in data_queue")
 
-    while not data_queue.empty():
+    """while not data_queue.empty():
         time.sleep(1)
-    time.sleep(data_timeout//2+1)
+    time.sleep(data_timeout//2+1)"""
 
 
 print_level=0
@@ -436,13 +439,13 @@ def train(pv_net,device_train_nums=[0,1,2]):
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0002,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
-    data_rounds=6;data_timeout=8
+    data_rounds=6;data_timeout=10
     log("LOSS2_WEIGHT: %.4f, BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d, REVIEW_NUMBER: %d, DATA_ROUNDS: %dx%d"
         %(LOSS2_WEIGHT,BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE,REVIEW_NUMBER,len(device_train_nums),data_rounds))
 
     data_rounds*=REVIEW_NUMBER;data_timeout*=REVIEW_NUMBER;train_datas=[]
     p_benchmark=None
-    for epoch in range(310):
+    for epoch in range(1000):
         if epoch%100==0:# and epoch!=0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -462,6 +465,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
             p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,data_timeout,data_queue))
             #p=Process(target=MrGreedData.prepare_train_data,args=(data_queue,))
             p.start()
+            #data_processes.append(p)
 
         train_datas=train_datas[len(train_datas)//REVIEW_NUMBER:]
         for i in device_train_nums:
@@ -469,13 +473,15 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
                 train_datas+=[(i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)) for i in queue_get]
             except:
-                log("get data failed, has got %d datas"%(len(train_datas)),l=3)
+                log("get data failed at epoch %d, has got %d datas"%(epoch,len(train_datas)),l=3)
+                time.sleep(data_timeout*2)
+                log("enough rest, continue")
         trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
         batch=trainloader.__iter__().__next__()
         assert len(batch[0])==len(train_datas)
 
         output_flag=False
-        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%50==0:
+        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%50==0 or (epoch>315 and epoch<320):
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
             output_flag=True
@@ -517,7 +523,7 @@ def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
     #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    start_from="./ZeroNets/from-one-6b/PV_NET-11-2247733-300.pkl"
+    start_from="./ZeroNets/from-one-6d/PV_NET-11-2247733-300.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:
