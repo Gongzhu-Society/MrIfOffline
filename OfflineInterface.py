@@ -35,7 +35,7 @@ class OfflineInterface():
         self.cards_remain=[]
         for i in range(4):
             list_temp=cards[i*13:i*13+13]
-            list_temp.sort(key=cards_order)
+            #list_temp.sort(key=cards_order)
             self.cards_remain.append(list_temp)
             #seperate player and judge by copy.copy
             self.players[i].cards_list=copy.copy(list_temp)

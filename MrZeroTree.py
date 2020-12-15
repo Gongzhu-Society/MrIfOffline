@@ -86,40 +86,6 @@ class PV_NET(nn.Module):
     """
         return 52 policy and 1 value
     """
-    #ORDER_DICT5={            'H2''H3''H4''H5''H6''H7''H8''H9''H10''HJ''HQ''HK''HA' 'SQ''DJ''C10'}
-    """VALUE_AUX_1=torch.tensor([  [   0,  0,  0,-10,-10,-10,-10,-10, -10,-20,-30,-40,-50,-100,100,0.0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,  0,  0,-10,-10,-10,-10,-10, -10,-20,-30,-40,-50,-100,100,0.0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
-                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,  0,  0,-10,-10,-10,-10,-10, -10,-20,-30,-40,-50,-100,100,0.0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
-                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,  0,  0,-10,-10,-10,-10,-10, -10,-20,-30,-40,-50,-100,100,0.0,]])
-    VALUE_AUX_2=torch.tensor([  [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
-                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
-                                [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.0,]])
-    VALUE_AUX_3=torch.tensor([[1.0,-1.0,1.0,-1.0]])"""
 
     def __init__(self):
         super(PV_NET,self).__init__()
@@ -138,8 +104,6 @@ class PV_NET(nn.Module):
         self.fcv=nn.Linear(256,1)
 
     def forward(self, x):
-        #v_init=F.linear(x[:,-64:],PV_NET.VALUE_AUX_1)*(F.linear(x[:,-64:],PV_NET.VALUE_AUX_2)+1)
-        #v_init=F.linear(v_init,PV_NET.VALUE_AUX_3)
         x=F.relu(self.fc0(x))
         x=F.relu(self.fc1(x))
         x=F.relu(self.fc2(x))
@@ -147,7 +111,7 @@ class PV_NET(nn.Module):
         x=F.relu(self.fc6(F.relu(self.fc5(x))))+x
         x=F.relu(self.fc8(F.relu(self.fc7(x))))+x
         p=self.fcp(x)
-        v=self.fcv(x)*VALUE_RENORMAL#+v_init
+        v=self.fcv(x)*VALUE_RENORMAL
         return p,v
 
     def num_paras(self):
@@ -176,7 +140,6 @@ class MrZeroTree(MrRandom):
         self.mcts_searchnum=mcts_searchnum
         self.device=device
         if self.train_mode:
-            assert self.mcts_searchnum>=-1
             self.train_datas=[]
 
     def cards_lists_oh(cards_lists,place):
@@ -429,10 +392,10 @@ def train(pv_net,device_train_nums=[0,1,2]):
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
 
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.0002,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
-    data_rounds=6;data_timeout=16
+    data_rounds=8;data_timeout=22
     log("LOSS2_WEIGHT: %.4f, BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d, REVIEW_NUMBER: %d, DATA_ROUNDS: %dx%d"
         %(LOSS2_WEIGHT,BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE,REVIEW_NUMBER,len(device_train_nums),data_rounds))
 
@@ -458,16 +421,18 @@ def train(pv_net,device_train_nums=[0,1,2]):
             p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,data_queue))
             #p=Process(target=MrGreedData.prepare_train_data,args=(data_queue,))
             p.start()
+        else:
+            time.sleep(data_timeout//2)
 
-        #train_datas=copy.deepcopy(train_datas[len(train_datas)//REVIEW_NUMBER:])
-        train_datas=train_datas[len(train_datas)//REVIEW_NUMBER:]
+        train_datas=copy.deepcopy(train_datas[len(train_datas)//REVIEW_NUMBER:]) #this may help
+        #train_datas=train_datas[len(train_datas)//REVIEW_NUMBER:]
         for i in device_train_nums:
             try:
                 queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
                 train_datas+=[(i[0],i[1],i[2],i[3]) for i in queue_get]
             except:
                 log("get data failed at epoch %d, has got %d datas"%(epoch,len(train_datas)),l=3)
-                time.sleep(data_timeout*3)
+                time.sleep(data_timeout*3+30)
                 log("enough rest")
         #trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
         #batch=trainloader.__iter__().__next__()
@@ -521,8 +486,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
 def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
-    #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    start_from="./ZeroNets/from-one-6f/PV_NET-11-2247733-600.pkl"
+    start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
+    #start_from="./ZeroNets/from-one-6f/PV_NET-11-2247733-600.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:
