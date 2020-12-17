@@ -251,7 +251,7 @@ class MrZeroTree(MrRandom):
                     target_p/=target_p.sum()
                     target_v=torch.tensor(value_max-gamestate.getReward())
                     netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
-                    self.train_datas.append([netin,target_p,target_v,legal_mask])
+                    self.train_datas.append((netin,target_p,target_v,legal_mask))
             elif self.mcts_searchnum==-2:
                 netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                 with torch.no_grad():
@@ -377,11 +377,9 @@ print_level=0
 VALUE_RENORMAL=10
 
 #self-play paras
-LOSS2_WEIGHT=0.03
 BETA=0.2
 BENCHMARK_METHOD=-1 #-1 for value, -2 for policy, n>0 for n-iter mcts
-TRAIN_SAMPLE=-1 #-1 for only children
-REVIEW_NUMBER=3
+TRAIN_SAMPLE=100 #-1 for only children
 
 #learn from Greed paras
 """LOSS2_WEIGHT=0.01
@@ -389,20 +387,25 @@ BETA=0.2
 BENCHMARK_METHOD=-2"""
 
 def train(pv_net,device_train_nums=[0,1,2]):
+    log("BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d"%(BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE))
+
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
-
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False) #change beta from 0.999 to 0.99
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
-    data_rounds=8;data_timeout=22
-    log("LOSS2_WEIGHT: %.4f, BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d, REVIEW_NUMBER: %d, DATA_ROUNDS: %dx%d"
-        %(LOSS2_WEIGHT,BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE,REVIEW_NUMBER,len(device_train_nums),data_rounds))
+    data_rounds=10;data_timeout=180
+    review_number=3
+    age_in_epoch=3
+    loss2_weight=0.03
+    log("loss2_weight: %.2f, review_number: %d, data_rounds: %dx%d, age_in_epoch: %d"%(loss2_weight,review_number,len(device_train_nums),data_rounds,age_in_epoch))
 
-    data_rounds*=REVIEW_NUMBER;data_timeout*=REVIEW_NUMBER;train_datas=[]
+    data_rounds*=review_number
+    data_timeout*=review_number
+    train_datas=[]
     p_benchmark=None
-    for epoch in range(2000):
-        if epoch%100==0:# and epoch!=0:
+    for epoch in range(1200):
+        if epoch%80==0:# and epoch!=0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
             if p_benchmark!=None:
@@ -413,8 +416,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
             p_benchmark.start()
 
         if epoch==1:
-            data_rounds=data_rounds//REVIEW_NUMBER
-            data_timeout=data_timeout//REVIEW_NUMBER
+            data_rounds=data_rounds//review_number
+            data_timeout=data_timeout//review_number
 
         data_queue=Queue()
         for i in device_train_nums:
@@ -424,14 +427,16 @@ def train(pv_net,device_train_nums=[0,1,2]):
         else:
             time.sleep(data_timeout//2)
 
-        train_datas=copy.deepcopy(train_datas[len(train_datas)//REVIEW_NUMBER:]) #this may help
-        #train_datas=train_datas[len(train_datas)//REVIEW_NUMBER:]
+        #for i in range(len(train_datas)//REVIEW_NUMBER):
+        #    train_datas.pop(0)
+        #train_datas=copy.deepcopy(train_datas[len(train_datas)//REVIEW_NUMBER:]) #this may help
+        train_datas=train_datas[len(train_datas)//review_number:]
         for i in device_train_nums:
             try:
                 queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
-                train_datas+=[(i[0],i[1],i[2],i[3]) for i in queue_get]
+                train_datas+=queue_get
             except:
-                log("get data failed at epoch %d, has got %d datas"%(epoch,len(train_datas)),l=3)
+                log("get data failed at epoch %d, has got %d datas\nresting..."%(epoch,len(train_datas)),l=3)
                 time.sleep(data_timeout*3+30)
                 log("enough rest")
         #trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
@@ -444,7 +449,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
         assert len(batch[0])==len(train_datas)
 
         output_flag=False
-        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%50==0:
+        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
         #if epoch%50==0:
             if epoch==0:
                 log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
@@ -468,14 +473,14 @@ def train(pv_net,device_train_nums=[0,1,2]):
             #log("\n%s\n%s\n%s"%(["%6.3f"%(i) for i in batch[1][0,:]],["%6.3f"%(i) for i in p[0,:]],["%6.3f"%(i) for i in log_p[0,:].exp()]))
             #input()
 
-        for age in range(3):
+        for age in range(age_in_epoch):
             p,v=pv_net(batch[0])
             log_p=F.log_softmax(p*batch[3],dim=1)
             loss1=F.kl_div(log_p,batch[1],reduction="batchmean")
             loss2=F.mse_loss(v.view(-1),batch[2],reduction='mean').sqrt()
 
             optimizer.zero_grad()
-            loss=loss1+loss2*LOSS2_WEIGHT
+            loss=loss1+loss2*loss2_weight
             loss.backward()
             optimizer.step()
 
@@ -486,8 +491,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
 def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
-    start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    #start_from="./ZeroNets/from-one-6f/PV_NET-11-2247733-600.pkl"
+    #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
+    start_from="./ZeroNets/from-one-8a/PV_NET-11-2247733-300.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:
