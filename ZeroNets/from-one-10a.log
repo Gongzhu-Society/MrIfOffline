@@ -1,0 +1,225 @@
+20/12/19 01:55:51 996 [INFO,<module>:547] sharing_strategy: file_system
+20/12/19 01:55:53 950 [INFO,main:521] start from: ./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl
+20/12/19 01:55:53 950 [INFO,train:406] BETA: 0.20, VALUE_RENORMAL: 10, BENCHMARK_METHOD: -1, TRAIN_SAMPLE: -1, PV_DEEP: 4
+20/12/19 01:55:53 951 [INFO,train:411] optimizer: {'lr': 0.0004, 'betas': (0.9, 0.999), 'eps': 1e-07, 'weight_decay': 0.0001, 'amsgrad': False}
+20/12/19 01:55:53 951 [INFO,train:419] loss2_weight: 0.03, review_number: 3, data_rounds: 3x12, age_in_epoch: 3
+20/12/19 01:55:53 951 [INFO,train:426] #epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas
+20/12/19 01:55:54 547 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 01:56:30 716 [INFO,train:495] 0: 0.80 47.63 0.0177 0.0559 26616
+20/12/19 01:56:30 758 [INFO,train:511]         epoch 0 age 0: 0.80 47.63
+20/12/19 01:56:47 026 [INFO,train:495] 1: 0.57 42.67 0.0134 0.0560 26584
+20/12/19 01:56:47 067 [INFO,train:511]         epoch 1 age 0: 0.57 42.67
+20/12/19 01:57:03 211 [INFO,train:495] 2: 0.46 37.29 0.0249 0.0560 26635
+20/12/19 01:57:03 248 [INFO,train:511]         epoch 2 age 0: 0.46 37.29
+20/12/19 01:57:19 103 [INFO,train:495] 3: 0.38 34.17 0.0237 0.0560 26509
+20/12/19 01:57:19 144 [INFO,train:511]         epoch 3 age 0: 0.38 34.17
+20/12/19 01:57:34 864 [INFO,train:495] 4: 0.35 32.10 0.0232 0.0559 26481
+20/12/19 01:57:34 905 [INFO,train:511]         epoch 4 age 0: 0.35 32.10
+20/12/19 01:57:50 529 [INFO,train:495] 5: 0.31 35.44 0.0144 0.0559 26478
+20/12/19 01:57:50 569 [INFO,train:511]         epoch 5 age 0: 0.31 35.44
+20/12/19 01:59:09 759 [INFO,train:495] 10: 0.21 31.16 0.0138 0.0554 26590
+20/12/19 01:59:09 799 [INFO,train:511]         epoch 10 age 0: 0.21 31.16
+20/12/19 02:00:27 749 [INFO,train:495] 15: 0.19 30.39 0.0065 0.0549 26608
+20/12/19 02:00:27 791 [INFO,train:511]         epoch 15 age 0: 0.19 30.39
+20/12/19 02:01:30 483 [INFO,train:439] take a nap may help
+20/12/19 02:03:45 008 [INFO,benchmark:312] benchmark at epoch 0's result: -131.37 8.00
+20/12/19 02:03:46 336 [INFO,train:495] 20: 0.18 34.93 0.0060 0.0544 26604
+20/12/19 02:03:46 377 [INFO,train:511]         epoch 20 age 0: 0.18 34.93
+20/12/19 02:05:03 148 [INFO,train:495] 25: 0.23 34.72 0.0140 0.0538 26590
+20/12/19 02:05:03 189 [INFO,train:511]         epoch 25 age 0: 0.23 34.72
+20/12/19 02:06:21 088 [INFO,train:495] 30: 0.19 33.58 0.0093 0.0538 26524
+20/12/19 02:06:21 129 [INFO,train:511]         epoch 30 age 0: 0.19 33.58
+20/12/19 02:07:37 958 [INFO,train:495] 35: 0.19 30.57 0.0053 0.0535 26460
+20/12/19 02:07:37 998 [INFO,train:511]         epoch 35 age 0: 0.19 30.57
+20/12/19 02:08:39 412 [INFO,train:439] take a nap may help
+20/12/19 02:10:55 115 [INFO,train:495] 40: 0.22 31.57 0.0050 0.0531 26569
+20/12/19 02:10:55 157 [INFO,train:511]         epoch 40 age 0: 0.22 31.57
+20/12/19 02:15:48 654 [INFO,train:439] take a nap may help
+20/12/19 02:18:04 307 [INFO,train:495] 60: 0.23 33.74 0.0176 0.0528 26336
+20/12/19 02:18:04 343 [INFO,train:511]         epoch 60 age 0: 0.23 33.74
+20/12/19 02:22:56 047 [INFO,train:439] take a nap may help
+20/12/19 02:22:56 468 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 02:25:12 063 [INFO,train:495] 80: 0.27 41.14 0.0054 0.0522 26456
+20/12/19 02:25:12 103 [INFO,train:511]         epoch 80 age 0: 0.27 41.14
+20/12/19 02:30:08 455 [INFO,train:439] take a nap may help
+20/12/19 02:30:40 590 [INFO,benchmark:312] benchmark at epoch 80's result: -101.90 8.22
+20/12/19 02:32:23 864 [INFO,train:495] 100: 0.25 33.23 0.0088 0.0523 26599
+20/12/19 02:32:23 904 [INFO,train:511]         epoch 100 age 0: 0.25 33.23
+20/12/19 02:37:16 911 [INFO,train:439] take a nap may help
+20/12/19 02:39:32 225 [INFO,train:495] 120: 0.26 41.14 0.0082 0.0524 26372
+20/12/19 02:39:32 266 [INFO,train:511]         epoch 120 age 0: 0.26 41.14
+20/12/19 02:41:32 318 [ERR,train:464] get data failed at epoch 122, has got 23530 datas.:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 461, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/19 02:41:32 319 [INFO,train:465] resting...
+20/12/19 02:47:33 739 [INFO,train:439] take a nap may help
+20/12/19 02:49:49 118 [INFO,train:495] 140: 0.23 35.11 0.0070 0.0531 26401
+20/12/19 02:49:49 159 [INFO,train:511]         epoch 140 age 0: 0.23 35.11
+20/12/19 02:52:21 149 [ERR,train:464] get data failed at epoch 144, has got 23506 datas.:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 461, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/19 02:52:21 149 [INFO,train:465] resting...
+20/12/19 02:58:54 019 [INFO,train:439] take a nap may help
+20/12/19 02:58:54 380 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 03:01:14 381 [INFO,train:495] 160: 0.24 34.68 0.0114 0.0532 26476
+20/12/19 03:01:14 422 [INFO,train:511]         epoch 160 age 0: 0.24 34.68
+20/12/19 03:06:30 902 [INFO,benchmark:312] benchmark at epoch 160's result: -90.72 8.61
+20/12/19 03:07:32 719 [INFO,train:439] take a nap may help
+20/12/19 03:09:52 529 [INFO,train:495] 180: 0.23 36.92 0.0059 0.0537 26696
+20/12/19 03:09:52 570 [INFO,train:511]         epoch 180 age 0: 0.23 36.92
+20/12/19 03:16:04 591 [INFO,train:439] take a nap may help
+20/12/19 03:18:24 476 [INFO,train:495] 200: 0.25 34.85 0.0145 0.0545 26568
+20/12/19 03:18:24 517 [INFO,train:511]         epoch 200 age 0: 0.25 34.85
+20/12/19 03:24:36 512 [INFO,train:439] take a nap may help
+20/12/19 03:26:56 138 [INFO,train:495] 220: 0.22 33.60 0.0094 0.0547 26466
+20/12/19 03:26:56 177 [INFO,train:511]         epoch 220 age 0: 0.22 33.60
+20/12/19 03:33:09 234 [INFO,train:439] take a nap may help
+20/12/19 03:33:09 676 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 03:35:29 795 [INFO,train:495] 240: 0.25 38.73 0.0097 0.0548 26478
+20/12/19 03:35:29 836 [INFO,train:511]         epoch 240 age 0: 0.25 38.73
+20/12/19 03:40:54 256 [INFO,benchmark:312] benchmark at epoch 240's result: -91.51 8.40
+20/12/19 03:41:46 656 [INFO,train:439] take a nap may help
+20/12/19 03:44:06 062 [INFO,train:495] 260: 0.26 37.12 0.0251 0.0556 26453
+20/12/19 03:44:06 102 [INFO,train:511]         epoch 260 age 0: 0.26 37.12
+20/12/19 03:50:19 452 [INFO,train:439] take a nap may help
+20/12/19 03:52:39 312 [INFO,train:495] 280: 0.24 38.61 0.0108 0.0556 26419
+20/12/19 03:52:39 352 [INFO,train:511]         epoch 280 age 0: 0.24 38.61
+20/12/19 03:58:50 478 [INFO,train:439] take a nap may help
+20/12/19 04:01:10 699 [INFO,train:495] 300: 0.24 32.06 0.0099 0.0558 26584
+20/12/19 04:01:10 740 [INFO,train:511]         epoch 300 age 0: 0.24 32.06
+20/12/19 04:07:20 979 [INFO,train:439] take a nap may help
+20/12/19 04:07:21 424 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 04:09:40 906 [INFO,train:495] 320: 0.23 30.39 0.0122 0.0561 26342
+20/12/19 04:09:40 946 [INFO,train:511]         epoch 320 age 0: 0.23 30.39
+20/12/19 04:15:14 427 [INFO,benchmark:312] benchmark at epoch 320's result: -125.58 8.35
+20/12/19 04:16:00 671 [INFO,train:439] take a nap may help
+20/12/19 04:18:20 540 [INFO,train:495] 340: 0.23 33.92 0.0038 0.0563 26414
+20/12/19 04:18:20 577 [INFO,train:511]         epoch 340 age 0: 0.23 33.92
+20/12/19 04:24:31 496 [INFO,train:439] take a nap may help
+20/12/19 04:26:51 042 [INFO,train:495] 360: 0.24 31.06 0.0041 0.0565 26335
+20/12/19 04:26:51 083 [INFO,train:511]         epoch 360 age 0: 0.24 31.06
+20/12/19 04:33:01 147 [INFO,train:439] take a nap may help
+20/12/19 04:35:21 075 [INFO,train:495] 380: 0.26 33.97 0.0070 0.0568 26447
+20/12/19 04:35:21 115 [INFO,train:511]         epoch 380 age 0: 0.26 33.97
+20/12/19 04:41:32 522 [INFO,train:439] take a nap may help
+20/12/19 04:41:32 918 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 04:43:53 172 [INFO,train:495] 400: 0.25 33.41 0.0082 0.0574 26532
+20/12/19 04:43:53 212 [INFO,train:511]         epoch 400 age 0: 0.25 33.41
+20/12/19 04:49:13 304 [INFO,benchmark:312] benchmark at epoch 400's result: -54.99 8.34
+20/12/19 04:50:12 109 [INFO,train:439] take a nap may help
+20/12/19 04:52:32 138 [INFO,train:495] 420: 0.26 32.00 0.0049 0.0571 26303
+20/12/19 04:52:32 178 [INFO,train:511]         epoch 420 age 0: 0.26 32.00
+20/12/19 04:58:45 337 [INFO,train:439] take a nap may help
+20/12/19 05:01:05 224 [INFO,train:495] 440: 0.25 32.25 0.0073 0.0574 26432
+20/12/19 05:01:05 263 [INFO,train:511]         epoch 440 age 0: 0.25 32.25
+20/12/19 05:07:18 169 [INFO,train:439] take a nap may help
+20/12/19 05:09:37 834 [INFO,train:495] 460: 0.26 33.16 0.0099 0.0578 26638
+20/12/19 05:09:37 875 [INFO,train:511]         epoch 460 age 0: 0.26 33.16
+20/12/19 05:15:48 472 [INFO,train:439] take a nap may help
+20/12/19 05:15:48 891 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 05:18:08 558 [INFO,train:495] 480: 0.29 31.76 0.0093 0.0581 26442
+20/12/19 05:18:08 598 [INFO,train:511]         epoch 480 age 0: 0.29 31.76
+20/12/19 05:23:35 254 [INFO,benchmark:312] benchmark at epoch 480's result: -45.31 8.10
+20/12/19 05:24:27 635 [INFO,train:439] take a nap may help
+20/12/19 05:26:47 259 [INFO,train:495] 500: 0.28 34.20 0.0084 0.0584 26527
+20/12/19 05:26:47 300 [INFO,train:511]         epoch 500 age 0: 0.28 34.20
+20/12/19 05:31:14 102 [ERR,train:464] get data failed at epoch 509, has got 23532 datas.:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 461, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/19 05:31:14 103 [INFO,train:465] resting...
+20/12/19 05:36:10 551 [INFO,train:439] take a nap may help
+20/12/19 05:38:30 068 [INFO,train:495] 520: 0.25 32.77 0.0074 0.0588 26386
+20/12/19 05:38:30 109 [INFO,train:511]         epoch 520 age 0: 0.25 32.77
+20/12/19 05:44:40 984 [INFO,train:439] take a nap may help
+20/12/19 05:47:01 027 [INFO,train:495] 540: 0.25 34.67 0.0099 0.0591 26536
+20/12/19 05:47:01 065 [INFO,train:511]         epoch 540 age 0: 0.25 34.67
+20/12/19 05:53:13 993 [INFO,train:439] take a nap may help
+20/12/19 05:53:14 394 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 05:55:34 404 [INFO,train:495] 560: 0.25 30.81 0.0073 0.0599 26514
+20/12/19 05:55:34 445 [INFO,train:511]         epoch 560 age 0: 0.25 30.81
+20/12/19 06:01:02 187 [INFO,benchmark:312] benchmark at epoch 560's result: -63.03 8.30
+20/12/19 06:01:54 057 [INFO,train:439] take a nap may help
+20/12/19 06:04:14 013 [INFO,train:495] 580: 0.27 32.92 0.0143 0.0601 26570
+20/12/19 06:04:14 054 [INFO,train:511]         epoch 580 age 0: 0.27 32.92
+20/12/19 06:10:27 461 [INFO,train:439] take a nap may help
+20/12/19 06:12:47 239 [INFO,train:495] 600: 0.26 34.81 0.0095 0.0600 26411
+20/12/19 06:12:47 280 [INFO,train:511]         epoch 600 age 0: 0.26 34.81
+20/12/19 06:18:59 339 [INFO,train:439] take a nap may help
+20/12/19 06:21:18 751 [INFO,train:495] 620: 0.28 30.30 0.0068 0.0604 26562
+20/12/19 06:21:18 792 [INFO,train:511]         epoch 620 age 0: 0.28 30.30
+20/12/19 06:24:46 859 [ERR,train:464] get data failed at epoch 626, has got 23570 datas.:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 461, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/19 06:24:46 860 [INFO,train:465] resting...
+20/12/19 06:30:45 689 [INFO,train:439] take a nap may help
+20/12/19 06:30:46 115 [INFO,benchmark:286] start benchmark against MrGreed for 512x2
+20/12/19 06:35:30 552 [ERR,train:464] get data failed at epoch 640, has got 23523 datas.:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 461, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 105, in get
+    raise Empty
+queue.Empty
+
+20/12/19 06:35:30 553 [INFO,train:465] resting...
+20/12/19 06:37:10 830 [INFO,train:495] 640: 0.26 32.37 0.0071 0.0605 23523
+20/12/19 06:37:10 866 [INFO,train:511]         epoch 640 age 0: 0.26 32.37
+20/12/19 06:38:22 583 [INFO,benchmark:312] benchmark at epoch 640's result: -42.41 8.17
+20/12/19 13:35:43 025 [ERR,train:464] get data failed at epoch 641, has got 15682 datas.:
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 461, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 108, in get
+    res = self._recv_bytes()
+  File "/usr/lib/python3.6/multiprocessing/connection.py", line 216, in recv_bytes
+    buf = self._recv_bytes(maxlength)
+  File "/usr/lib/python3.6/multiprocessing/connection.py", line 411, in _recv_bytes
+    return self._recv(size)
+  File "/usr/lib/python3.6/multiprocessing/connection.py", line 379, in _recv
+    chunk = read(handle, remaining)
+KeyboardInterrupt
+
+20/12/19 13:35:43 028 [INFO,train:465] resting...
+20/12/19 13:35:44 566 [ERR,main:525] :
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 461, in train
+    queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+  File "/usr/lib/python3.6/multiprocessing/queues.py", line 108, in get
+    res = self._recv_bytes()
+  File "/usr/lib/python3.6/multiprocessing/connection.py", line 216, in recv_bytes
+    buf = self._recv_bytes(maxlength)
+  File "/usr/lib/python3.6/multiprocessing/connection.py", line 411, in _recv_bytes
+    return self._recv(size)
+  File "/usr/lib/python3.6/multiprocessing/connection.py", line 379, in _recv
+    chunk = read(handle, remaining)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 523, in main
+    train(pv_net)
+  File "./MrZeroTree.py", line 466, in train
+    time.sleep(data_timeout*2+60)
+KeyboardInterrupt
+
