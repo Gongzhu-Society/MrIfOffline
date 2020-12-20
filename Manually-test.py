@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log
+from MrGreed import MrGreed
+from MrZeroTree import MrZeroTree,PV_NET
+from OfflineInterface import OfflineInterface
+import torch
 
-def benchmark(save_name,mcts_searchnum=200,device_num=3,print_process=True):
+def benchmark(save_name,mcts_searchnum=None,pv_deep=None,print_process=True):
     """
         benchmark raw network against MrGreed
         METHOD=-1, N1=512, 7min
         METHOD=-2, N1=512, 3.5min
     """
-    from MrGreed import MrGreed
-    from MrZeroTree import MrZeroTree,PV_NET
-    from OfflineInterface import OfflineInterface
-    import torch,itertools,numpy
+    import itertools,numpy
 
-    N1=1024;N2=2;
-    log("start benchmark against MrGreed for %dx%d"%(N1,N2))
-    log("benchmark method: %d, file: %s"%(mcts_searchnum,save_name))
+    N1=128;N2=2;
+    log("start benchmark against MrGreed for %dx%d, file: %s"%(N1,N2,save_name))
+    log("benchmark method: %d, pv_deep: %d"%(mcts_searchnum,pv_deep))
 
-    device_bench=torch.device("cuda:%d"%(device_num))
+    device_bench=torch.device("cuda:3")
     pv_net=torch.load(save_name)
     pv_net.to(device_bench)
 
-    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=mcts_searchnum) for i in [0,2]]
+    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
 
@@ -36,8 +37,11 @@ def benchmark(save_name,mcts_searchnum=200,device_num=3,print_process=True):
             interface.step()
         stats.append(interface.clear())
         interface.prepare_new()
-        if print_process and l==N2-1:
-            log("%s %4d"%(stats[-N2:],sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2))
+        if l==N2-1:
+            if print_process:
+                log("%4d: %s"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2,stats[-N2:]))
+            else:
+                print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log("benchmark result: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
@@ -102,8 +106,8 @@ def plot_log(fileperfix):
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    plot_log("from-one-11")
-    """try:
-        benchmark("./ZeroNets/from-one-6f/PV_NET-11-2247733-600.pkl")
+    #plot_log("from-one-11")
+    try:
+        benchmark("./ZeroNets/from-one-6g/PV_NET-11-2247733-600.pkl",mcts_searchnum=-1,pv_deep=6,print_process=False)
     except:
-        log("",l=3)"""
+        log("",l=3)
