@@ -82,6 +82,7 @@ class GameState():
         scores=[calc_score(self.score_lists[(self.play_for+i)%4]) for i in range(4)]
         return scores[0]+scores[2]-scores[1]-scores[3]
 
+
 class PV_NET(nn.Module):
     """
         return 52 policy and 1 value
@@ -193,14 +194,25 @@ class MrZeroTree(MrRandom):
         oh_table=MrZeroTree.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
 
-    def pv_policy(self,state):
+    def pv_policy(self,state,deep):
         if state.isTerminal():
             return state.getReward()
-        else:
+        elif deep==0:
             netin=MrZeroTree.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.pnext)
             with torch.no_grad():
                 _,v=self.pv_net(netin.to(self.device))
             return v.item()*state.getCurrentPlayer()+state.getReward()
+        else:
+            netin=MrZeroTree.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.pnext)
+            with torch.no_grad():
+                p,_=self.pv_net(netin.to(self.device))
+            legal_choice=state.getPossibleActions()
+            p_legal=numpy.array([p[ORDER_DICT[c]].item() for c in legal_choice])
+            p_legal=numpy.exp(p_legal-max(p_legal))
+            p_legal/=p_legal.sum()
+            action=numpy.random.choice(legal_choice,p=p_legal)
+            neostate=state.takeAction(action)
+            return self.pv_policy(neostate,deep-1)
 
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
@@ -220,7 +232,7 @@ class MrZeroTree(MrRandom):
 
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice} #dict of legal choice
-        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=self.N_SAMPLE,METHOD1_PREFERENCE=100)
+        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=self.N_SAMPLE,METHOD1_PREFERENCE=2000,exhaust_threshold=40)
         for cards_list_list in sce_gen:
             #initialize gamestate
             cards_lists=[None,None,None,None]
@@ -234,9 +246,9 @@ class MrZeroTree(MrRandom):
             #mcts
             if self.mcts_searchnum>=-1:
                 if self.mcts_searchnum>0:
-                    searcher=mcts(iterationLimit=self.mcts_searchnum,rolloutPolicy=self.pv_policy,explorationConstant=200)
+                    searcher=mcts(iterationLimit=self.mcts_searchnum,rolloutPolicy=self.pv_policy,explorationConstant=200,pv_deep=PV_DEEP)
                 elif self.mcts_searchnum==-1:
-                    searcher=mcts(iterationLimit=len(legal_choice),rolloutPolicy=self.pv_policy,explorationConstant=200)
+                    searcher=mcts(iterationLimit=len(legal_choice),rolloutPolicy=self.pv_policy,explorationConstant=200,pv_deep=0)
                 searcher.search(initialState=gamestate,needNodeValue=False)
                 for action,node in searcher.root.children.items():
                     d_legal[action]+=node.totalReward/node.numVisits
@@ -355,22 +367,25 @@ def prepare_train_data(pv_net,device_num,data_rounds,data_queue):#,data_lock):
     """
         prepare train data by self-learning
     """
-    device_train=torch.device("cuda:%d"%(device_num))
-    pv_net.to(device_train)
-    zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,mcts_searchnum=TRAIN_SAMPLE) for i in range(4)]
-    interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
+    try:
+        device_train=torch.device("cuda:%d"%(device_num))
+        pv_net.to(device_train)
+        zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,mcts_searchnum=TRAIN_SAMPLE) for i in range(4)]
+        interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
 
-    for k in range(data_rounds):
-        cards=interface.shuffle()
-        for i in range(52):
-            interface.step()
-        interface.clear()
-        interface.prepare_new()
+        for k in range(data_rounds):
+            cards=interface.shuffle()
+            for i in range(52):
+                interface.step()
+            interface.clear()
+            interface.prepare_new()
 
-    datas=[]
-    for i in range(4):
-        datas+=zt[0].train_datas
-    data_queue.put(datas,block=False)
+        datas=[]
+        for i in range(4):
+            datas+=zt[0].train_datas
+        data_queue.put(datas,block=False)
+    except:
+        log("",l=3)
 
 
 print_level=0
@@ -379,7 +394,8 @@ VALUE_RENORMAL=10
 #self-play paras
 BETA=0.2
 BENCHMARK_METHOD=-1 #-1 for value, -2 for policy, n>0 for n-iter mcts
-TRAIN_SAMPLE=100 #-1 for only children
+TRAIN_SAMPLE=-1 #-1 for only children
+PV_DEEP=8
 
 #learn from Greed paras
 """LOSS2_WEIGHT=0.01
@@ -387,14 +403,17 @@ BETA=0.2
 BENCHMARK_METHOD=-2"""
 
 def train(pv_net,device_train_nums=[0,1,2]):
-    log("BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d"%(BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE))
+    log("BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d, TRAIN_SAMPLE: %d, PV_DEEP: %d"%(BETA,VALUE_RENORMAL,BENCHMARK_METHOD,TRAIN_SAMPLE,PV_DEEP))
 
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.0004,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
-    data_rounds=10;data_timeout=180
+    #rounds=12,train_sample=100,pv_deep=0, 216s;
+    #rounds=12,train_sample=-1 ,pv_deep=2, 15s; #correct?
+    #rounds=12,train_sample=-1 ,pv_deep=8, 18-21s;
+    data_rounds=12;data_timeout=22
     review_number=3
     age_in_epoch=3
     loss2_weight=0.03
@@ -404,7 +423,9 @@ def train(pv_net,device_train_nums=[0,1,2]):
     data_timeout*=review_number
     train_datas=[]
     p_benchmark=None
-    for epoch in range(1200):
+    output_flag=False
+    log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
+    for epoch in range(640+1):
         if epoch%80==0:# and epoch!=0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -420,6 +441,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
             data_timeout=data_timeout//review_number
 
         data_queue=Queue()
+        #prepare_train_data(copy.deepcopy(pv_net),0,data_rounds,data_queue) #for testing
         for i in device_train_nums:
             p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,data_queue))
             #p=Process(target=MrGreedData.prepare_train_data,args=(data_queue,))
@@ -436,9 +458,9 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
                 train_datas+=queue_get
             except:
-                log("get data failed at epoch %d, has got %d datas\nresting..."%(epoch,len(train_datas)),l=3)
-                time.sleep(data_timeout*3+30)
-                log("enough rest")
+                log("get data failed at epoch %d, has got %d datas."%(epoch,len(train_datas)),l=3)
+                log("resting...")
+                time.sleep(data_timeout*2+60)
         #trainloader=torch.utils.data.DataLoader(train_datas,batch_size=len(train_datas))
         #batch=trainloader.__iter__().__next__()
         batch=[]
@@ -451,8 +473,6 @@ def train(pv_net,device_train_nums=[0,1,2]):
         output_flag=False
         if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
         #if epoch%50==0:
-            if epoch==0:
-                log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
             output_flag=True
 
             p,v=pv_net(batch[0])
@@ -492,7 +512,7 @@ def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
     #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    start_from="./ZeroNets/from-one-8a/PV_NET-11-2247733-300.pkl"
+    start_from="./ZeroNets/from-one-11a/PV_NET-11-2247733-560.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:
