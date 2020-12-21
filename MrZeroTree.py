@@ -401,10 +401,10 @@ BENCHMARK_METHOD=-1
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=12
-    data_timeout=90 #in seconds
+    data_timeout=60 #in seconds
     loss2_weight=0.03
     train_sample=-2
-    pv_deep=2
+    pv_deep=1
     review_number=3
     age_in_epoch=3
     log("BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d"%(BETA,VALUE_RENORMAL,BENCHMARK_METHOD))
@@ -504,8 +504,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
 def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
-    #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    start_from="./ZeroNets/from-one-9a/PV_NET-11-2247733-640.pkl"
+    start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
+    #start_from="./ZeroNets/from-one-9a/PV_NET-11-2247733-640.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:
