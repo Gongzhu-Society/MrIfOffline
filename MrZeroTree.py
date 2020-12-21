@@ -504,8 +504,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
 def main():
     """pv_net=PV_NET()
     log("init pv_net: %s"%(pv_net))"""
-    start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    #start_from="./ZeroNets/from-one-11a/PV_NET-11-2247733-560.pkl"
+    #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
+    start_from="./ZeroNets/from-one-9a/PV_NET-11-2247733-640.pkl"
     pv_net=torch.load(start_from)
     log("start from: %s"%(start_from))
     try:
