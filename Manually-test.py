@@ -51,11 +51,11 @@ def plot_log(fileperfix):
     import os,re
 
     lines=[]
-    for i in "abcdefghijklmnopqrstuvwxyz":
+    for i in [""]+list("abcdefghijklmnopqrstuvwxyz"):
         fname="./ZeroNets/%s%s.log"%(fileperfix,i)
         if not os.path.exists(fname):
             break
-        log("reading %s..."%(fname))
+        log("reading %s..."%(fname),l=0)
         with open(fname,'r') as f:
             lines+=f.readlines()
     p_bench=re.compile("benchmark at epoch ([0-9]+)'s result: ([\\-\\.0-9]+) ([0-9\\.]+)")
@@ -85,9 +85,9 @@ def plot_log(fileperfix):
                 continue
             t_loss.append(epoch+bias_bench[ax])
             v_loss.append(float(s_loss.group(3)))
-    log(bias_bench)
-    log(t_bench)
-    log(t_loss)
+    log(bias_bench,l=0)
+    log(t_bench,l=0)
+    log(t_loss,l=0)
     fig=plt.figure()
     fig.set_size_inches(8,6)
     ax1=fig.subplots(1)
@@ -106,7 +106,7 @@ def plot_log(fileperfix):
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    plot_log("from-one-9")
+    plot_log("from-one-10")
     """try:
         benchmark("./ZeroNets/from-one-6g/PV_NET-11-2247733-600.pkl",mcts_searchnum=-1,pv_deep=6,print_process=False)
     except:

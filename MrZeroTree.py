@@ -250,7 +250,7 @@ class MrZeroTree(MrRandom):
                     searchnum=self.mcts_searchnum
                 elif self.mcts_searchnum<0:
                     searchnum=-1*self.mcts_searchnum*len(legal_choice)
-                searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,explorationConstant=100,pv_deep=self.pv_deep)
+                searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,explorationConstant=50,pv_deep=self.pv_deep)
                 searcher.search(initialState=gamestate,needNodeValue=False)
                 for action,node in searcher.root.children.items():
                     d_legal[action]+=node.totalReward/node.numVisits
@@ -289,14 +289,12 @@ def benchmark(save_name,epoch,device_num=3,print_process=False):
     """
     N1=512;N2=2;
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
-    if epoch=="manual":
-        log("benchmark method: %d, file: %s"%(BENCHMARK_METHOD,save_name))
 
     device_bench=torch.device("cuda:%d"%(device_num))
     pv_net=torch.load(save_name)
     pv_net.to(device_bench)
 
-    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=BENCHMARK_METHOD,pv_deep=0) for i in [0,2]]
+    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=BENCHMARK_SAMPLE,pv_deep=0) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
 
@@ -397,17 +395,17 @@ def prepare_train_data(pv_net,device_num,data_rounds,train_sample,pv_deep,data_q
 print_level=0
 VALUE_RENORMAL=10
 BETA=0.2
-BENCHMARK_METHOD=-1
+BENCHMARK_SAMPLE=-2
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=12
-    data_timeout=60 #in seconds
+    data_timeout=25 #in seconds
     loss2_weight=0.03
     train_sample=-2
-    pv_deep=1
+    pv_deep=0
     review_number=3
     age_in_epoch=3
-    log("BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_METHOD: %d"%(BETA,VALUE_RENORMAL,BENCHMARK_METHOD))
+    log("BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_SAMPLE: %d"%(BETA,VALUE_RENORMAL,BENCHMARK_SAMPLE))
     log("loss2_weight: %.2f, data_rounds: %dx%d, train_sample: %d, pv_deep: %d, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,len(device_train_nums),data_rounds,train_sample,pv_deep,review_number,age_in_epoch))
 
@@ -483,8 +481,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
 
             amp_probe=pv_net.fc0.bias.abs().mean().item()
             log("%d: %.2f %.2f %.4f %.4f %d"%(epoch,loss1_t.item(),loss2_t.item(),grad1/grad2,amp_probe,len(train_datas)))
-            #log("\n%s\n%s\n%s"%(["%6.3f"%(i) for i in batch[1][0,:]],["%6.3f"%(i) for i in p[0,:]],["%6.3f"%(i) for i in log_p[0,:].exp()]))
-            #input()
+            #log("\n%s\n%s\n%s"%(["%6.3f"%(i) for i in batch[1][0,:]],["%6.3f"%(i) for i in p[0,:]],["%6.3f"%(i) for i in log_p[0,:].exp()]));input()
 
         for age in range(age_in_epoch):
             p,v=pv_net(batch[0])
@@ -499,7 +496,11 @@ def train(pv_net,device_train_nums=[0,1,2]):
 
             if output_flag and age in (0,1,2):
                 log("        epoch %d age %d: %.2f %.2f"%(epoch,age,loss1,loss2))
-        data_queue.close()
+        #data_queue.close()
+    else:
+        if p_benchmark.is_alive():
+            log("waiting benchmark threading to join")
+        p_benchmark.join()
 
 def main():
     """pv_net=PV_NET()
