@@ -395,7 +395,7 @@ def prepare_train_data(pv_net,device_num,data_rounds,train_sample,pv_deep,data_q
 print_level=0
 VALUE_RENORMAL=10
 BETA=0.2
-BENCHMARK_SAMPLE=-2
+BENCHMARK_SAMPLE=-1
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=12
@@ -451,9 +451,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
             try:
                 queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
                 train_datas+=queue_get
-            except:
-                log("get data failed at epoch %d, has got %d datas."%(epoch,len(train_datas)),l=3)
-                log("resting...")
+            except Exception as e:
+                log("%s AGAIN at epoch %d! Has got %d datas. resting..."%(e,epoch,len(train_datas)))
                 time.sleep(120)
         batch=[]
         batch.append(torch.stack([i[0] for i in train_datas]).to(device_main))
@@ -503,12 +502,10 @@ def train(pv_net,device_train_nums=[0,1,2]):
         p_benchmark.join()
 
 def main():
-    """pv_net=PV_NET()
-    log("init pv_net: %s"%(pv_net))"""
-    start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    #start_from="./ZeroNets/from-one-9a/PV_NET-11-2247733-640.pkl"
-    pv_net=torch.load(start_from)
-    log("start from: %s"%(start_from))
+    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
+    #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
+    start_from="./ZeroNets/from-zero-1/PV_NET-11-2247733-640.pkl"
+    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     try:
         train(pv_net)
     except:

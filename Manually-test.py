@@ -51,10 +51,10 @@ def plot_log(fileperfix):
     import os,re
 
     lines=[]
-    for i in [""]+list("abcdefghijklmnopqrstuvwxyz"):
+    for i in ([""]+list("abcdefghijklmnopqrstuvwxyz")):
         fname="./ZeroNets/%s%s.log"%(fileperfix,i)
         if not os.path.exists(fname):
-            break
+            continue
         log("reading %s..."%(fname),l=0)
         with open(fname,'r') as f:
             lines+=f.readlines()
@@ -106,7 +106,7 @@ def plot_log(fileperfix):
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    plot_log("from-one-10")
+    plot_log("from-one-11")
     """try:
         benchmark("./ZeroNets/from-one-6g/PV_NET-11-2247733-600.pkl",mcts_searchnum=-1,pv_deep=6,print_process=False)
     except:
