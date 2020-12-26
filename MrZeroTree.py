@@ -448,7 +448,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
 
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.00004,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.00001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     data_rounds*=review_number
@@ -456,7 +456,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
     train_datas=[]
     p_benchmark=None
     rest_flag=False
-    for epoch in range(800):
+    for epoch in range(641):
         if epoch%80==0:# and epoch!=0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)

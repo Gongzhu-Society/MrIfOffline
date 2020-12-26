@@ -404,6 +404,16 @@ def optimize_para():
     res=scipy.optimize.minimize(optimize_target,init_para,options={'eps':1})#,bounds=np.array([2,None]))
     print(res)
 
+def bug_shi():
+    g=MrGreed(room=0,place=1,name='shi')
+    g.cards_on_table=[0,'C4']
+    g.history=[[0, 'C10', 'C5', 'CA', 'C9'], [2, 'DK', 'D10', 'D7', 'D8'], [2, 'DJ', 'DQ', 'D5', 'DA'],
+               [1, 'H5', 'H6', 'H4', 'H10'], [0, 'H8', 'H3', 'HJ', 'H9'], [2, 'CK', 'HA', 'CJ', 'CQ'],
+               [2, 'S9', 'S3', 'S10', 'SJ'], [1, 'C2', 'C7', 'HK', 'C8'], [0, 'S6', 'S4', 'S5', 'H7']]
+    g.scores=[['H5', 'H6', 'H4', 'H10', 'HK', 'H7'], ['DJ'], ['C10', 'H8', 'H3', 'HJ', 'H9', 'HA'], []]
+    g.cards_list=['D4', 'D6', 'D9', 'HQ']
+    print(g.pick_a_card())
+
 if __name__=="__main__":
     #optimize_para()
-    gen_data_for_o(N1=32,save=True)
+    bug_shi()
