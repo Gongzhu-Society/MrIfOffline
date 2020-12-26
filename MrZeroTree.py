@@ -88,10 +88,9 @@ class PV_NET(nn.Module):
         return 52 policy and 1 value
     """
 
-    def __init__(self):
+    """def __init__(self):
         super(PV_NET,self).__init__()
         #cards in four player(52*4), two cards on table(52*3*2), scores in four players
-        #totally 688
         self.fc0=nn.Linear(52*4+(54*3+20*4)+16*4,1024)
         self.fc1=nn.Linear(1024,1024)
         self.fc2=nn.Linear(1024,256)
@@ -111,6 +110,44 @@ class PV_NET(nn.Module):
         x=F.relu(self.fc4(F.relu(self.fc3(x))))+x
         x=F.relu(self.fc6(F.relu(self.fc5(x))))+x
         x=F.relu(self.fc8(F.relu(self.fc7(x))))+x
+        p=self.fcp(x)
+        v=self.fcv(x)*VALUE_RENORMAL
+        return p,v"""
+
+    def __init__(self):
+        super(PV_NET,self).__init__()
+        #cards in four player(52*4), two cards on table(52*3*2), scores in four players
+        #totally 514
+        self.fc0=nn.Linear(52*4+(54*3+20*4)+16*4,2048)
+        self.fc1=nn.Linear(2048,2048)
+        self.fc2=nn.Linear(2048,512)
+
+        self.sc0a=nn.Linear(512,512)
+        self.sc0b=nn.Linear(512,512)
+        self.sc1a=nn.Linear(512,512)
+        self.sc1b=nn.Linear(512,512)
+        self.sc2a=nn.Linear(512,512)
+        self.sc2b=nn.Linear(512,512)
+        self.sc3a=nn.Linear(512,512)
+        self.sc3b=nn.Linear(512,512)
+        self.sc4a=nn.Linear(512,512)
+        self.sc4b=nn.Linear(512,512)
+        self.sc5a=nn.Linear(512,512)
+        self.sc5b=nn.Linear(512,512)
+
+        self.fcp=nn.Linear(512,52)
+        self.fcv=nn.Linear(512,1)
+
+    def forward(self, x):
+        x=F.relu(self.fc0(x))
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        x=F.relu(self.sc0b(F.relu(self.sc0a(x))))+x
+        x=F.relu(self.sc1b(F.relu(self.sc1a(x))))+x
+        x=F.relu(self.sc2b(F.relu(self.sc2a(x))))+x
+        x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x
+        x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x
+        x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x
         p=self.fcp(x)
         v=self.fcv(x)*VALUE_RENORMAL
         return p,v
@@ -399,7 +436,7 @@ BENCHMARK_SAMPLE=-1
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=12
-    data_timeout=25 #in seconds
+    data_timeout=30
     loss2_weight=0.03
     train_sample=-2
     pv_deep=0
@@ -411,15 +448,15 @@ def train(pv_net,device_train_nums=[0,1,2]):
 
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.0004,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.00004,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     data_rounds*=review_number
     data_timeout*=review_number
     train_datas=[]
     p_benchmark=None
-    log("#epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas")
-    for epoch in range(640+1):
+    rest_flag=False
+    for epoch in range(800):
         if epoch%80==0:# and epoch!=0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -436,6 +473,10 @@ def train(pv_net,device_train_nums=[0,1,2]):
 
         #prepare_train_data(copy.deepcopy(pv_net),0,data_rounds,train_sample,pv_deep,None);time.sleep(100)
         data_queue=Queue()
+        if rest_flag:
+            log("resting...")
+            time.sleep(120)
+            rest_flag=False
         for i in device_train_nums:
             p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,train_sample,pv_deep,data_queue))
             #p=Process(target=MrGreedData.prepare_train_data,args=(data_queue,))
@@ -443,29 +484,30 @@ def train(pv_net,device_train_nums=[0,1,2]):
         else:
             time.sleep(data_timeout//2)
 
-        #for i in range(len(train_datas)//REVIEW_NUMBER):
-        #    train_datas.pop(0)
-        #train_datas=copy.deepcopy(train_datas[len(train_datas)//REVIEW_NUMBER:]) #this may help
         train_datas=train_datas[len(train_datas)//review_number:]
         for i in device_train_nums:
             try:
                 queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
                 train_datas+=queue_get
-            except Exception as e:
-                log("%s AGAIN at epoch %d! Has got %d datas. resting..."%(e,epoch,len(train_datas)))
-                time.sleep(120)
-        batch=[]
+            except:
+                log("get data failed AGAIN at epoch %d! Has got %d datas."%(epoch,len(train_datas)),l=2)
+                rest_flag=True
+
+        train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
+        trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=3000,drop_last=True)
+        #batch=trainloader.__iter__().__next__()
+        """batch=[]
         batch.append(torch.stack([i[0] for i in train_datas]).to(device_main))
         batch.append(torch.stack([i[1] for i in train_datas]).to(device_main))
         batch.append(torch.stack([i[2] for i in train_datas]).to(device_main))
         batch.append(torch.stack([i[3] for i in train_datas]).to(device_main))
-        assert len(batch[0])==len(train_datas)
+        assert len(batch[0])==len(train_datas)"""
 
         output_flag=False
         if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
             output_flag=True
 
-            p,v=pv_net(batch[0])
+        """    p,v=pv_net(batch[0])
 
             optimizer.zero_grad()
             log_p=F.log_softmax(p*batch[3],dim=1)
@@ -480,32 +522,35 @@ def train(pv_net,device_train_nums=[0,1,2]):
 
             amp_probe=pv_net.fc0.bias.abs().mean().item()
             log("%d: %.2f %.2f %.4f %.4f %d"%(epoch,loss1_t.item(),loss2_t.item(),grad1/grad2,amp_probe,len(train_datas)))
-            #log("\n%s\n%s\n%s"%(["%6.3f"%(i) for i in batch[1][0,:]],["%6.3f"%(i) for i in p[0,:]],["%6.3f"%(i) for i in log_p[0,:].exp()]));input()
+            #log("\n%s\n%s\n%s"%(["%6.3f"%(i) for i in batch[1][0,:]],["%6.3f"%(i) for i in p[0,:]],["%6.3f"%(i) for i in log_p[0,:].exp()]));input()"""
 
         for age in range(age_in_epoch):
-            p,v=pv_net(batch[0])
-            log_p=F.log_softmax(p*batch[3],dim=1)
-            loss1=F.kl_div(log_p,batch[1],reduction="batchmean")
-            loss2=F.mse_loss(v.view(-1),batch[2],reduction='mean').sqrt()
-
-            optimizer.zero_grad()
-            loss=loss1+loss2*loss2_weight
-            loss.backward()
-            optimizer.step()
+            for batch in trainloader:
+                p,v=pv_net(batch[0])
+                log_p=F.log_softmax(p*batch[3],dim=1)
+                loss1=F.kl_div(log_p,batch[1],reduction="batchmean")
+                loss2=F.mse_loss(v.view(-1),batch[2],reduction='mean').sqrt()
+                optimizer.zero_grad()
+                loss=loss1+loss2*loss2_weight
+                loss.backward()
+                optimizer.step()
 
             if output_flag and age in (0,1,2):
                 log("        epoch %d age %d: %.2f %.2f"%(epoch,age,loss1,loss2))
-        #data_queue.close()
-    else:
-        if p_benchmark.is_alive():
-            log("waiting benchmark threading to join")
-        p_benchmark.join()
+
+        if output_flag:
+            log("%d: %.2f %.2f %d"%(epoch,loss1,loss2,len(train_datas)))
+
+    log(p_benchmark)
+    log("waiting benchmark threading to join: %s"%(p_benchmark.is_alive()))
+    p_benchmark.join()
+    log("benchmark threading should have joined: %s"%(p_benchmark.is_alive()))
 
 def main():
-    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
+    pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
     #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    start_from="./ZeroNets/from-zero-1/PV_NET-11-2247733-640.pkl"
-    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
+    #start_from="./ZeroNets/from-zero-4b/PV_NET-11-2247733-560.pkl"
+    #pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     try:
         train(pv_net)
     except:
@@ -531,7 +576,7 @@ def manually_test(save_name):
 if __name__=="__main__":
     torch.multiprocessing.set_start_method('spawn')
     #print(torch.multiprocessing.get_all_sharing_strategies())
-    log("sharing_strategy: %s"%(torch.multiprocessing.get_sharing_strategy()))
+    #log("sharing_strategy: %s"%(torch.multiprocessing.get_sharing_strategy()))
 
     main()
     #manually_test("./ZeroNets/start-from-one-2nd/PV_NET-11-2247733-80.pkl")
