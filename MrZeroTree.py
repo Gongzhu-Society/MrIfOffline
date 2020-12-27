@@ -436,7 +436,7 @@ BENCHMARK_SAMPLE=-1
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=12
-    data_timeout=30
+    data_timeout=30 #add to 45
     loss2_weight=0.03
     train_sample=-2
     pv_deep=0
@@ -448,7 +448,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
 
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.00001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     data_rounds*=review_number
@@ -547,10 +547,9 @@ def train(pv_net,device_train_nums=[0,1,2]):
     log("benchmark threading should have joined: %s"%(p_benchmark.is_alive()))
 
 def main():
-    pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    #start_from="./ZeroNets/mimic-greed-514-shi/PV_NET-11-2247733-300.pkl"
-    #start_from="./ZeroNets/from-zero-4b/PV_NET-11-2247733-560.pkl"
-    #pv_net=torch.load(start_from);log("start from: %s"%(start_from))
+    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
+    start_from="./ZeroNets/from-zero-8a/PV_NET-17-9479221-640.pkl"
+    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     try:
         train(pv_net)
     except:
