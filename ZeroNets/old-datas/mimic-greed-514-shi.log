@@ -1,0 +1,90 @@
+20/12/13 00:38:10 518 [INFO,<module>:562] sharing_strategy: file_system
+20/12/13 00:38:10 530 [INFO,main:526] init pv_net: PV_NET [(514, 1024), (1024, 1024), (1024, 256), (256, 256), (256, 256), (256, 256), (256, 256), (256, 256), (256, 256), (256, 52), (256, 1)] 2247733
+20/12/13 00:38:12 427 [INFO,train:452] optimizer: {'lr': 0.001, 'betas': (0.9, 0.999), 'eps': 1e-07, 'weight_decay': 0.0001, 'amsgrad': False}
+20/12/13 00:38:12 427 [INFO,train:453] LOSS2_WEIGHT: 0.0100, BETA: 0.20, VALUE_RENORMAL: 10, BENCHMARK_METHOD: -2
+20/12/13 00:38:15 760 [INFO,train:488] #epoch: loss1 loss2 grad1/grad2 amp_probe #train_datas
+20/12/13 00:38:15 770 [INFO,train:505] 0: 3.27 49.82 0.0953 0.0234 1332
+20/12/13 00:38:15 779 [INFO,train:521]         epoch 0 age 0: 3.27 49.82
+20/12/13 00:38:15 796 [INFO,train:521]         epoch 0 age 3: 2.61 49.35
+20/12/13 00:38:15 812 [INFO,train:521]         epoch 0 age 6: 1.12 55.98
+20/12/13 00:38:15 831 [INFO,train:521]         epoch 0 age 9: 0.78 52.81
+20/12/13 00:38:18 559 [INFO,train:505] 1: 0.86 52.55 0.0248 0.0236 1990
+20/12/13 00:38:18 564 [INFO,train:521]         epoch 1 age 0: 0.86 52.55
+20/12/13 00:38:18 582 [INFO,train:521]         epoch 1 age 3: 0.71 47.34
+20/12/13 00:38:18 604 [INFO,train:521]         epoch 1 age 6: 0.63 48.06
+20/12/13 00:38:18 627 [INFO,train:521]         epoch 1 age 9: 0.57 47.42
+20/12/13 00:38:21 326 [INFO,train:505] 2: 0.65 45.11 0.2042 0.0236 2347
+20/12/13 00:38:21 333 [INFO,train:521]         epoch 2 age 0: 0.65 45.11
+20/12/13 00:38:21 352 [INFO,train:521]         epoch 2 age 3: 0.59 45.10
+20/12/13 00:38:21 375 [INFO,train:521]         epoch 2 age 6: 0.57 44.90
+20/12/13 00:38:21 399 [INFO,train:521]         epoch 2 age 9: 0.53 44.67
+20/12/13 00:38:24 358 [INFO,train:505] 3: 0.56 46.11 0.0791 0.0235 2474
+20/12/13 00:38:24 364 [INFO,train:521]         epoch 3 age 0: 0.56 46.11
+20/12/13 00:38:24 380 [INFO,train:521]         epoch 3 age 3: 0.51 45.80
+20/12/13 00:38:24 400 [INFO,train:521]         epoch 3 age 6: 0.48 45.45
+20/12/13 00:38:24 422 [INFO,train:521]         epoch 3 age 9: 0.45 45.02
+20/12/13 00:38:29 983 [INFO,train:505] 5: 0.45 49.46 0.0251 0.0232 2617
+20/12/13 00:38:29 990 [INFO,train:521]         epoch 5 age 0: 0.45 49.46
+20/12/13 00:38:30 012 [INFO,train:521]         epoch 5 age 3: 0.40 48.00
+20/12/13 00:38:30 041 [INFO,train:521]         epoch 5 age 6: 0.36 45.76
+20/12/13 00:38:30 066 [INFO,train:521]         epoch 5 age 9: 0.31 42.48
+20/12/13 00:38:45 016 [INFO,train:505] 10: 0.45 39.46 0.0268 0.0232 2683
+20/12/13 00:38:45 022 [INFO,train:521]         epoch 10 age 0: 0.45 39.46
+20/12/13 00:38:45 039 [INFO,train:521]         epoch 10 age 3: 0.35 36.32
+20/12/13 00:38:45 059 [INFO,train:521]         epoch 10 age 6: 0.27 32.35
+20/12/13 00:38:45 082 [INFO,train:521]         epoch 10 age 9: 0.21 28.01
+20/12/13 00:38:59 100 [INFO,train:505] 15: 0.39 35.44 0.0046 0.0235 2661
+20/12/13 00:38:59 106 [INFO,train:521]         epoch 15 age 0: 0.39 35.44
+20/12/13 00:38:59 122 [INFO,train:521]         epoch 15 age 3: 0.30 30.92
+20/12/13 00:38:59 142 [INFO,train:521]         epoch 15 age 6: 0.22 26.06
+20/12/13 00:38:59 165 [INFO,train:521]         epoch 15 age 9: 0.17 21.61
+20/12/13 00:40:40 307 [INFO,train:505] 50: 0.28 32.19 0.0145 0.0273 2668
+20/12/13 00:40:40 313 [INFO,train:521]         epoch 50 age 0: 0.28 32.19
+20/12/13 00:40:40 331 [INFO,train:521]         epoch 50 age 3: 0.19 27.95
+20/12/13 00:40:40 351 [INFO,train:521]         epoch 50 age 6: 0.13 23.03
+20/12/13 00:40:40 374 [INFO,train:521]         epoch 50 age 9: 0.09 18.60
+20/12/13 00:43:04 667 [INFO,benchmark:326] start benchmark against MrGreed for 512x2
+20/12/13 00:43:07 072 [INFO,train:505] 100: 0.28 32.29 0.0074 0.0338 2668
+20/12/13 00:43:07 079 [INFO,train:521]         epoch 100 age 0: 0.28 32.29
+20/12/13 00:43:07 100 [INFO,train:521]         epoch 100 age 3: 0.19 27.58
+20/12/13 00:43:07 124 [INFO,train:521]         epoch 100 age 6: 0.12 23.36
+20/12/13 00:43:07 148 [INFO,train:521]         epoch 100 age 9: 0.08 20.30
+20/12/13 00:45:36 111 [INFO,train:505] 150: 0.26 27.71 0.0192 0.0393 2669
+20/12/13 00:45:36 119 [INFO,train:521]         epoch 150 age 0: 0.26 27.71
+20/12/13 00:45:36 142 [INFO,train:521]         epoch 150 age 3: 0.15 23.40
+20/12/13 00:45:36 168 [INFO,train:521]         epoch 150 age 6: 0.10 18.94
+20/12/13 00:45:36 197 [INFO,train:521]         epoch 150 age 9: 0.06 15.63
+20/12/13 00:46:19 517 [INFO,benchmark:352] benchmark at epoch 100's result: -89.55 8.36
+20/12/13 00:47:59 880 [INFO,benchmark:326] start benchmark against MrGreed for 512x2
+20/12/13 00:48:02 108 [INFO,train:505] 200: 0.22 30.21 0.0118 0.0454 2665
+20/12/13 00:48:02 114 [INFO,train:521]         epoch 200 age 0: 0.22 30.21
+20/12/13 00:48:02 134 [INFO,train:521]         epoch 200 age 3: 0.14 24.97
+20/12/13 00:48:02 157 [INFO,train:521]         epoch 200 age 6: 0.09 19.69
+20/12/13 00:48:02 184 [INFO,train:521]         epoch 200 age 9: 0.05 14.30
+20/12/13 00:50:30 471 [INFO,train:505] 250: 0.20 28.64 0.0086 0.0501 2669
+20/12/13 00:50:30 479 [INFO,train:521]         epoch 250 age 0: 0.20 28.64
+20/12/13 00:50:30 501 [INFO,train:521]         epoch 250 age 3: 0.13 22.88
+20/12/13 00:50:30 524 [INFO,train:521]         epoch 250 age 6: 0.09 18.02
+20/12/13 00:50:30 549 [INFO,train:521]         epoch 250 age 9: 0.06 13.75
+20/12/13 00:51:17 906 [INFO,benchmark:352] benchmark at epoch 200's result: -85.74 8.52
+20/12/13 00:52:54 959 [INFO,benchmark:326] start benchmark against MrGreed for 512x2
+20/12/13 00:52:57 233 [INFO,train:505] 300: 0.24 30.81 0.0208 0.0559 2711
+20/12/13 00:52:57 240 [INFO,train:521]         epoch 300 age 0: 0.24 30.81
+20/12/13 00:52:57 260 [INFO,train:521]         epoch 300 age 3: 0.13 25.46
+20/12/13 00:52:57 284 [INFO,train:521]         epoch 300 age 6: 0.08 19.90
+20/12/13 00:52:57 310 [INFO,train:521]         epoch 300 age 9: 0.05 15.28
+20/12/13 00:54:14 022 [ERR,main:533] :
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 531, in main
+    train(pv_net)
+  File "./MrZeroTree.py", line 473, in train
+    p.start()
+  File "/usr/lib/python3.6/multiprocessing/process.py", line 105, in start
+    self._popen = self._Popen(self)
+  File "/usr/lib/python3.6/multiprocessing/context.py", line 223, in _Popen
+    return _default_context.get_context().Process._Popen(process_obj)
+  File "/usr/lib/python3.6/multiprocessing/context.py", line 284, in _Popen
+    return Popen(process_obj)
+OSError: [Errno 24] Too many open files
+
+20/12/13 00:55:58 502 [INFO,benchmark:352] benchmark at epoch 300's result: -74.36 8.33
