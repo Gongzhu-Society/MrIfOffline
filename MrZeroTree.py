@@ -436,9 +436,9 @@ BENCHMARK_SAMPLE=-1
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=12
-    data_timeout=30 #add to 45
+    data_timeout=60
     loss2_weight=0.03
-    train_sample=-2
+    train_sample=-4
     pv_deep=0
     review_number=3
     age_in_epoch=3
@@ -456,8 +456,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
     train_datas=[]
     p_benchmark=None
     rest_flag=False
-    for epoch in range(641):
-        if epoch%80==0:# and epoch!=0:
+    for epoch in range(650):
+        if epoch%80==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
             if p_benchmark!=None:
@@ -471,12 +471,9 @@ def train(pv_net,device_train_nums=[0,1,2]):
             data_rounds=data_rounds//review_number
             data_timeout=data_timeout//review_number
 
-        #prepare_train_data(copy.deepcopy(pv_net),0,data_rounds,train_sample,pv_deep,None);time.sleep(100)
         data_queue=Queue()
         if rest_flag:
-            log("resting...")
-            time.sleep(120)
-            rest_flag=False
+            log("resting...");time.sleep(120);rest_flag=False
         for i in device_train_nums:
             p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,train_sample,pv_deep,data_queue))
             #p=Process(target=MrGreedData.prepare_train_data,args=(data_queue,))
@@ -494,36 +491,15 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 rest_flag=True
 
         train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
-        trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=100,drop_last=True)
-        #batch=trainloader.__iter__().__next__()
-        """batch=[]
-        batch.append(torch.stack([i[0] for i in train_datas]).to(device_main))
+        trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=64,drop_last=True,shuffle=True)
+        """batch.append(torch.stack([i[0] for i in train_datas]).to(device_main))
         batch.append(torch.stack([i[1] for i in train_datas]).to(device_main))
         batch.append(torch.stack([i[2] for i in train_datas]).to(device_main))
-        batch.append(torch.stack([i[3] for i in train_datas]).to(device_main))
-        assert len(batch[0])==len(train_datas)"""
+        batch.append(torch.stack([i[3] for i in train_datas]).to(device_main))"""
 
         output_flag=False
         if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
             output_flag=True
-
-        """    p,v=pv_net(batch[0])
-
-            optimizer.zero_grad()
-            log_p=F.log_softmax(p*batch[3],dim=1)
-            loss1_t=F.kl_div(log_p,batch[1],reduction="batchmean")
-            loss1_t.backward(retain_graph=True)
-            grad1=pv_net.fc0.bias.grad.abs().mean().item()
-
-            optimizer.zero_grad()
-            loss2_t=F.mse_loss(v.view(-1),batch[2],reduction='mean').sqrt()
-            loss2_t.backward(retain_graph=True)
-            grad2=pv_net.fc0.bias.grad.abs().mean().item()
-
-            amp_probe=pv_net.fc0.bias.abs().mean().item()
-            log("%d: %.2f %.2f %.4f %.4f %d"%(epoch,loss1_t.item(),loss2_t.item(),grad1/grad2,amp_probe,len(train_datas)))
-            #log("\n%s\n%s\n%s"%(["%6.3f"%(i) for i in batch[1][0,:]],["%6.3f"%(i) for i in p[0,:]],["%6.3f"%(i) for i in log_p[0,:].exp()]));input()"""
-
         for age in range(age_in_epoch):
             running_loss1=[];running_loss2=[]
             for batch in trainloader:
@@ -538,23 +514,22 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 running_loss1.append(loss1.item())
                 running_loss2.append(loss2.item())
             batchnum=len(running_loss1)
-            running_loss1=numpy.mean(running_loss1)
+            running_loss1=numpy.mean(running_loss1) #todo
             running_loss2=numpy.mean(running_loss2)
             if output_flag and age in (0,1,2):
+                if age==0:
+                    log("%d: %.2f %.2f %d %d"%(epoch,running_loss1,running_loss2,len(train_datas),batchnum))
                 log("        epoch %d age %d: %.2f %.2f"%(epoch,age,running_loss1,running_loss2))
-
-        if output_flag:
-            log("%d: %.2f %.2f %d %d"%(epoch,running_loss1,running_loss2,len(train_datas),batchnum))
-
+    
     log(p_benchmark)
     log("waiting benchmark threading to join: %s"%(p_benchmark.is_alive()))
     p_benchmark.join()
     log("benchmark threading should have joined: %s"%(p_benchmark.is_alive()))
 
 def main():
-    pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    #start_from="./ZeroNets/from-zero-8a/PV_NET-17-9479221-640.pkl"
-    #pv_net=torch.load(start_from);log("start from: %s"%(start_from))
+    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
+    start_from="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
+    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     try:
         train(pv_net)
     except:
