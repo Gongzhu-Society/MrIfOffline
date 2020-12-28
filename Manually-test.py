@@ -46,6 +46,8 @@ def benchmark(save_name,mcts_searchnum=None,pv_deep=None,print_process=True):
     log("benchmark result: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
 def plot_log(fileperfix):
+    import matplotlib
+    matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     from matplotlib.ticker import AutoMinorLocator,MultipleLocator
     import os,re
@@ -99,14 +101,14 @@ def plot_log(fileperfix):
     ax1.grid(True,which='both',axis='x')
     ax2.grid(True,which='both',axis='y')
     ax1.xaxis.set_minor_locator(AutoMinorLocator(2))
-    ax1.set_ylim((20,50))
+    #ax1.set_ylim((20,50))
     ax1.legend()#loc=
     ax2.legend()
     plt.title(fileperfix)
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    plot_log("from-zero-5")
+    plot_log("from-zero-8")
     """try:
         benchmark("./ZeroNets/from-one-6g/PV_NET-11-2247733-600.pkl",mcts_searchnum=-1,pv_deep=6,print_process=False)
     except:

@@ -494,7 +494,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 rest_flag=True
 
         train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
-        trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=3000,drop_last=True)
+        trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=100,drop_last=True)
         #batch=trainloader.__iter__().__next__()
         """batch=[]
         batch.append(torch.stack([i[0] for i in train_datas]).to(device_main))
@@ -525,6 +525,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
             #log("\n%s\n%s\n%s"%(["%6.3f"%(i) for i in batch[1][0,:]],["%6.3f"%(i) for i in p[0,:]],["%6.3f"%(i) for i in log_p[0,:].exp()]));input()"""
 
         for age in range(age_in_epoch):
+            running_loss1=[];running_loss2=[]
             for batch in trainloader:
                 p,v=pv_net(batch[0])
                 log_p=F.log_softmax(p*batch[3],dim=1)
@@ -534,12 +535,16 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 loss=loss1+loss2*loss2_weight
                 loss.backward()
                 optimizer.step()
-
+                running_loss1.append(loss1.item())
+                running_loss2.append(loss2.item())
+            batchnum=len(running_loss1)
+            running_loss1=numpy.mean(running_loss1)
+            running_loss2=numpy.mean(running_loss2)
             if output_flag and age in (0,1,2):
-                log("        epoch %d age %d: %.2f %.2f"%(epoch,age,loss1,loss2))
+                log("        epoch %d age %d: %.2f %.2f"%(epoch,age,running_loss1,running_loss2))
 
         if output_flag:
-            log("%d: %.2f %.2f %d"%(epoch,loss1,loss2,len(train_datas)))
+            log("%d: %.2f %.2f %d %d"%(epoch,running_loss1,running_loss2,len(train_datas),batchnum))
 
     log(p_benchmark)
     log("waiting benchmark threading to join: %s"%(p_benchmark.is_alive()))
@@ -547,9 +552,9 @@ def train(pv_net,device_train_nums=[0,1,2]):
     log("benchmark threading should have joined: %s"%(p_benchmark.is_alive()))
 
 def main():
-    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    start_from="./ZeroNets/from-zero-8a/PV_NET-17-9479221-640.pkl"
-    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
+    pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
+    #start_from="./ZeroNets/from-zero-8a/PV_NET-17-9479221-640.pkl"
+    #pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     try:
         train(pv_net)
     except:
