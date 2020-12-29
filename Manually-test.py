@@ -6,7 +6,7 @@ from MrZeroTree import MrZeroTree,PV_NET
 from OfflineInterface import OfflineInterface
 import torch
 
-def benchmark(save_name,mcts_searchnum=None,pv_deep=None,print_process=True):
+def benchmark(print_process=True):
     """
         benchmark raw network against MrGreed
         METHOD=-1, N1=512, 7min
@@ -14,18 +14,32 @@ def benchmark(save_name,mcts_searchnum=None,pv_deep=None,print_process=True):
     """
     import itertools,numpy
 
-    N1=128;N2=2;
-    log("start benchmark against MrGreed for %dx%d, file: %s"%(N1,N2,save_name))
+    against_greed=True
+
+    device_bench=torch.device("cpu")
+    save_name_0="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
+    pv_net_0=torch.load(save_name_0,map_location=device_bench)
+    
+    if not against_greed:
+        del save_name_0
+        save_name_1="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
+        pv_net_1=torch.load(save_name_1,map_location=device_bench)
+        pv_net_1.to(device_bench)
+        del save_name_1
+
+    mcts_searchnum=-2
+    pv_deep=0
     log("benchmark method: %d, pv_deep: %d"%(mcts_searchnum,pv_deep))
+    zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep) for i in [0,2]]
+    if against_greed:
+        g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
+        interface=OfflineInterface([zt0[0],g[0],zt0[1],g[1]],print_flag=False)
+    else:
+        zt1=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_1,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep) for i in [1,3]]
+        interface=OfflineInterface([zt[0],zt1[0],zt0[1],zt1[1]],print_flag=False)
 
-    device_bench=torch.device("cuda:3")
-    pv_net=torch.load(save_name)
-    pv_net.to(device_bench)
-
-    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep) for i in [0,2]]
-    g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
-    interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
-
+    N1=128;N2=2;
+    log("%s v.s. %s for %dx%d"%(interface.players[0].__class__.__name__,interface.players[1].__class__.__name__,N1,N2))
     stats=[]
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
@@ -108,8 +122,5 @@ def plot_log(fileperfix):
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    plot_log("from-zero-10")
-    """try:
-        benchmark("./ZeroNets/from-one-6g/PV_NET-11-2247733-600.pkl",mcts_searchnum=-1,pv_deep=6,print_process=False)
-    except:
-        log("",l=3)"""
+    #plot_log("from-zero-10")
+    benchmark()
