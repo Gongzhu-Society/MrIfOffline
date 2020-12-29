@@ -108,7 +108,7 @@ def plot_log(fileperfix):
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    plot_log("from-zero-9")
+    plot_log("from-zero-10")
     """try:
         benchmark("./ZeroNets/from-one-6g/PV_NET-11-2247733-600.pkl",mcts_searchnum=-1,pv_deep=6,print_process=False)
     except:

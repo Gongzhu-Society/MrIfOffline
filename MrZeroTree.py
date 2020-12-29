@@ -314,7 +314,7 @@ class MrZeroTree(MrRandom):
         if print_level>=1:
             log(d_legal)
         if self.train_mode:
-            d_legal={k:v+numpy.random.normal(scale=self.N_SAMPLE*5) for k,v in d_legal.items()} #5*2*3=30
+            d_legal={k:v+numpy.random.normal(scale=self.N_SAMPLE*8) for k,v in d_legal.items()} #5*2*3=30
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
@@ -436,11 +436,11 @@ BENCHMARK_SAMPLE=-1
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=12
-    data_timeout=60
+    data_timeout=45
     loss2_weight=0.03
-    train_sample=-4
+    train_sample=-2
     pv_deep=0
-    review_number=3
+    review_number=2
     age_in_epoch=3
     log("BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_SAMPLE: %d"%(BETA,VALUE_RENORMAL,BENCHMARK_SAMPLE))
     log("loss2_weight: %.2f, data_rounds: %dx%d, train_sample: %d, pv_deep: %d, review_number: %d, age_in_epoch: %d"
@@ -451,8 +451,6 @@ def train(pv_net,device_train_nums=[0,1,2]):
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
-    data_rounds*=review_number
-    data_timeout*=review_number
     train_datas=[]
     p_benchmark=None
     rest_flag=False
@@ -467,10 +465,6 @@ def train(pv_net,device_train_nums=[0,1,2]):
             p_benchmark=Process(target=benchmark,args=(save_name,epoch))
             p_benchmark.start()
 
-        if epoch==1:
-            data_rounds=data_rounds//review_number
-            data_timeout=data_timeout//review_number
-
         data_queue=Queue()
         if rest_flag:
             log("resting...");time.sleep(120);rest_flag=False
@@ -481,10 +475,11 @@ def train(pv_net,device_train_nums=[0,1,2]):
         else:
             time.sleep(data_timeout//2)
 
-        train_datas=train_datas[len(train_datas)//review_number:]
+        if epoch>=review_number:
+            train_datas=train_datas[len(train_datas)//review_number:]
         for i in device_train_nums:
             try:
-                queue_get=data_queue.get(block=True,timeout=data_timeout*3+30)
+                queue_get=data_queue.get(block=True,timeout=data_timeout*2+30)
                 train_datas+=queue_get
             except:
                 log("get data failed AGAIN at epoch %d! Has got %d datas."%(epoch,len(train_datas)),l=2)
