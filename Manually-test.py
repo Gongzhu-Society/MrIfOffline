@@ -6,7 +6,7 @@ from MrZeroTree import MrZeroTree,PV_NET
 from OfflineInterface import OfflineInterface
 import torch
 
-def benchmark(print_process=True):
+def benchmark(print_process=False):
     """
         benchmark raw network against MrGreed
         METHOD=-1, N1=512, 7min
@@ -16,7 +16,8 @@ def benchmark(print_process=True):
 
     against_greed=True
 
-    device_bench=torch.device("cpu")
+    device_bench=torch.device("cuda:0")
+    log(device_bench)
     save_name_0="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
     pv_net_0=torch.load(save_name_0,map_location=device_bench)
     
@@ -27,15 +28,16 @@ def benchmark(print_process=True):
         pv_net_1.to(device_bench)
         del save_name_1
 
-    mcts_searchnum=-2
+    mcts_searchnum=50
     pv_deep=0
-    log("benchmark method: %d, pv_deep: %d"%(mcts_searchnum,pv_deep))
-    zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep) for i in [0,2]]
+    n_sample=10
+    log("benchmark method: %d, pv_deep: %d, n_sample: %d"%(mcts_searchnum,pv_deep,n_sample))
+    zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep,N_SAMPLE=n_sample) for i in [0,2]]
     if against_greed:
         g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
         interface=OfflineInterface([zt0[0],g[0],zt0[1],g[1]],print_flag=False)
     else:
-        zt1=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_1,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep) for i in [1,3]]
+        zt1=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_1,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep,N_SAMPLE=n_sample) for i in [1,3]]
         interface=OfflineInterface([zt[0],zt1[0],zt0[1],zt1[1]],print_flag=False)
 
     N1=128;N2=2;

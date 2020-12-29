@@ -170,12 +170,13 @@ class PV_NET(nn.Module):
         return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
 
 class MrZeroTree(MrRandom):
-    def __init__(self,room=0,place=0,name="default",N_SAMPLE=5,pv_net=None,device=None,mcts_searchnum=None,pv_deep=None,train_mode=False):
+    def __init__(self,room=0,place=0,name="default",N_SAMPLE=20,pv_net=None,device=None,mcts_b=None,mcts_k=None,pv_deep=None,train_mode=False):
         MrRandom.__init__(self,room,place,name)
         self.pv_net=pv_net
         self.train_mode=train_mode
         self.N_SAMPLE=N_SAMPLE
-        self.mcts_searchnum=mcts_searchnum
+        self.mcts_b=mcts_b
+        self.mcts_k=mcts_k
         self.pv_deep=pv_deep
         self.device=device
         if self.train_mode:
@@ -241,17 +242,29 @@ class MrZeroTree(MrRandom):
                 _,v=self.pv_net(netin.to(self.device))
             return v.item()*state.getCurrentPlayer()+state.getReward()
         else:
-            netin=MrZeroTree.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.pnext)
+            """netin=MrZeroTree.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.pnext)
             with torch.no_grad():
                 p,_=self.pv_net(netin.to(self.device))
             legal_choice=state.getPossibleActions()
             p_legal=numpy.array([p[ORDER_DICT[c]].item() for c in legal_choice])
             p_legal=numpy.exp(p_legal-max(p_legal))
             p_legal/=p_legal.sum()
-            action=numpy.random.choice(legal_choice,p=p_legal)
+            action=numpy.random.choice(legal_choice,p=p_legal)"""
+            action=numpy.random.choice(state.getPossibleActions())
             neostate=state.takeAction(action)
             return self.pv_policy(neostate,deep-1)
-
+        
+    def minmax_notgood(action,node):
+        if len(node.children)==0:
+            return node.totalReward/node.numVisits
+        else:
+            l=[MrZeroTree.minmax(action,subnode) for action,subnode in node.children.items()]
+            if node.state.getCurrentPlayer()==1:
+                l.sort(reverse=True)
+            else:
+                l.sort()
+            return l[0]
+        
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
@@ -270,7 +283,7 @@ class MrZeroTree(MrRandom):
 
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice} #dict of legal choice
-        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=self.N_SAMPLE,METHOD1_PREFERENCE=2000,exhaust_threshold=40)
+        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=self.N_SAMPLE,METHOD1_PREFERENCE=2000,exhaust_threshold=self.N_SAMPLE*2+20)
         for cards_list_list in sce_gen:
             #initialize gamestate
             cards_lists=[None,None,None,None]
@@ -282,18 +295,24 @@ class MrZeroTree(MrRandom):
                 log("gened scenario: %s"%(cards_lists))
 
             #mcts
-            if self.mcts_searchnum!=0:
-                if self.mcts_searchnum>0:
-                    searchnum=self.mcts_searchnum
-                elif self.mcts_searchnum<0:
-                    searchnum=-1*self.mcts_searchnum*len(legal_choice)
-                searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,explorationConstant=50,pv_deep=self.pv_deep)
+            if self.mcts_b>=0:
+                searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
+                searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
+                              explorationConstant=50,pv_deep=self.pv_deep)
                 searcher.search(initialState=gamestate,needNodeValue=False)
-                for action,node in searcher.root.children.items():
-                    d_legal[action]+=node.totalReward/node.numVisits
+                if self.train_mode:
+                    d_legal_temp={}
+                    for action,node in searcher.root.children.items():
+                        #node_value=MrZeroTree.minmax(action,node)
+                        node_value=node.totalReward/node.numVisits
+                        d_legal[action]+=node_value
+                        d_legal_temp[action]=node_value
+                else:
+                    for action,node in searcher.root.children.items():
+                        d_legal[action]+=node.totalReward/node.numVisits
+                        #d_legal[action]+=MrZeroTree.minmax(action,node)
                 #save data for train
                 if self.train_mode:
-                    d_legal_temp={action:node.totalReward/node.numVisits for action,node in searcher.root.children.items()}
                     value_max=max(d_legal_temp.values())
                     target_p=torch.zeros(52);legal_mask=torch.zeros(52)
                     for k,v in d_legal_temp.items():
@@ -303,8 +322,9 @@ class MrZeroTree(MrRandom):
                     target_v=torch.tensor(value_max-gamestate.getReward())
                     netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                     self.train_datas.append((netin,target_p,target_v,legal_mask))
-            """elif self.mcts_searchnum==-2:
-                netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
+            else:
+                log("reserved")
+                """netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                 with torch.no_grad():
                     p,_=self.pv_net(netin.to(self.device))
                 p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
@@ -314,15 +334,13 @@ class MrZeroTree(MrRandom):
         if print_level>=1:
             log(d_legal)
         if self.train_mode:
-            d_legal={k:v+numpy.random.normal(scale=self.N_SAMPLE*8) for k,v in d_legal.items()} #5*2*3=30
+            d_legal={k:v+numpy.random.normal(scale=self.N_SAMPLE*2) for k,v in d_legal.items()} #2*2*3=12
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
 def benchmark(save_name,epoch,device_num=3,print_process=False):
     """
         benchmark raw network against MrGreed
-        METHOD=-1, N1=512, 7min
-        METHOD=-2, N1=512, 3.5min
     """
     N1=512;N2=2;
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
@@ -331,7 +349,7 @@ def benchmark(save_name,epoch,device_num=3,print_process=False):
     pv_net=torch.load(save_name)
     pv_net.to(device_bench)
 
-    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_searchnum=BENCHMARK_SAMPLE,pv_deep=0) for i in [0,2]]
+    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,mcts_b=BENCH_B,mcts_k=BENCH_K,pv_deep=0) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
 
@@ -351,66 +369,14 @@ def benchmark(save_name,epoch,device_num=3,print_process=False):
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
-
-class MrGreedData(MrGreed):
-    def __init__(self,room=0,place=0,name="default"):
-        MrGreed.__init__(self,room,place,name)
-        self.train_datas=[]
-
-    def pick_a_card(self):
-        best_choice,d_legal_temp=MrGreed.pick_a_card(self,need_details=True)
-        if d_legal_temp!=None:
-            value_max=max(d_legal_temp.values())
-            target_p=torch.zeros(52);legal_mask=torch.zeros(52)
-            for k,v in d_legal_temp.items():
-                target_p[ORDER_DICT[k]]=math.exp(BETA*(v-value_max))
-                legal_mask[ORDER_DICT[k]]=1
-            target_p/=target_p.sum()
-            target_v=torch.tensor(value_max)
-            #prepare netin
-            sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=1)
-            cards_list_list=sce_gen.__iter__().__next__()
-            cards_lists=[None,None,None,None]
-            cards_lists[self.place]=copy.copy(self.cards_list)
-            for i in range(3):
-                cards_lists[(self.place+i+1)%4]=cards_list_list[i]
-            netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
-            #append
-            self.train_datas.append((netin,target_p,target_v,legal_mask))
-        return best_choice
-
-    def prepare_train_data(data_queue):
-        """
-            prepare train data using MrGreed
-        """
-        gd=[MrGreedData(room=254,place=i,name='greedata%d'%(i)) for i in range(4)]
-        interface=OfflineInterface([gd[0],gd[1],gd[2],gd[3]],print_flag=False)
-
-        N1=10
-        for k in range(N1):
-            cards=interface.shuffle()
-            for i in range(52):
-                interface.step()
-            interface.clear()
-            interface.prepare_new()
-
-        datas=[]
-        for i in range(4):
-            datas+=gd[0].train_datas
-        data_queue.put(datas,block=False)
-
-        while not data_queue.empty():
-            time.sleep(1)
-        time.sleep(2)
-
-def prepare_train_data(pv_net,device_num,data_rounds,train_sample,pv_deep,data_queue):#,data_lock):
+def prepare_train_data(pv_net,device_num,data_rounds,train_b,train_k,pv_deep,data_queue):#,data_lock):
     """
         prepare train data by self-learning
     """
     try:
         device_train=torch.device("cuda:%d"%(device_num))
         pv_net.to(device_train)
-        zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,mcts_searchnum=train_sample,pv_deep=pv_deep) for i in range(4)]
+        zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,mcts_b=train_b,mcts_k=train_k,pv_deep=pv_deep) for i in range(4)]
         interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
 
         for k in range(data_rounds):
@@ -432,19 +398,21 @@ def prepare_train_data(pv_net,device_num,data_rounds,train_sample,pv_deep,data_q
 print_level=0
 VALUE_RENORMAL=10
 BETA=0.2
-BENCHMARK_SAMPLE=-1
+BENCH_B=0
+BENCH_K=1
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=12
-    data_timeout=45
+    data_timeout=540
     loss2_weight=0.03
-    train_sample=-2
+    train_b=40
+    train_k=2
     pv_deep=0
-    review_number=2
+    review_number=3
     age_in_epoch=3
-    log("BETA: %.2f, VALUE_RENORMAL: %d, BENCHMARK_SAMPLE: %d"%(BETA,VALUE_RENORMAL,BENCHMARK_SAMPLE))
-    log("loss2_weight: %.2f, data_rounds: %dx%d, train_sample: %d, pv_deep: %d, review_number: %d, age_in_epoch: %d"
-        %(loss2_weight,len(device_train_nums),data_rounds,train_sample,pv_deep,review_number,age_in_epoch))
+    log("BETA: %.2f, VALUE_RENORMAL: %d, BENCH_B: %d, BENCH_K: %d"%(BETA,VALUE_RENORMAL,BENCH_B,BENCH_K))
+    log("loss2_weight: %.2f, data_rounds: %dx%d, train_b: %d, train_k: %d, pv_deep: %d, review_number: %d, age_in_epoch: %d"
+        %(loss2_weight,len(device_train_nums),data_rounds,train_b,train_k,pv_deep,review_number,age_in_epoch))
 
     device_main=torch.device("cuda:0")
     pv_net=pv_net.to(device_main)
@@ -469,7 +437,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
         if rest_flag:
             log("resting...");time.sleep(120);rest_flag=False
         for i in device_train_nums:
-            p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,train_sample,pv_deep,data_queue))
+            p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,train_b,train_k,pv_deep,data_queue))
             #p=Process(target=MrGreedData.prepare_train_data,args=(data_queue,))
             p.start()
         else:
@@ -486,11 +454,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 rest_flag=True
 
         train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
-        trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=64,drop_last=True,shuffle=True)
-        """batch.append(torch.stack([i[0] for i in train_datas]).to(device_main))
-        batch.append(torch.stack([i[1] for i in train_datas]).to(device_main))
-        batch.append(torch.stack([i[2] for i in train_datas]).to(device_main))
-        batch.append(torch.stack([i[3] for i in train_datas]).to(device_main))"""
+        trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=256,drop_last=True,shuffle=True)
 
         output_flag=False
         if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
