@@ -1,0 +1,107 @@
+20/12/30 01:14:35 249 [INFO,main:492] start from: ./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl
+20/12/30 01:14:35 249 [INFO,train:414] BETA: 0.20, VALUE_RENORMAL: 10, BENCH_B: 0, BENCH_K: 1
+20/12/30 01:14:35 249 [INFO,train:416] loss2_weight: 0.03, data_rounds: 3x6, train_b: 40, train_k: 2, pv_deep: 0, review_number: 3, age_in_epoch: 3
+20/12/30 01:14:35 250 [INFO,train:421] optimizer: {'lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-07, 'weight_decay': 0.0001, 'amsgrad': False}
+20/12/30 01:14:35 952 [INFO,benchmark:347] start benchmark against MrGreed for 512x2
+20/12/30 01:19:29 533 [INFO,train:481] 0: 0.27 30.69 17916 69
+20/12/30 01:19:29 533 [INFO,train:482]         epoch 0 age 0: 0.27 30.69
+20/12/30 01:19:30 478 [INFO,train:482]         epoch 0 age 1: 0.09 12.88
+20/12/30 01:19:31 427 [INFO,train:482]         epoch 0 age 2: 0.05 6.06
+20/12/30 01:24:31 613 [INFO,train:481] 1: 0.17 19.07 36332 141
+20/12/30 01:24:31 613 [INFO,train:482]         epoch 1 age 0: 0.17 19.07
+20/12/30 01:24:33 556 [INFO,train:482]         epoch 1 age 1: 0.06 7.03
+20/12/30 01:24:35 532 [INFO,train:482]         epoch 1 age 2: 0.04 5.22
+20/12/30 01:29:23 043 [INFO,train:481] 2: 0.12 12.61 54484 212
+20/12/30 01:29:23 043 [INFO,train:482]         epoch 2 age 0: 0.12 12.61
+20/12/30 01:29:26 056 [INFO,train:482]         epoch 2 age 1: 0.05 5.73
+20/12/30 01:29:29 056 [INFO,train:482]         epoch 2 age 2: 0.04 4.65
+20/12/30 01:34:20 029 [INFO,train:481] 3: 0.11 14.41 53775 210
+20/12/30 01:34:20 029 [INFO,train:482]         epoch 3 age 0: 0.11 14.41
+20/12/30 01:34:22 907 [INFO,train:482]         epoch 3 age 1: 0.05 6.09
+20/12/30 01:34:25 826 [INFO,train:482]         epoch 3 age 2: 0.04 4.60
+20/12/30 01:39:26 311 [INFO,train:481] 4: 0.12 14.40 54646 213
+20/12/30 01:39:26 312 [INFO,train:482]         epoch 4 age 0: 0.12 14.40
+20/12/30 01:39:29 318 [INFO,train:482]         epoch 4 age 1: 0.05 5.75
+20/12/30 01:39:32 298 [INFO,train:482]         epoch 4 age 2: 0.04 4.33
+20/12/30 01:44:31 148 [INFO,train:481] 5: 0.11 13.76 54815 214
+20/12/30 01:44:31 148 [INFO,train:482]         epoch 5 age 0: 0.11 13.76
+20/12/30 01:44:34 191 [INFO,train:482]         epoch 5 age 1: 0.05 5.41
+20/12/30 01:44:37 271 [INFO,train:482]         epoch 5 age 2: 0.03 4.22
+20/12/30 01:51:03 847 [INFO,benchmark:371] benchmark at epoch 0's result: -40.60 8.43
+20/12/30 02:09:09 864 [INFO,train:481] 10: 0.11 13.32 54572 213
+20/12/30 02:09:09 864 [INFO,train:482]         epoch 10 age 0: 0.11 13.32
+20/12/30 02:09:12 229 [INFO,train:482]         epoch 10 age 1: 0.05 5.96
+20/12/30 02:09:14 661 [INFO,train:482]         epoch 10 age 2: 0.04 4.63
+20/12/30 02:33:35 085 [INFO,train:481] 15: 0.10 11.84 55057 215
+20/12/30 02:33:35 086 [INFO,train:482]         epoch 15 age 0: 0.10 11.84
+20/12/30 02:33:37 491 [INFO,train:482]         epoch 15 age 1: 0.04 4.64
+20/12/30 02:33:39 906 [INFO,train:482]         epoch 15 age 2: 0.03 3.77
+20/12/30 02:58:19 457 [INFO,train:481] 20: 0.09 10.57 54192 211
+20/12/30 02:58:19 457 [INFO,train:482]         epoch 20 age 0: 0.09 10.57
+20/12/30 02:58:21 748 [INFO,train:482]         epoch 20 age 1: 0.04 4.21
+20/12/30 02:58:24 101 [INFO,train:482]         epoch 20 age 2: 0.03 3.41
+20/12/30 03:23:16 140 [INFO,train:481] 25: 0.10 15.26 54126 211
+20/12/30 03:23:16 140 [INFO,train:482]         epoch 25 age 0: 0.10 15.26
+20/12/30 03:23:18 496 [INFO,train:482]         epoch 25 age 1: 0.04 5.85
+20/12/30 03:23:20 851 [INFO,train:482]         epoch 25 age 2: 0.03 4.20
+20/12/30 03:48:18 908 [INFO,train:481] 30: 0.10 14.17 54690 213
+20/12/30 03:48:18 908 [INFO,train:482]         epoch 30 age 0: 0.10 14.17
+20/12/30 03:48:21 217 [INFO,train:482]         epoch 30 age 1: 0.04 5.19
+20/12/30 03:48:23 521 [INFO,train:482]         epoch 30 age 2: 0.03 4.13
+20/12/30 04:12:51 265 [INFO,train:481] 35: 0.10 11.39 54982 214
+20/12/30 04:12:51 266 [INFO,train:482]         epoch 35 age 0: 0.10 11.39
+20/12/30 04:12:53 651 [INFO,train:482]         epoch 35 age 1: 0.04 4.09
+20/12/30 04:12:55 999 [INFO,train:482]         epoch 35 age 2: 0.03 3.51
+20/12/30 04:37:18 233 [INFO,train:481] 40: 0.09 10.92 54476 212
+20/12/30 04:37:18 233 [INFO,train:482]         epoch 40 age 0: 0.09 10.92
+20/12/30 04:37:20 552 [INFO,train:482]         epoch 40 age 1: 0.04 4.64
+20/12/30 04:37:22 978 [INFO,train:482]         epoch 40 age 2: 0.03 3.83
+20/12/30 05:01:37 304 [WARN,train:454] get data failed AGAIN at epoch 43! Has got 49312 datas.
+20/12/30 05:01:45 969 [INFO,train:439] resting...
+20/12/30 06:27:14 397 [INFO,train:481] 60: 0.10 11.48 54876 214
+20/12/30 06:27:14 397 [INFO,train:482]         epoch 60 age 0: 0.10 11.48
+20/12/30 06:27:16 763 [INFO,train:482]         epoch 60 age 1: 0.04 4.25
+20/12/30 06:27:19 121 [INFO,train:482]         epoch 60 age 2: 0.03 3.46
+20/12/30 06:46:18 827 [WARN,train:454] get data failed AGAIN at epoch 62! Has got 48084 datas.
+20/12/30 06:46:27 377 [INFO,train:439] resting...
+20/12/30 07:51:41 754 [WARN,train:454] get data failed AGAIN at epoch 73! Has got 46758 datas.
+20/12/30 07:51:50 081 [INFO,train:439] resting...
+20/12/30 08:23:23 331 [INFO,benchmark:347] start benchmark against MrGreed for 512x2
+20/12/30 08:28:20 031 [INFO,train:481] 80: 0.10 10.80 53800 210
+20/12/30 08:28:20 031 [INFO,train:482]         epoch 80 age 0: 0.10 10.80
+20/12/30 08:28:22 996 [INFO,train:482]         epoch 80 age 1: 0.04 4.18
+20/12/30 08:28:25 954 [INFO,train:482]         epoch 80 age 2: 0.03 3.38
+20/12/30 09:00:43 816 [INFO,benchmark:371] benchmark at epoch 80's result: -47.40 8.00
+20/12/30 10:07:36 968 [INFO,train:481] 100: 0.09 12.62 54831 214
+20/12/30 10:07:36 968 [INFO,train:482]         epoch 100 age 0: 0.09 12.62
+20/12/30 10:07:39 418 [INFO,train:482]         epoch 100 age 1: 0.03 4.90
+20/12/30 10:07:41 803 [INFO,train:482]         epoch 100 age 2: 0.02 3.76
+20/12/30 11:46:37 668 [INFO,train:481] 120: 0.09 12.43 53948 210
+20/12/30 11:46:37 669 [INFO,train:482]         epoch 120 age 0: 0.09 12.43
+20/12/30 11:46:40 065 [INFO,train:482]         epoch 120 age 1: 0.04 5.59
+20/12/30 11:46:42 362 [INFO,train:482]         epoch 120 age 2: 0.03 3.99
+20/12/30 13:10:08 193 [WARN,train:454] get data failed AGAIN at epoch 135! Has got 47633 datas.
+20/12/30 13:10:16 903 [INFO,train:439] resting...
+20/12/30 13:36:53 157 [INFO,train:481] 140: 0.09 11.89 53031 207
+20/12/30 13:36:53 157 [INFO,train:482]         epoch 140 age 0: 0.09 11.89
+20/12/30 13:36:55 475 [INFO,train:482]         epoch 140 age 1: 0.04 4.90
+20/12/30 13:36:57 996 [INFO,train:482]         epoch 140 age 2: 0.03 3.66
+20/12/30 15:11:44 917 [INFO,benchmark:347] start benchmark against MrGreed for 512x2
+20/12/30 15:16:50 442 [INFO,train:481] 160: 0.09 13.33 54790 214
+20/12/30 15:16:50 442 [INFO,train:482]         epoch 160 age 0: 0.09 13.33
+20/12/30 15:16:53 468 [INFO,train:482]         epoch 160 age 1: 0.03 4.86
+20/12/30 15:16:56 535 [INFO,train:482]         epoch 160 age 2: 0.02 3.66
+20/12/30 15:48:37 392 [INFO,benchmark:371] benchmark at epoch 160's result: -68.92 7.85
+20/12/30 15:49:59 324 [WARN,train:454] get data failed AGAIN at epoch 167! Has got 35282 datas.
+20/12/30 15:50:00 034 [WARN,train:454] get data failed AGAIN at epoch 167! Has got 35282 datas.
+20/12/30 15:50:00 834 [WARN,train:454] get data failed AGAIN at epoch 167! Has got 35282 datas.
+20/12/30 15:50:01 481 [ERR,main:496] :
+Traceback (most recent call last):
+  File "./MrZeroTree.py", line 494, in main
+    train(pv_net)
+  File "./MrZeroTree.py", line 457, in train
+    train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
+  File "./MrZeroTree.py", line 457, in <listcomp>
+    train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
+KeyboardInterrupt
+

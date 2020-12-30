@@ -62,7 +62,7 @@ class OfflineInterface():
         #get this player's choice
         choice=self.players[self.pnext].pick_a_card()
         if not self.judge_legal(choice):
-            log("choice %s, %s illegal"%(choice,self.cards_on_table))
+            log("choice %s, %s illegal"%(choice,self.cards_on_table),l=2)
             input()
             return 1
         self.cards_remain[self.pnext].remove(choice)
@@ -96,6 +96,47 @@ class OfflineInterface():
             self.cards_on_table=[self.pnext,]
             if self.print_flag:
                 log("trick end. winner is %s, %s"%(self.pnext,self.scores))
+        else:
+            self.pnext=(self.pnext+1)%4
+        return 0
+
+    def step_complete_info(self):
+        #初始化玩家
+        self.players[self.pnext].cards_on_table=copy.copy(self.cards_on_table)
+        self.players[self.pnext].history=copy.deepcopy(self.history)
+        self.players[self.pnext].scores=copy.deepcopy(self.scores)
+        self.players[self.pnext].cards_remain=copy.deepcopy(self.cards_remain)
+        #get this player's choice
+        choice=self.players[self.pnext].pick_a_card_complete_info()
+        if not self.judge_legal(choice):
+            raise Exception("What's wrong with your agency?")
+        self.cards_remain[self.pnext].remove(choice)
+        self.players[self.pnext].cards_list.remove(choice)
+        self.cards_on_table.append(choice)
+        #如果一墩结束
+        if len(self.cards_on_table)==5:
+            #判断赢家
+            winner=1
+            score_temp=ORDER_DICT2[self.cards_on_table[1][1]]
+            if self.cards_on_table[2][0]==self.cards_on_table[1][0]\
+            and ORDER_DICT2[self.cards_on_table[2][1]]>score_temp:
+                winner=2
+                score_temp=ORDER_DICT2[self.cards_on_table[2][1]]
+            if self.cards_on_table[3][0]==self.cards_on_table[1][0]\
+            and ORDER_DICT2[self.cards_on_table[3][1]]>score_temp:
+                winner=3
+                score_temp=ORDER_DICT2[self.cards_on_table[3][1]]
+            if self.cards_on_table[4][0]==self.cards_on_table[1][0]\
+            and ORDER_DICT2[self.cards_on_table[4][1]]>score_temp:
+                winner=4
+            self.pnext=(winner+self.pnext)%4
+            #结算有分的牌
+            for i in self.cards_on_table[1:]:
+                if i in SCORE_DICT:
+                    self.scores[self.pnext].append(i)
+            #更新数据结构
+            self.history.append(copy.copy(self.cards_on_table))
+            self.cards_on_table=[self.pnext,]
         else:
             self.pnext=(self.pnext+1)%4
         return 0
