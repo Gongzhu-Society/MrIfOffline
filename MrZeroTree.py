@@ -170,7 +170,8 @@ class PV_NET(nn.Module):
         return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
 
 class MrZeroTree(MrRandom):
-    def __init__(self,room=0,place=0,name="default",sample_b=None,sample_k=None,pv_net=None,device=None,mcts_b=None,mcts_k=None,pv_deep=0,train_mode=False):
+    def __init__(self,room=0,place=0,name="default",device=None,train_mode=False,
+                 sample_b=None,sample_k=None,pv_net=None,mcts_b=None,mcts_k=None,pv_deep=0):
         MrRandom.__init__(self,room,place,name)
         self.pv_net=pv_net
         self.device=device
@@ -286,7 +287,7 @@ class MrZeroTree(MrRandom):
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
         sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,
-                            number=self.sample_b+self.sample_k*len(self.cards_list))
+                            number=self.sample_b+int(self.sample_k*len(self.cards_list)))
         for cards_list_list in sce_gen:
             #initialize gamestate
             cards_lists=[None,None,None,None]
@@ -350,7 +351,10 @@ class MrZeroTree(MrRandom):
         gamestate=GameState(self.cards_remain,self.scores,self.cards_on_table,self.place)
 
         #mcts
-        searchnum=self.mcts_b#+self.mcts_k*len(legal_choice)
+        suit=self.decide_suit()
+        cards_dict=MrGreed.gen_cards_dict(self.cards_list)
+        legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
+        searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
                         explorationConstant=50,pv_deep=0)
         searcher.search(initialState=gamestate,needNodeValue=False)
@@ -369,8 +373,8 @@ class MrZeroTree(MrRandom):
         best_choice=MrGreed.pick_best_from_dlegal(d_legal_temp)
         return best_choice
 
-BENCH_SMP_B=5
-BENCH_SMP_K=0
+BENCH_SMP_B=10
+BENCH_SMP_K=1
 
 def benchmark(save_name,epoch,device_num=3,print_process=False):
     """
@@ -429,11 +433,11 @@ def prepare_train_data(pv_net,device_num,data_rounds,train_b,train_k,pv_deep,dat
         print(e)
         log("",l=3)
 
-def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,data_queue):
+def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
-                   mcts_b=train_b) for i in range(4)]
+                   mcts_b=train_b,mcts_k=train_k) for i in range(4)]
     interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
     for k in range(data_rounds):
         cards=interface.shuffle()
@@ -452,11 +456,11 @@ VALUE_RENORMAL=10
 BETA=0.2
 
 def train(pv_net,device_train_nums=[0,1,2]):
-    data_rounds=60
-    data_timeout=150
+    data_rounds=64
+    data_timeout=50
     loss2_weight=0.03
-    train_mcts_b=50
-    train_mcts_k=None
+    train_mcts_b=5
+    train_mcts_k=2
     review_number=3
     age_in_epoch=3
     log("BETA: %.2f, VALUE_RENORMAL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %d"%(BETA,VALUE_RENORMAL,BENCH_SMP_B,BENCH_SMP_K))
@@ -472,7 +476,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
     p_benchmark=None
     rest_flag=False
     for epoch in range(650):
-        if epoch%80==0:
+        if epoch%40==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
             if p_benchmark!=None:
@@ -482,17 +486,18 @@ def train(pv_net,device_train_nums=[0,1,2]):
             p_benchmark=Process(target=benchmark,args=(save_name,epoch))
             p_benchmark.start()
 
+        #start prepare data processes
         data_queue=Queue()
         if rest_flag:
             log("resting...");time.sleep(120);rest_flag=False
         for i in device_train_nums:
             p=Process(target=prepare_train_data_complete_info,
-                      args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,data_queue))
+                      args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue))
             #p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,train_b,train_k,pv_deep,data_queue))
             p.start()
         else:
             time.sleep(data_timeout//2)
-
+        #collect data
         if epoch>=review_number:
             train_datas=train_datas[len(train_datas)//review_number:]
         for i in device_train_nums:
@@ -506,9 +511,11 @@ def train(pv_net,device_train_nums=[0,1,2]):
         train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
         trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=128,drop_last=True,shuffle=True)
 
-        output_flag=False
+        
         if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
             output_flag=True
+        else:
+            output_flag=False
         for age in range(age_in_epoch):
             running_loss1=[];running_loss2=[]
             for batch in trainloader:
@@ -523,12 +530,27 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 running_loss1.append(loss1.item())
                 running_loss2.append(loss2.item())
             batchnum=len(running_loss1)
-            running_loss1=numpy.mean(running_loss1) #todo
+            running_loss1=numpy.mean(running_loss1)
             running_loss2=numpy.mean(running_loss2)
-            if output_flag and age in (0,1,2):
-                if age==0:
-                    log("%d: %.2f %.2f %d %d"%(epoch,running_loss1,running_loss2,len(train_datas),batchnum))
-                log("        epoch %d age %d: %.2f %.2f"%(epoch,age,running_loss1,running_loss2))
+            
+            if age==0:
+                if epoch==0:
+                    test_loss1=running_loss1
+                    test_loss2=running_loss2
+                elif epoch<review_number:
+                    test_loss1=running_loss1*(epoch+1)-last_loss1*epoch
+                    test_loss2=running_loss2*(epoch+1)-last_loss2*epoch
+                else:
+                    test_loss1=running_loss1*3-last_loss1*2
+                    test_loss2=running_loss2*3-last_loss2*2
+                if output_flag:
+                    log("%d: %.3f %.2f %d %d"%(epoch,test_loss1,test_loss2,len(train_datas),batchnum))
+            elif age==age_in_epoch-1:
+                last_loss1=running_loss1
+                last_loss2=running_loss2    
+            
+            if output_flag:
+                log("        epoch %d age %d: %.3f %.2f"%(epoch,age,running_loss1,running_loss2))
 
     log(p_benchmark)
     log("waiting benchmark threading to join: %s"%(p_benchmark.is_alive()))
