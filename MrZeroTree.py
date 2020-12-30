@@ -302,7 +302,7 @@ class MrZeroTree(MrRandom):
             if self.mcts_b>=0:
                 searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
                 searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
-                              explorationConstant=50,pv_deep=0)
+                              explorationConstant=MCTS_EXPL,pv_deep=0)
                 searcher.search(initialState=gamestate,needNodeValue=False)
                 if self.train_mode:
                     d_legal_temp={}
@@ -347,7 +347,7 @@ class MrZeroTree(MrRandom):
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
 
         #initialize gamestate
-        #assert self.cards_list==self.cards_remain[self.place]
+        assert self.cards_list==self.cards_remain[self.place]
         gamestate=GameState(self.cards_remain,self.scores,self.cards_on_table,self.place)
 
         #mcts
@@ -356,7 +356,7 @@ class MrZeroTree(MrRandom):
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
-                        explorationConstant=50,pv_deep=0)
+                        explorationConstant=MCTS_EXPL,pv_deep=0)
         searcher.search(initialState=gamestate,needNodeValue=False)
         d_legal_temp={action: node.totalReward/node.numVisits for action,node in searcher.root.children.items()}
         #save data for train
@@ -373,7 +373,7 @@ class MrZeroTree(MrRandom):
         best_choice=MrGreed.pick_best_from_dlegal(d_legal_temp)
         return best_choice
 
-BENCH_SMP_B=10
+BENCH_SMP_B=5
 BENCH_SMP_K=1
 
 def benchmark(save_name,epoch,device_num=3,print_process=False):
@@ -454,16 +454,18 @@ def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train
 print_level=0
 VALUE_RENORMAL=10
 BETA=0.2
+MCTS_EXPL=30
 
 def train(pv_net,device_train_nums=[0,1,2]):
     data_rounds=64
-    data_timeout=50
+    data_timeout=40
     loss2_weight=0.03
-    train_mcts_b=5
+    train_mcts_b=0
     train_mcts_k=2
     review_number=3
     age_in_epoch=3
-    log("BETA: %.2f, VALUE_RENORMAL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %d"%(BETA,VALUE_RENORMAL,BENCH_SMP_B,BENCH_SMP_K))
+    log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %d"\
+        %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
     log("loss2_weight: %.2f, data_rounds: %dx%d, train_mcts_b: %d, train_mcts_k: %s, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,len(device_train_nums),data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
 
