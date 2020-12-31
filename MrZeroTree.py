@@ -416,7 +416,8 @@ MCTS_EXPL=30
 
 def train(pv_net,device_train_nums=[3,2,1,0]):
     data_rounds=16
-    data_timeout=20
+    data_timeout=24
+    data_timerest=10
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
@@ -436,7 +437,7 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
     p_benchmark=None
     rest_flag=False
     for epoch in range(800):
-        if epoch%80==0:
+        if epoch%90==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
             if p_benchmark!=None:
@@ -446,28 +447,31 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
             p_benchmark=Process(target=benchmark,args=(save_name,epoch))
             p_benchmark.start()
         
-        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
+        if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%30==0:
             output_flag=True
         else:
             output_flag=False
             
         #start prepare data processes
-        data_queue=Queue()
         if rest_flag:
-            log("resting...");time.sleep(10);rest_flag=False
+            log("resting...");time.sleep(data_timerest);rest_flag=False
+        data_queue=Queue()
         for i in device_train_nums:
             p=Process(target=prepare_train_data_complete_info,
                       args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue,output_flag))
-            #p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,train_b,train_k,pv_deep,data_queue))
             p.start()
         else:
             time.sleep(data_timeout//2)
+        
         #collect data
         if epoch>=review_number:
             train_datas=train_datas[len(train_datas)//review_number:]
-        for i,j in itertools.product(device_train_nums,range(4)):
+        for i in range(len(device_train_nums)*4):
             try:
-                queue_get=data_queue.get(block=True,timeout=data_timeout*2+30)
+                if i==0:
+                    queue_get=data_queue.get(block=True,timeout=data_timeout*2+data_timerest)
+                else:
+                    queue_get=data_queue.get(block=True,timeout=data_timerest)
                 train_datas+=queue_get
             except:
                 log("get data failed AGAIN at epoch %d! Has got %d datas."%(epoch,len(train_datas)),l=2)
@@ -517,7 +521,7 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
 
 def main():
     #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    start_from="./ZeroNets/from-zero-14a/PV_NET-17-9479221-400.pkl"
+    start_from="./ZeroNets/from-zero-14b/PV_NET-17-9479221-400.pkl"
     pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     train(pv_net)
 
