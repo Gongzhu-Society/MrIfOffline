@@ -275,7 +275,7 @@ class MrZeroTree(MrRandom):
         suit=self.decide_suit() #inherited from MrRandom
         cards_dict=MrGreed.gen_cards_dict(self.cards_list)
         #如果别无选择
-        if (not self.train_mode) and cards_dict.get(suit)!=None and len(cards_dict[suit])==1:
+        if cards_dict.get(suit)!=None and len(cards_dict[suit])==1:
             choice=cards_dict[suit][0]
             if print_level>=1:
                 log("I have no choice but %s"%(choice))
@@ -286,8 +286,8 @@ class MrZeroTree(MrRandom):
 
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
-        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,
-                            number=self.sample_b+int(self.sample_k*len(self.cards_list)))
+        sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
+        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
         for cards_list_list in sce_gen:
             #initialize gamestate
             cards_lists=[None,None,None,None]
@@ -304,28 +304,9 @@ class MrZeroTree(MrRandom):
                 searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
                               explorationConstant=MCTS_EXPL,pv_deep=0)
                 searcher.search(initialState=gamestate,needNodeValue=False)
-                if self.train_mode:
-                    d_legal_temp={}
-                    for action,node in searcher.root.children.items():
-                        #node_value=MrZeroTree.minmax(action,node)
-                        node_value=node.totalReward/node.numVisits
-                        d_legal[action]+=node_value
-                        d_legal_temp[action]=node_value
-                else:
-                    for action,node in searcher.root.children.items():
-                        d_legal[action]+=node.totalReward/node.numVisits
-                        #d_legal[action]+=MrZeroTree.minmax(action,node)
-                #save data for train
-                if self.train_mode:
-                    value_max=max(d_legal_temp.values())
-                    target_p=torch.zeros(52);legal_mask=torch.zeros(52)
-                    for k,v in d_legal_temp.items():
-                        target_p[ORDER_DICT[k]]=math.exp(BETA*(v-value_max))
-                        legal_mask[ORDER_DICT[k]]=1
-                    target_p/=target_p.sum()
-                    target_v=torch.tensor(value_max-gamestate.getReward())
-                    netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
-                    self.train_datas.append((netin,target_p,target_v,legal_mask))
+                for action,node in searcher.root.children.items():
+                    d_legal[action]+=node.totalReward/node.numVisits
+                    #d_legal[action]+=MrZeroTree.minmax(action,node)
             else:
                 log("reserved",l=2)
                 """netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
@@ -337,17 +318,15 @@ class MrZeroTree(MrRandom):
 
         if print_level>=1:
             log(d_legal)
-        if self.train_mode:
-            d_legal={k:v+numpy.random.normal(scale=self.N_SAMPLE*2) for k,v in d_legal.items()} #2*2*3=12
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
     def pick_a_card_complete_info(self):
         #确认桌上牌的数量和自己坐的位置相符
-        assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
+        #assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
 
         #initialize gamestate
-        assert self.cards_list==self.cards_remain[self.place]
+        #assert self.cards_list==self.cards_remain[self.place]
         gamestate=GameState(self.cards_remain,self.scores,self.cards_on_table,self.place)
 
         #mcts
@@ -373,8 +352,8 @@ class MrZeroTree(MrRandom):
         best_choice=MrGreed.pick_best_from_dlegal(d_legal_temp)
         return best_choice
 
-BENCH_SMP_B=4
-BENCH_SMP_K=0.5
+BENCH_SMP_B=5
+BENCH_SMP_K=0
 
 def benchmark(save_name,epoch,device_num=0,print_process=False):
     """
@@ -408,29 +387,6 @@ def benchmark(save_name,epoch,device_num=0,print_process=False):
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
-def prepare_train_data(pv_net,device_num,data_rounds,train_b,train_k,pv_deep,data_queue):#,data_lock):
-    """
-        prepare train data by self-learning
-    """
-    try:
-        device_train=torch.device("cuda:%d"%(device_num))
-        pv_net.to(device_train)
-        zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,mcts_b=train_b,mcts_k=train_k,pv_deep=pv_deep) for i in range(4)]
-        interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
-
-        for k in range(data_rounds):
-            cards=interface.shuffle()
-            for i in range(52):
-                interface.step()
-            interface.clear()
-            interface.prepare_new()
-
-        datas=zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
-        data_queue.put(datas,block=False)
-    except Exception as e:
-        print(e)
-        log("",l=3)
-
 def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue,output_flag=False):
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
@@ -448,15 +404,17 @@ def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train
         s_temp=[sum(j)/4 for j in stats]
         log("avg score: %.1f"%(numpy.mean(s_temp)))"""
 
-    datas=zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
-    data_queue.put(datas,block=False)
+    for i in range(4):
+        data_queue.put(zt[i].train_datas,block=False)
+    #datas=zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
+    #data_queue.put(datas,block=False)
 
 print_level=0
 VALUE_RENORMAL=10
 BETA=0.2
 MCTS_EXPL=30
 
-def train(pv_net,device_train_nums=[0,1,2,3]):
+def train(pv_net,device_train_nums=[3,2,1,0]):
     data_rounds=16
     data_timeout=20
     loss2_weight=0.03
@@ -496,14 +454,10 @@ def train(pv_net,device_train_nums=[0,1,2,3]):
         #start prepare data processes
         data_queue=Queue()
         if rest_flag:
-            log("resting...");time.sleep(120);rest_flag=False
+            log("resting...");time.sleep(10);rest_flag=False
         for i in device_train_nums:
-            if i==0 and output_flag:
-                p=Process(target=prepare_train_data_complete_info,
-                          args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue,output_flag))
-            else:
-                p=Process(target=prepare_train_data_complete_info,
-                          args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue))
+            p=Process(target=prepare_train_data_complete_info,
+                      args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue,output_flag))
             #p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,train_b,train_k,pv_deep,data_queue))
             p.start()
         else:
@@ -511,7 +465,7 @@ def train(pv_net,device_train_nums=[0,1,2,3]):
         #collect data
         if epoch>=review_number:
             train_datas=train_datas[len(train_datas)//review_number:]
-        for i in device_train_nums:
+        for i,j in itertools.product(device_train_nums,range(4)):
             try:
                 queue_get=data_queue.get(block=True,timeout=data_timeout*2+30)
                 train_datas+=queue_get
@@ -519,7 +473,6 @@ def train(pv_net,device_train_nums=[0,1,2,3]):
                 log("get data failed AGAIN at epoch %d! Has got %d datas."%(epoch,len(train_datas)),l=2)
                 rest_flag=True
 
-        #train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
         trainloader=torch.utils.data.DataLoader(train_datas,batch_size=128,drop_last=True,shuffle=True)
         for age in range(age_in_epoch):
             running_loss1=[];running_loss2=[]
@@ -563,13 +516,10 @@ def train(pv_net,device_train_nums=[0,1,2,3]):
     log("benchmark threading should have joined: %s"%(p_benchmark.is_alive()))
 
 def main():
-    pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    #start_from="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
-    #pv_net=torch.load(start_from);log("start from: %s"%(start_from))
-    try:
-        train(pv_net)
-    except:
-        log("",l=3)
+    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
+    start_from="./ZeroNets/from-zero-14a/PV_NET-17-9479221-400.pkl"
+    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
+    train(pv_net)
 
 def manually_test(save_name):
     device_cpu=torch.device("cpu")
@@ -595,4 +545,3 @@ if __name__=="__main__":
 
     main()
     #manually_test("./ZeroNets/start-from-one-2nd/PV_NET-11-2247733-80.pkl")
-    #MrGreedData.prepare_train_data_greed(None)
