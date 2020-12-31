@@ -6,15 +6,15 @@ from MrRandom import MrRandom
 from MrGreed import MrGreed
 from ScenarioGen import ScenarioGen
 from OfflineInterface import OfflineInterface
+from MCTS.mcts import mcts
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 
-from MCTS.mcts import mcts
 from torch.multiprocessing import Process,Queue,Lock
 torch.multiprocessing.set_sharing_strategy('file_system') #fuck pytorch
+#import multiprocessing.pool
 import copy,itertools,numpy,time,math
 
 class GameState():
@@ -87,32 +87,6 @@ class PV_NET(nn.Module):
     """
         return 52 policy and 1 value
     """
-
-    """def __init__(self):
-        super(PV_NET,self).__init__()
-        #cards in four player(52*4), two cards on table(52*3*2), scores in four players
-        self.fc0=nn.Linear(52*4+(54*3+20*4)+16*4,1024)
-        self.fc1=nn.Linear(1024,1024)
-        self.fc2=nn.Linear(1024,256)
-        self.fc3=nn.Linear(256,256)
-        self.fc4=nn.Linear(256,256)
-        self.fc5=nn.Linear(256,256)
-        self.fc6=nn.Linear(256,256)
-        self.fc7=nn.Linear(256,256)
-        self.fc8=nn.Linear(256,256)
-        self.fcp=nn.Linear(256,52)
-        self.fcv=nn.Linear(256,1)
-
-    def forward(self, x):
-        x=F.relu(self.fc0(x))
-        x=F.relu(self.fc1(x))
-        x=F.relu(self.fc2(x))
-        x=F.relu(self.fc4(F.relu(self.fc3(x))))+x
-        x=F.relu(self.fc6(F.relu(self.fc5(x))))+x
-        x=F.relu(self.fc8(F.relu(self.fc7(x))))+x
-        p=self.fcp(x)
-        v=self.fcv(x)*VALUE_RENORMAL
-        return p,v"""
 
     def __init__(self):
         super(PV_NET,self).__init__()
@@ -387,12 +361,12 @@ def benchmark(save_name,epoch,device_num=0,print_process=False):
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
-def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue,output_flag=False):
+def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
                    mcts_b=train_b,mcts_k=train_k) for i in range(4)]
-    interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
+    interface=OfflineInterface(zt,print_flag=False)
     stats=[]
     for k in range(data_rounds):
         cards=interface.shuffle()
@@ -400,14 +374,16 @@ def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train
             interface.step_complete_info()
         stats.append(interface.clear())
         interface.prepare_new()
-    """if output_flag:
-        s_temp=[sum(j)/4 for j in stats]
-        log("avg score: %.1f"%(numpy.mean(s_temp)))"""
 
     for i in range(4):
-        data_queue.put(zt[i].train_datas,block=False)
-    #datas=zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
-    #data_queue.put(datas,block=False)
+        data_queue.put(copy.deepcopy(zt[i].train_datas),block=False)
+        
+    del stats,interface,zt,pv_net,device_train
+
+def clean_worker(*args,**kwargs):
+    import gc
+    prepare_train_data_complete_info(*args,**kwargs)
+    gc.collect()
 
 print_level=0
 VALUE_RENORMAL=10
@@ -415,9 +391,11 @@ BETA=0.2
 MCTS_EXPL=30
 
 def train(pv_net,device_train_nums=[3,2,1,0]):
-    data_rounds=16
-    data_timeout=24
-    data_timerest=10
+    import torch.optim as optim
+    import gc
+    data_rounds=16 #16
+    data_timeout=24 #24
+    data_timerest=10 #10
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
@@ -436,7 +414,8 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
     train_datas=[]
     p_benchmark=None
     rest_flag=False
-    for epoch in range(800):
+    data_queue=Queue()
+    for epoch in range(2000):
         if epoch%90==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -446,23 +425,24 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
                 p_benchmark.join()
             p_benchmark=Process(target=benchmark,args=(save_name,epoch))
             p_benchmark.start()
-        
-        if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%30==0:
+
+        if (epoch<=10) or (epoch<30 and epoch%5==0) or epoch%30==0:
             output_flag=True
+            log("gc len at %d: %d"%(epoch,len(gc.get_objects())))
         else:
             output_flag=False
-            
+
         #start prepare data processes
         if rest_flag:
             log("resting...");time.sleep(data_timerest);rest_flag=False
-        data_queue=Queue()
         for i in device_train_nums:
-            p=Process(target=prepare_train_data_complete_info,
-                      args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue,output_flag))
+            args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue)
+            #p=Process(target=prepare_train_data_complete_info,args=args)
+            p=Process(target=clean_worker,args=args)
             p.start()
         else:
-            time.sleep(data_timeout//2)
-        
+            time.sleep(data_timerest)
+
         #collect data
         if epoch>=review_number:
             train_datas=train_datas[len(train_datas)//review_number:]
@@ -494,7 +474,7 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
             batchnum=len(running_loss1)
             running_loss1=numpy.mean(running_loss1)
             running_loss2=numpy.mean(running_loss2)
-            
+
             if output_flag and age==0:
                 if epoch==0:
                     test_loss1=running_loss1
@@ -506,14 +486,15 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
                     test_loss1=running_loss1*3-last_loss1*2
                     test_loss2=running_loss2*3-last_loss2*2
                 log("%d: %.3f %.2f %d %d"%(epoch,test_loss1,test_loss2,len(train_datas),batchnum))
-            
+
             if age==age_in_epoch-1:
                 last_loss1=running_loss1
-                last_loss2=running_loss2    
-            
+                last_loss2=running_loss2
+
             if output_flag:
                 log("        epoch %d age %d: %.3f %.2f"%(epoch,age,running_loss1,running_loss2))
 
+        
     log(p_benchmark)
     log("waiting benchmark threading to join: %s"%(p_benchmark.is_alive()))
     p_benchmark.join()
@@ -521,7 +502,7 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
 
 def main():
     #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    start_from="./ZeroNets/from-zero-14b/PV_NET-17-9479221-400.pkl"
+    start_from="./ZeroNets/from-zero-14c/PV_NET-17-9479221-450.pkl"
     pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     train(pv_net)
 
