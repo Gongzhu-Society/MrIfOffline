@@ -373,10 +373,10 @@ class MrZeroTree(MrRandom):
         best_choice=MrGreed.pick_best_from_dlegal(d_legal_temp)
         return best_choice
 
-BENCH_SMP_B=5
-BENCH_SMP_K=1
+BENCH_SMP_B=4
+BENCH_SMP_K=0.5
 
-def benchmark(save_name,epoch,device_num=3,print_process=False):
+def benchmark(save_name,epoch,device_num=0,print_process=False):
     """
         benchmark raw network against MrGreed
     """
@@ -425,30 +425,30 @@ def prepare_train_data(pv_net,device_num,data_rounds,train_b,train_k,pv_deep,dat
             interface.clear()
             interface.prepare_new()
 
-        datas=[]
-        for i in range(4):
-            datas+=zt[0].train_datas
+        datas=zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
         data_queue.put(datas,block=False)
     except Exception as e:
         print(e)
         log("",l=3)
 
-def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
+def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue,output_flag=False):
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
                    mcts_b=train_b,mcts_k=train_k) for i in range(4)]
     interface=OfflineInterface([zt[0],zt[1],zt[2],zt[3]],print_flag=False)
+    stats=[]
     for k in range(data_rounds):
         cards=interface.shuffle()
         for i in range(52):
             interface.step_complete_info()
-        interface.clear()
+        stats.append(interface.clear())
         interface.prepare_new()
+    """if output_flag:
+        s_temp=[sum(j)/4 for j in stats]
+        log("avg score: %.1f"%(numpy.mean(s_temp)))"""
 
-    datas=[]
-    for i in range(4):
-        datas+=zt[0].train_datas
+    datas=zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
     data_queue.put(datas,block=False)
 
 print_level=0
@@ -456,17 +456,17 @@ VALUE_RENORMAL=10
 BETA=0.2
 MCTS_EXPL=30
 
-def train(pv_net,device_train_nums=[0,1,2]):
-    data_rounds=64
-    data_timeout=40
+def train(pv_net,device_train_nums=[0,1,2,3]):
+    data_rounds=16
+    data_timeout=20
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
     review_number=3
     age_in_epoch=3
-    log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %d"\
+    log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
-    log("loss2_weight: %.2f, data_rounds: %dx%d, train_mcts_b: %d, train_mcts_k: %s, review_number: %d, age_in_epoch: %d"
+    log("loss2_weight: %.2f, data_rounds: %dx%d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,len(device_train_nums),data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
 
     device_main=torch.device("cuda:0")
@@ -477,8 +477,8 @@ def train(pv_net,device_train_nums=[0,1,2]):
     train_datas=[]
     p_benchmark=None
     rest_flag=False
-    for epoch in range(650):
-        if epoch%40==0:
+    for epoch in range(800):
+        if epoch%80==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
             if p_benchmark!=None:
@@ -487,14 +487,23 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 p_benchmark.join()
             p_benchmark=Process(target=benchmark,args=(save_name,epoch))
             p_benchmark.start()
-
+        
+        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
+            output_flag=True
+        else:
+            output_flag=False
+            
         #start prepare data processes
         data_queue=Queue()
         if rest_flag:
             log("resting...");time.sleep(120);rest_flag=False
         for i in device_train_nums:
-            p=Process(target=prepare_train_data_complete_info,
-                      args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue))
+            if i==0 and output_flag:
+                p=Process(target=prepare_train_data_complete_info,
+                          args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue,output_flag))
+            else:
+                p=Process(target=prepare_train_data_complete_info,
+                          args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue))
             #p=Process(target=prepare_train_data,args=(copy.deepcopy(pv_net),i,data_rounds,train_b,train_k,pv_deep,data_queue))
             p.start()
         else:
@@ -510,21 +519,15 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 log("get data failed AGAIN at epoch %d! Has got %d datas."%(epoch,len(train_datas)),l=2)
                 rest_flag=True
 
-        train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
-        trainloader=torch.utils.data.DataLoader(train_datas_gpu,batch_size=128,drop_last=True,shuffle=True)
-
-        
-        if (epoch<=5) or (epoch<40 and epoch%5==0) or epoch%20==0:
-            output_flag=True
-        else:
-            output_flag=False
+        #train_datas_gpu=[[i[0].to(device_main),i[1].to(device_main),i[2].to(device_main),i[3].to(device_main)] for i in train_datas]
+        trainloader=torch.utils.data.DataLoader(train_datas,batch_size=128,drop_last=True,shuffle=True)
         for age in range(age_in_epoch):
             running_loss1=[];running_loss2=[]
             for batch in trainloader:
-                p,v=pv_net(batch[0])
-                log_p=F.log_softmax(p*batch[3],dim=1)
-                loss1=F.kl_div(log_p,batch[1],reduction="batchmean")
-                loss2=F.mse_loss(v.view(-1),batch[2],reduction='mean').sqrt()
+                p,v=pv_net(batch[0].to(device_main))
+                log_p=F.log_softmax(p*batch[3].to(device_main),dim=1)
+                loss1=F.kl_div(log_p,batch[1].to(device_main),reduction="batchmean")
+                loss2=F.mse_loss(v.view(-1),batch[2].to(device_main),reduction='mean').sqrt()
                 optimizer.zero_grad()
                 loss=loss1+loss2*loss2_weight
                 loss.backward()
@@ -535,7 +538,7 @@ def train(pv_net,device_train_nums=[0,1,2]):
             running_loss1=numpy.mean(running_loss1)
             running_loss2=numpy.mean(running_loss2)
             
-            if age==0:
+            if output_flag and age==0:
                 if epoch==0:
                     test_loss1=running_loss1
                     test_loss2=running_loss2
@@ -545,9 +548,9 @@ def train(pv_net,device_train_nums=[0,1,2]):
                 else:
                     test_loss1=running_loss1*3-last_loss1*2
                     test_loss2=running_loss2*3-last_loss2*2
-                if output_flag:
-                    log("%d: %.3f %.2f %d %d"%(epoch,test_loss1,test_loss2,len(train_datas),batchnum))
-            elif age==age_in_epoch-1:
+                log("%d: %.3f %.2f %d %d"%(epoch,test_loss1,test_loss2,len(train_datas),batchnum))
+            
+            if age==age_in_epoch-1:
                 last_loss1=running_loss1
                 last_loss2=running_loss2    
             
@@ -560,9 +563,9 @@ def train(pv_net,device_train_nums=[0,1,2]):
     log("benchmark threading should have joined: %s"%(p_benchmark.is_alive()))
 
 def main():
-    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    start_from="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
-    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
+    pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
+    #start_from="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
+    #pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     try:
         train(pv_net)
     except:
