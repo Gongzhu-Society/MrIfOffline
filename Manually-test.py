@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log
-from MrGreed import MrGreed
-from MrZeroTree import MrZeroTree,PV_NET
-from OfflineInterface import OfflineInterface
-import torch
 
 def benchmark(print_process=False):
     """
@@ -12,7 +8,10 @@ def benchmark(print_process=False):
         METHOD=-1, N1=512, 7min
         METHOD=-2, N1=512, 3.5min
     """
-    import itertools,numpy
+    from MrGreed import MrGreed
+    from MrZeroTree import MrZeroTree,PV_NET
+    from OfflineInterface import OfflineInterface
+    import itertools,numpy,torch
 
     against_greed=True
 
@@ -112,17 +111,24 @@ def plot_log(fileperfix):
     ax2=ax1.twinx()
 
     ax2.errorbar(t_bench,v_bench,yerr=e_bench,fmt='o--',capsize=5,label="Raw Value Network")
-    ax2.axhline(y=-80.3,dashes=(3,3),c='g',lw=3,label="Mr. If")
-    ax1.plot(t_loss,v_loss,'y^-',label="Loss2")
+    ax2.axhline(y=-80.3,dashes=(2,2),c='limegreen',lw=2,label="Mr. If")
+    ax2.axhline(y=0,dashes=(2,2),c='green',lw=2,label="Mr. Greed")
+    
+    
+    ax1.plot(t_loss,v_loss,'^-',c='tomato',label="Loss2")
+    
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Loss2 (Estimated)')
     ax1.grid(True,which='both',axis='x')
+    ax2.set_ylabel('Benchmark Result (with Error Bar)')
     ax2.grid(True,which='both',axis='y')
     ax1.xaxis.set_minor_locator(AutoMinorLocator(2))
-    #ax1.set_ylim((20,50))
-    ax1.legend()#loc=
+    ax1.set_ylim((20,60))
+    ax1.legend(loc=2)#loc=
     ax2.legend()
     plt.title(fileperfix)
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    #plot_log("from-zero-10")
-    benchmark()
+    plot_log("from-zero-14")
+    #benchmark()

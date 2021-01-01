@@ -9,13 +9,7 @@ from OfflineInterface import OfflineInterface
 from MCTS.mcts import mcts
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-from torch.multiprocessing import Process,Queue,Lock
-torch.multiprocessing.set_sharing_strategy('file_system') #fuck pytorch
-#import multiprocessing.pool
-import copy,itertools,numpy,time,math,gc
+import copy,gc,math
 
 class GameState():
     def __init__(self,cards_lists,score_lists,cards_on_table,play_for):
@@ -81,71 +75,14 @@ class GameState():
         #assert sum([len(i) for i in self.score_lists])==16
         scores=[calc_score(self.score_lists[(self.play_for+i)%4]) for i in range(4)]
         return scores[0]+scores[2]-scores[1]-scores[3]
-
-
-class PV_NET(nn.Module):
-    """
-        return 52 policy and 1 value
-    """
-
-    def __init__(self):
-        super(PV_NET,self).__init__()
-        #cards in four player(52*4), two cards on table(52*3*2), scores in four players
-        #totally 514
-        self.fc0=nn.Linear(52*4+(54*3+20*4)+16*4,2048)
-        self.fc1=nn.Linear(2048,2048)
-        self.fc2=nn.Linear(2048,512)
-
-        self.sc0a=nn.Linear(512,512)
-        self.sc0b=nn.Linear(512,512)
-        self.sc1a=nn.Linear(512,512)
-        self.sc1b=nn.Linear(512,512)
-        self.sc2a=nn.Linear(512,512)
-        self.sc2b=nn.Linear(512,512)
-        self.sc3a=nn.Linear(512,512)
-        self.sc3b=nn.Linear(512,512)
-        self.sc4a=nn.Linear(512,512)
-        self.sc4b=nn.Linear(512,512)
-        self.sc5a=nn.Linear(512,512)
-        self.sc5b=nn.Linear(512,512)
-
-        self.fcp=nn.Linear(512,52)
-        self.fcv=nn.Linear(512,1)
-
-    def forward(self, x):
-        x=F.relu(self.fc0(x))
-        x=F.relu(self.fc1(x))
-        x=F.relu(self.fc2(x))
-        x=F.relu(self.sc0b(F.relu(self.sc0a(x))))+x
-        x=F.relu(self.sc1b(F.relu(self.sc1a(x))))+x
-        x=F.relu(self.sc2b(F.relu(self.sc2a(x))))+x
-        x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x
-        x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x
-        x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x
-        p=self.fcp(x)
-        v=self.fcv(x)*VALUE_RENORMAL
-        return p,v
-
-    def num_paras(self):
-        return sum([p.numel() for p in self.parameters()])
-
-    def num_layers(self):
-        ax=0
-        for name,child in self.named_children():
-            ax+=1
-        return ax
-
-    def __str__(self):
-        stru=[]
-        for name,child in self.named_children():
-            if 'weight' in child.state_dict():
-                stru.append(tuple(child.state_dict()['weight'].t().size()))
-                #stru.append(child.state_dict()['weight'].shape)
-        return "%s %s %s"%(self.__class__.__name__,stru,self.num_paras())
-
+    
+print_level=0
+BETA=0.2
+MCTS_EXPL=30
+    
 class MrZeroTree(MrRandom):
-    def __init__(self,room=0,place=0,name="default",device=None,train_mode=False,
-                 sample_b=None,sample_k=None,pv_net=None,mcts_b=None,mcts_k=None,pv_deep=0):
+    def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
+                 sample_b=None,sample_k=None,mcts_b=None,mcts_k=None):
         MrRandom.__init__(self,room,place,name)
         self.pv_net=pv_net
         self.device=device
@@ -153,7 +90,6 @@ class MrZeroTree(MrRandom):
         self.sample_k=sample_k
         self.mcts_b=mcts_b
         self.mcts_k=mcts_k
-        self.pv_deep=pv_deep
         self.train_mode=train_mode
         if self.train_mode:
             self.train_datas=[]
@@ -186,18 +122,14 @@ class MrZeroTree(MrRandom):
             the order is [me-1,me-2,me-3]
         """
         assert (cards_on_table[0]+len(cards_on_table)-1)%4==place
-        """oh=torch.zeros(52*3+26*4)#,dtype=torch.uint8)
+        oh=torch.zeros(52*3)
         for i,c in enumerate(cards_on_table[:0:-1]):
             oh[52*i+ORDER_DICT[c]]=1
-        oh[52*3+26*(len(cards_on_table)-1):52*3+26*len(cards_on_table)]=1"""
-        """oh=torch.zeros(52*3)
-        for i,c in enumerate(cards_on_table[:0:-1]):
-            oh[52*i+ORDER_DICT[c]]=1"""
-        oh=torch.zeros(54*3+20*4)#,dtype=torch.uint8)
+        """oh=torch.zeros(54*3+20*4)#,dtype=torch.uint8)
         for i,c in enumerate(cards_on_table[:0:-1]):
             index=54*i+ORDER_DICT[c]
             oh[index-1:index+2]=1
-        oh[54*3+20*len(cards_on_table)-13:54*3+20*len(cards_on_table)]=1
+        oh[54*3+20*len(cards_on_table)-13:54*3+20*len(cards_on_table)]=1"""
         return oh
 
     def prepare_ohs(cards_lists,cards_on_table,score_lists,place):
@@ -219,17 +151,6 @@ class MrZeroTree(MrRandom):
             return v.item()*state.getCurrentPlayer()+state.getReward()
         else:
             log("pv-deep feature has been abondoned",l=2)
-            """netin=MrZeroTree.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.pnext)
-            with torch.no_grad():
-                p,_=self.pv_net(netin.to(self.device))
-            legal_choice=state.getPossibleActions()
-            p_legal=numpy.array([p[ORDER_DICT[c]].item() for c in legal_choice])
-            p_legal=numpy.exp(p_legal-max(p_legal))
-            p_legal/=p_legal.sum()
-            action=numpy.random.choice(legal_choice,p=p_legal)"""
-            action=numpy.random.choice(state.getPossibleActions())
-            neostate=state.takeAction(action)
-            return self.pv_policy(neostate,deep-1)
 
     """def minmax_notgood(action,node):
         if len(node.children)==0:
@@ -329,10 +250,12 @@ class MrZeroTree(MrRandom):
 BENCH_SMP_B=5
 BENCH_SMP_K=0
 
-def benchmark(save_name,epoch,device_num=0,print_process=False):
+def benchmark(save_name,epoch,device_num,print_process=False):
     """
         benchmark raw network against MrGreed
     """
+    import itertools,numpy
+    
     N1=512;N2=2;
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
 
@@ -383,152 +306,8 @@ def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train
     del stats,interface,zt,pv_net,device_train
 
 def clean_worker(*args,**kwargs):
-    import gc
     prepare_train_data_complete_info(*args,**kwargs)
     gc.collect()
 
-print_level=0
-VALUE_RENORMAL=10
-BETA=0.2
-MCTS_EXPL=30
-
-def train(pv_net,device_train_nums=[3,2,1,0]):
-    import torch.optim as optim
-    import gc
-    data_rounds=16 #16
-    data_timeout=24 #24
-    data_timerest=10 #10
-    loss2_weight=0.03
-    train_mcts_b=0
-    train_mcts_k=2
-    review_number=3
-    age_in_epoch=3
-    log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
-        %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
-    log("loss2_weight: %.2f, data_rounds: %dx%d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
-        %(loss2_weight,len(device_train_nums),data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
-
-    device_main=torch.device("cuda:0")
-    pv_net=pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
-    log("optimizer: %s"%(optimizer.__dict__['defaults'],))
-
-    train_datas=[]
-    p_benchmark=None
-    rest_flag=False
-    data_queue=Queue()
-    for epoch in range(2000):
-        if epoch%90==0:
-            save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
-            torch.save(pv_net,save_name)
-            if p_benchmark!=None:
-                if p_benchmark.is_alive():
-                    log("waiting benchmark threading to join")
-                p_benchmark.join()
-            p_benchmark=Process(target=benchmark,args=(save_name,epoch))
-            p_benchmark.start()
-
-        if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%30==0:
-            output_flag=True
-            log("gc len at %d: %d"%(epoch,len(gc.get_objects())))
-        else:
-            output_flag=False
-
-        #start prepare data processes
-        if rest_flag:
-            log("resting...");time.sleep(data_timerest);rest_flag=False
-        for i in device_train_nums:
-            args=(copy.deepcopy(pv_net),i,data_rounds,train_mcts_b,train_mcts_k,data_queue)
-            #p=Process(target=prepare_train_data_complete_info,args=args)
-            p=Process(target=clean_worker,args=args)
-            p.start()
-        else:
-            time.sleep(data_timerest)
-
-        #collect data
-        if epoch>=review_number:
-            train_datas=train_datas[len(train_datas)//review_number:]
-        for i in range(len(device_train_nums)*4):
-            try:
-                if i==0:
-                    queue_get=data_queue.get(block=True,timeout=data_timeout*2+data_timerest)
-                else:
-                    queue_get=data_queue.get(block=True,timeout=data_timerest)
-                train_datas+=queue_get
-            except:
-                log("get data failed AGAIN at epoch %d! Has got %d datas."%(epoch,len(train_datas)),l=2)
-                rest_flag=True
-
-        trainloader=torch.utils.data.DataLoader(train_datas,batch_size=128,drop_last=True,shuffle=True)
-        for age in range(age_in_epoch):
-            running_loss1=[];running_loss2=[]
-            for batch in trainloader:
-                p,v=pv_net(batch[0].to(device_main))
-                log_p=F.log_softmax(p*batch[3].to(device_main),dim=1)
-                loss1=F.kl_div(log_p,batch[1].to(device_main),reduction="batchmean")
-                loss2=F.mse_loss(v.view(-1),batch[2].to(device_main),reduction='mean').sqrt()
-                optimizer.zero_grad()
-                loss=loss1+loss2*loss2_weight
-                loss.backward()
-                optimizer.step()
-                running_loss1.append(loss1.item())
-                running_loss2.append(loss2.item())
-            batchnum=len(running_loss1)
-            running_loss1=numpy.mean(running_loss1)
-            running_loss2=numpy.mean(running_loss2)
-
-            if output_flag and age==0:
-                if epoch==0:
-                    test_loss1=running_loss1
-                    test_loss2=running_loss2
-                elif epoch<review_number:
-                    test_loss1=running_loss1*(epoch+1)-last_loss1*epoch
-                    test_loss2=running_loss2*(epoch+1)-last_loss2*epoch
-                else:
-                    test_loss1=running_loss1*3-last_loss1*2
-                    test_loss2=running_loss2*3-last_loss2*2
-                log("%d: %.3f %.2f %d %d"%(epoch,test_loss1,test_loss2,len(train_datas),batchnum))
-
-            if age==age_in_epoch-1:
-                last_loss1=running_loss1
-                last_loss2=running_loss2
-
-            if output_flag:
-                log("        epoch %d age %d: %.3f %.2f"%(epoch,age,running_loss1,running_loss2))
-
-
-    log(p_benchmark)
-    log("waiting benchmark threading to join: %s"%(p_benchmark.is_alive()))
-    p_benchmark.join()
-    log("benchmark threading should have joined: %s"%(p_benchmark.is_alive()))
-
-def main():
-    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    start_from="./ZeroNets/from-zero-14d/PV_NET-17-9479221-450.pkl"
-    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
-    train(pv_net)
-
-def manually_test(save_name):
-    device_cpu=torch.device("cpu")
-    pv_net=torch.load(save_name)
-    pv_net.to(device_cpu)
-
-    zt=MrZeroTree(room=255,place=3,name='zerotree3',pv_net=pv_net,device=device_cpu,train_mode=True)
-    g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [0,1,2]]
-    interface=OfflineInterface([g[0],g[1],g[2],zt],print_flag=True)
-
-    interface.shuffle()
-    for i,j in itertools.product(range(13),range(4)):
-        interface.step()
-        input()
-    log(interface.clear())
-    interface.prepare_new()
-
-
 if __name__=="__main__":
-    torch.multiprocessing.set_start_method('spawn')
-    #print(torch.multiprocessing.get_all_sharing_strategies())
-    #log("sharing_strategy: %s"%(torch.multiprocessing.get_sharing_strategy()))
-
-    main()
-    #manually_test("./ZeroNets/start-from-one-2nd/PV_NET-11-2247733-80.pkl")
+    pass
