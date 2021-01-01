@@ -15,7 +15,7 @@ import torch.nn.functional as F
 from torch.multiprocessing import Process,Queue,Lock
 torch.multiprocessing.set_sharing_strategy('file_system') #fuck pytorch
 #import multiprocessing.pool
-import copy,itertools,numpy,time,math
+import copy,itertools,numpy,time,math,gc
 
 class GameState():
     def __init__(self,cards_lists,score_lists,cards_on_table,play_for):
@@ -360,6 +360,8 @@ def benchmark(save_name,epoch,device_num=0,print_process=False):
             print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
+    del s_temp,stats,interface,g,zt,pv_net,device_bench
+    gc.collect()
 
 def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
     device_train=torch.device("cuda:%d"%(device_num))
@@ -376,8 +378,8 @@ def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train
         interface.prepare_new()
 
     for i in range(4):
-        data_queue.put(copy.deepcopy(zt[i].train_datas),block=False)
-        
+        data_queue.put(zt[i].train_datas,block=False)
+
     del stats,interface,zt,pv_net,device_train
 
 def clean_worker(*args,**kwargs):
@@ -426,7 +428,7 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
             p_benchmark=Process(target=benchmark,args=(save_name,epoch))
             p_benchmark.start()
 
-        if (epoch<=10) or (epoch<30 and epoch%5==0) or epoch%30==0:
+        if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%30==0:
             output_flag=True
             log("gc len at %d: %d"%(epoch,len(gc.get_objects())))
         else:
@@ -494,7 +496,7 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
             if output_flag:
                 log("        epoch %d age %d: %.3f %.2f"%(epoch,age,running_loss1,running_loss2))
 
-        
+
     log(p_benchmark)
     log("waiting benchmark threading to join: %s"%(p_benchmark.is_alive()))
     p_benchmark.join()
@@ -502,7 +504,7 @@ def train(pv_net,device_train_nums=[3,2,1,0]):
 
 def main():
     #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    start_from="./ZeroNets/from-zero-14c/PV_NET-17-9479221-450.pkl"
+    start_from="./ZeroNets/from-zero-14d/PV_NET-17-9479221-450.pkl"
     pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     train(pv_net)
 
