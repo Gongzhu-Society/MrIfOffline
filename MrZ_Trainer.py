@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torch.multiprocessing import Process,Queue,Lock
+from torch.multiprocessing import Process,Queue
 torch.multiprocessing.set_sharing_strategy('file_system') #fuck pytorch
 
 import copy,itertools,numpy,gc,time

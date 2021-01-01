@@ -309,5 +309,21 @@ def clean_worker(*args,**kwargs):
     prepare_train_data_complete_info(*args,**kwargs)
     gc.collect()
 
+def prepare_data(pv_net,device_num,data_rounds,train_b,train_k):
+    device_train=torch.device("cuda:%d"%(device_num))
+    pv_net.to(device_train)
+    zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
+                   mcts_b=train_b,mcts_k=train_k) for i in range(4)]
+    interface=OfflineInterface(zt,print_flag=False)
+    stats=[]
+    for k in range(data_rounds):
+        cards=interface.shuffle()
+        for i in range(52):
+            interface.step_complete_info()
+        stats.append(interface.clear())
+        interface.prepare_new()
+
+    return zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
+    
 if __name__=="__main__":
     pass
