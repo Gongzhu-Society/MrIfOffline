@@ -38,7 +38,7 @@ VALUE_RENORMAL=10
 class PV_NET(PV_NET_FATHER):
     def __init__(self):
         super(PV_NET,self).__init__()
-        self.fc0=nn.Linear(52*4+(52*3+0*4)+16*4,2048)
+        self.fc0=nn.Linear(52*4+(54*3+0*4)+16*4,2048)
         self.fc1=nn.Linear(2048,2048)
         self.fc2=nn.Linear(2048,512)
 

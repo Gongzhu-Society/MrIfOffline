@@ -16,7 +16,7 @@ VALUE_RENORMAL=10
 class PV_NET_C(PV_NET):
     pass
 
-def train(pv_net,dev_train_num=3,dev_bench_num=2):
+def train(pv_net,dev_train_num=2,dev_bench_num=0):
     import torch.optim as optim
     import gc
     data_rounds=64
