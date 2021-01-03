@@ -54,6 +54,14 @@ class PV_NET(PV_NET_FATHER):
         self.sc4b=nn.Linear(512,512)
         self.sc5a=nn.Linear(512,512)
         self.sc5b=nn.Linear(512,512)
+        self.sc6a=nn.Linear(512,512)
+        self.sc6b=nn.Linear(512,512)
+        self.sc7a=nn.Linear(512,512)
+        self.sc7b=nn.Linear(512,512)
+        self.sc8a=nn.Linear(512,512)
+        self.sc8b=nn.Linear(512,512)
+        self.sc9a=nn.Linear(512,512)
+        self.sc9b=nn.Linear(512,512)
 
         self.fcp=nn.Linear(512,52)
         self.fcv=nn.Linear(512,1)
@@ -68,6 +76,10 @@ class PV_NET(PV_NET_FATHER):
         x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x
         x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x
         x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x
+        x=F.relu(self.sc2b(F.relu(self.sc6a(x))))+x
+        x=F.relu(self.sc3b(F.relu(self.sc7a(x))))+x
+        x=F.relu(self.sc4b(F.relu(self.sc8a(x))))+x
+        x=F.relu(self.sc5b(F.relu(self.sc9a(x))))+x
         p=self.fcp(x)
         v=self.fcv(x)*VALUE_RENORMAL
         return p,v
