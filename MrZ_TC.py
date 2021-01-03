@@ -2,7 +2,8 @@
 # -*- coding: UTF-8 -*-
 from Util import log
 from MrZeroTree import clean_worker,benchmark,prepare_data
-from MrZ_Trainer import PV_NET_FATHER,PV_NET
+#from MrZ_Trainer import PV_NET_FATHER,PV_NET
+from MrZ_TB import PV_NET_B
 
 import torch
 import torch.nn as nn
@@ -13,9 +14,6 @@ import copy,itertools,numpy,gc,time
 
 VALUE_RENORMAL=10
 
-class PV_NET_C(PV_NET):
-    pass
-
 def train(pv_net,dev_train_num=2,dev_bench_num=0):
     import torch.optim as optim
     import gc
@@ -23,8 +21,8 @@ def train(pv_net,dev_train_num=2,dev_bench_num=0):
     data_timeout=30
     data_timerest=10
     loss2_weight=0.03
-    train_mcts_b=0
-    train_mcts_k=2
+    train_mcts_b=4
+    train_mcts_k=4
     review_number=3
     age_in_epoch=3
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
@@ -32,14 +30,14 @@ def train(pv_net,dev_train_num=2,dev_bench_num=0):
 
     device_main=torch.device("cuda:%d"%(dev_train_num))
     pv_net=pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.0002,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
     p_benchmark=None
     for epoch in range(4000):
         if epoch%80==0:
-            save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
+            save_name='%s-C-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
             if p_benchmark!=None:
                 if p_benchmark.is_alive():
@@ -101,7 +99,9 @@ def main():
     from MrZeroTree import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
-    pv_net=PV_NET_C();log("init pv_net: %s"%(pv_net))
+    #pv_net=PV_NET_C();log("init pv_net: %s"%(pv_net))
+    start_from="./ZeroNets/from-zero-18/PV_NET_B-17-9315381-2160.pkl"
+    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     train(pv_net)
 
 

@@ -264,8 +264,8 @@ def benchmark(save_name,epoch,device_num,print_process=False):
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
 
     device_bench=torch.device("cuda:%d"%(device_num))
-    pv_net=torch.load(save_name)
-    pv_net.to(device_bench)
+    pv_net=torch.load(save_name,map_location=device_bench)
+    #pv_net.to(device_bench)
 
     zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,
                    mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K) for i in [0,2]]

@@ -23,7 +23,7 @@ def train(pv_net,dev_train_num=1,dev_bench_num=0):
     data_timeout=30
     data_timerest=10
     loss2_weight=0.03
-    train_mcts_b=0
+    train_mcts_b=4
     train_mcts_k=2
     review_number=3
     age_in_epoch=3
@@ -32,7 +32,7 @@ def train(pv_net,dev_train_num=1,dev_bench_num=0):
 
     device_main=torch.device("cuda:%d"%(dev_train_num))
     pv_net=pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.9,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
@@ -101,7 +101,9 @@ def main():
     from MrZeroTree import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
-    pv_net=PV_NET_B();log("init pv_net: %s"%(pv_net))
+    #pv_net=PV_NET_B();log("init pv_net: %s"%(pv_net))
+    start_from="./ZeroNets/from-zero-18/PV_NET_B-17-9315381-2160.pkl"
+    pv_net=torch.load(start_from);log("start from: %s"%(start_from))
     train(pv_net)
 
 
