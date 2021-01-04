@@ -14,9 +14,7 @@ import copy,itertools,numpy,gc,time
 def train(pv_net,dev_train_num,dev_bench_num=0):
     import torch.optim as optim
     import gc
-    data_rounds=128
-    data_timeout=64
-    data_timerest=20
+    data_rounds=64
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
@@ -27,7 +25,7 @@ def train(pv_net,dev_train_num,dev_bench_num=0):
 
     device_main=device("cuda:%d"%(dev_train_num))
     pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.00005,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.00002,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
@@ -91,17 +89,18 @@ def train(pv_net,dev_train_num,dev_bench_num=0):
                 log("        epoch %d age %d: %.3f %.2f"%(epoch,age,running_loss1,running_loss2))
 
     p_benchmark.join()
-    
+
 def main():
     from MrZeroTree import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
     from MrZ_Trainer import VALUE_RENORMAL
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
-    
+
     dev_train_num=2
     pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
     #start_from="./ZeroNets/from-zero-18/PV_NET_B-17-9315381-2160.pkl"
     #pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
+    time.sleep(12*60)
     train(pv_net,dev_train_num)
 
 

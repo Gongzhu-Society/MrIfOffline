@@ -76,10 +76,10 @@ class PV_NET(PV_NET_FATHER):
         x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x
         x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x
         x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x
-        x=F.relu(self.sc2b(F.relu(self.sc6a(x))))+x
-        x=F.relu(self.sc3b(F.relu(self.sc7a(x))))+x
-        x=F.relu(self.sc4b(F.relu(self.sc8a(x))))+x
-        x=F.relu(self.sc5b(F.relu(self.sc9a(x))))+x
+        x=F.relu(self.sc6b(F.relu(self.sc6a(x))))+x
+        x=F.relu(self.sc7b(F.relu(self.sc7a(x))))+x
+        x=F.relu(self.sc8b(F.relu(self.sc8a(x))))+x
+        x=F.relu(self.sc9b(F.relu(self.sc9a(x))))+x
         p=self.fcp(x)
         v=self.fcv(x)*VALUE_RENORMAL
         return p,v
@@ -186,7 +186,7 @@ def train(pv_net,dev_train_nums=[0,],dev_bench_num=1):
     log("waiting benchmark threading to join: %s"%(p_benchmark.is_alive()))
     p_benchmark.join()
     log("benchmark threading should have joined: %s"%(p_benchmark.is_alive()))
-    
+
 def manually_test(save_name):
     device_cpu=torch.device("cpu")
     pv_net=torch.load(save_name)
@@ -202,7 +202,7 @@ def manually_test(save_name):
         input()
     log(interface.clear())
     interface.prepare_new()
-    
+
 def main():
     from MrZeroTree import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
