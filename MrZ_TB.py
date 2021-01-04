@@ -14,9 +14,9 @@ import copy,itertools,numpy,gc,time
 def train(pv_net,dev_train_num,dev_bench_num=0):
     import torch.optim as optim
     import gc
-    data_rounds=128
-    data_timeout=64
-    data_timerest=20
+    data_rounds=64
+    data_timeout=32
+    data_timerest=10
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
@@ -27,7 +27,7 @@ def train(pv_net,dev_train_num,dev_bench_num=0):
 
     device_main=device("cuda:%d"%(dev_train_num))
     pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.00005,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
