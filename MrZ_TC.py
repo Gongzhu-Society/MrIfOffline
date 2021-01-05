@@ -25,12 +25,12 @@ def train(pv_net,dev_train_num,dev_bench_num=0):
 
     device_main=device("cuda:%d"%(dev_train_num))
     pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.00002,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
     p_benchmark=None
-    for epoch in range(4000):
+    for epoch in range(2000):
         if epoch%80==0:
             save_name='%s-C-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -100,7 +100,7 @@ def main():
     pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
     #start_from="./ZeroNets/from-zero-18/PV_NET_B-17-9315381-2160.pkl"
     #pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
-    time.sleep(12*60)
+    #time.sleep(12*60)
     train(pv_net,dev_train_num)
 
 

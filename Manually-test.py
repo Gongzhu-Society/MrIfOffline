@@ -19,7 +19,7 @@ def benchmark(print_process=False):
     log(device_bench)
     save_name_0="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
     pv_net_0=torch.load(save_name_0,map_location=device_bench)
-    
+
     if not against_greed:
         del save_name_0
         save_name_1="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
@@ -113,10 +113,10 @@ def plot_log(fileperfix):
     ax2.errorbar(t_bench,v_bench,yerr=e_bench,fmt='o--',capsize=5,label="Raw Value Network")
     ax2.axhline(y=-80.3,dashes=(2,2),c='limegreen',lw=2,label="Mr. If")
     ax2.axhline(y=0,dashes=(2,2),c='green',lw=2,label="Mr. Greed")
-    
-    
+
+
     ax1.plot(t_loss,v_loss,'^-',c='tomato',label="Loss2")
-    
+
     ax1.set_xlabel('Epoch')
     ax1.set_ylabel('Loss2 (Estimated)')
     ax1.grid(True,which='both',axis='x')
@@ -130,5 +130,5 @@ def plot_log(fileperfix):
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    plot_log("from-zero-20")
+    plot_log("from-zero-25")
     #benchmark()
