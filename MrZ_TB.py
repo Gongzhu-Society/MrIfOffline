@@ -14,11 +14,11 @@ import copy,itertools,numpy,gc,time
 def train(pv_net,dev_train_num,dev_bench_num=0):
     import torch.optim as optim
     import gc
-    data_rounds=64
+    data_rounds=128
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
-    review_number=3
+    review_number=1
     age_in_epoch=3
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
@@ -30,7 +30,7 @@ def train(pv_net,dev_train_num,dev_bench_num=0):
 
     train_datas=[]
     p_benchmark=None
-    for epoch in range(4000):
+    for epoch in range(500):
         if epoch%80==0:
             save_name='%s-B-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -97,10 +97,10 @@ def main():
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
     dev_train_num=1
-    pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    #start_from="./ZeroNets/from-zero-18/PV_NET_B-17-9315381-2160.pkl"
-    #pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
-    train(pv_net,dev_train_num)
+    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
+    start_from="./ZeroNets/from-zero-26/PV_NET-B-25-11416629-2560.pkl"
+    pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
+    train(pv_net,dev_train_num,dev_train_num)
 
 
 if __name__=="__main__":
