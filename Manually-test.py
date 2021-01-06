@@ -130,5 +130,5 @@ def plot_log(fileperfix):
     plt.savefig(fileperfix+".png")
 
 if __name__ == '__main__':
-    plot_log("from-zero-28")
+    plot_log("from-zero-31")
     #benchmark()

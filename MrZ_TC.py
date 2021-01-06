@@ -77,8 +77,8 @@ def train(pv_net,dev_train_num,dev_bench_num=0):
                     test_loss1=running_loss1*(epoch+1)-last_loss1*epoch
                     test_loss2=running_loss2*(epoch+1)-last_loss2*epoch
                 else:
-                    test_loss1=running_loss1*3-last_loss1*2
-                    test_loss2=running_loss2*3-last_loss2*2
+                    test_loss1=running_loss1*review_number-last_loss1*(review_number-1)
+                    test_loss2=running_loss2*review_number-last_loss2*(review_number-1)
                 log("%d: %.3f %.2f %d %d"%(epoch,test_loss1,test_loss2,len(train_datas),batchnum))
 
             if age==age_in_epoch-1:
