@@ -18,19 +18,19 @@ def train(pv_net,dev_train_num,dev_bench_num=0):
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
-    review_number=3
+    review_number=1
     age_in_epoch=3
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
 
     device_main=device("cuda:%d"%(dev_train_num))
     pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.00005,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
     p_benchmark=None
-    for epoch in range(2000):
+    for epoch in range(2400):
         if epoch%80==0:
             save_name='%s-C-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net,save_name)
@@ -98,10 +98,9 @@ def main():
 
     dev_train_num=2
     pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    #start_from="./ZeroNets/from-zero-18/PV_NET_B-17-9315381-2160.pkl"
-    #pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
-    #time.sleep(12*60)
-    train(pv_net,dev_train_num)
+    start_from="./ZeroNets/from-zero-26/PV_NET-B-25-11416629-2560.pkl"
+    pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
+    train(pv_net,dev_train_num,dev_train_num)
 
 
 if __name__=="__main__":
