@@ -98,7 +98,7 @@ def main():
 
     dev_train_num=1
     #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    start_from="./ZeroNets/from-zero-26/PV_NET-B-25-11416629-2560.pkl"
+    start_from="./ZeroNets/from-zero-29/PV_NET-B-25-11416629-480.pkl"
     pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
     train(pv_net,dev_train_num,dev_train_num)
 

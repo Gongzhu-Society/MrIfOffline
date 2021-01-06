@@ -1,0 +1,183 @@
+21/01/06 01:33:44 695 [INFO,main:97] BETA: 0.20, VALUE_RENORMAL: 10, MCTS_EXPL: 30, BENCH_SMP_B: 5, BENCH_SMP_K: 0.0
+21/01/06 01:33:46 642 [INFO,main:102] start from: ./ZeroNets/from-zero-26/PV_NET-B-25-11416629-2560.pkl
+21/01/06 01:33:46 642 [INFO,train:24] loss2_weight: 0.03, data_rounds: 128, train_mcts_b: 0, train_mcts_k: 2.0, review_number: 1, age_in_epoch: 3
+21/01/06 01:33:46 643 [INFO,train:29] optimizer: {'lr': 5e-05, 'betas': (0.3, 0.999), 'eps': 1e-07, 'weight_decay': 0.0001, 'amsgrad': False}
+21/01/06 01:33:46 829 [INFO,train:46] gc len at 0: 50344
+21/01/06 01:33:47 283 [INFO,benchmark:264] start benchmark against MrGreed for 512x2
+21/01/06 01:35:02 813 [INFO,train:82] 0: 0.658 28.58 6656 104
+21/01/06 01:35:02 813 [INFO,train:89]         epoch 0 age 0: 0.658 28.58
+21/01/06 01:35:04 592 [INFO,train:89]         epoch 0 age 1: 0.423 20.33
+21/01/06 01:35:06 356 [INFO,train:89]         epoch 0 age 2: 0.307 14.27
+21/01/06 01:35:06 363 [INFO,train:46] gc len at 1: 95487
+21/01/06 01:36:22 734 [INFO,train:82] 1: 0.577 29.30 6656 104
+21/01/06 01:36:22 734 [INFO,train:89]         epoch 1 age 0: 0.577 29.30
+21/01/06 01:36:24 527 [INFO,train:89]         epoch 1 age 1: 0.401 18.88
+21/01/06 01:36:26 316 [INFO,train:89]         epoch 1 age 2: 0.301 12.86
+21/01/06 01:36:26 323 [INFO,train:46] gc len at 2: 91480
+21/01/06 01:37:42 960 [INFO,train:82] 2: 0.585 30.52 6656 104
+21/01/06 01:37:42 960 [INFO,train:89]         epoch 2 age 0: 0.585 30.52
+21/01/06 01:37:44 742 [INFO,train:89]         epoch 2 age 1: 0.415 19.31
+21/01/06 01:37:46 528 [INFO,train:89]         epoch 2 age 2: 0.310 13.02
+21/01/06 01:37:46 535 [INFO,train:46] gc len at 3: 98690
+21/01/06 01:39:02 917 [INFO,train:82] 3: 0.604 30.24 6656 104
+21/01/06 01:39:02 917 [INFO,train:89]         epoch 3 age 0: 0.604 30.24
+21/01/06 01:39:04 708 [INFO,train:89]         epoch 3 age 1: 0.431 19.48
+21/01/06 01:39:06 498 [INFO,train:89]         epoch 3 age 2: 0.325 13.46
+21/01/06 01:39:06 505 [INFO,train:46] gc len at 4: 100439
+21/01/06 01:40:23 517 [INFO,train:82] 4: 0.599 31.15 6656 104
+21/01/06 01:40:23 517 [INFO,train:89]         epoch 4 age 0: 0.599 31.15
+21/01/06 01:40:25 292 [INFO,train:89]         epoch 4 age 1: 0.429 19.70
+21/01/06 01:40:27 081 [INFO,train:89]         epoch 4 age 2: 0.327 13.34
+21/01/06 01:40:27 087 [INFO,train:46] gc len at 5: 91386
+21/01/06 01:41:44 232 [INFO,train:82] 5: 0.601 31.35 6656 104
+21/01/06 01:41:44 232 [INFO,train:89]         epoch 5 age 0: 0.601 31.35
+21/01/06 01:41:46 014 [INFO,train:89]         epoch 5 age 1: 0.430 20.17
+21/01/06 01:41:47 791 [INFO,train:89]         epoch 5 age 2: 0.332 13.60
+21/01/06 01:47:13 020 [INFO,train:46] gc len at 10: 84721
+21/01/06 01:47:38 083 [INFO,benchmark:289] benchmark at epoch 0's result: 1.71 8.42
+21/01/06 01:48:25 252 [INFO,train:82] 10: 0.570 31.05 6656 104
+21/01/06 01:48:25 252 [INFO,train:89]         epoch 10 age 0: 0.570 31.05
+21/01/06 01:48:27 149 [INFO,train:89]         epoch 10 age 1: 0.417 19.23
+21/01/06 01:48:29 110 [INFO,train:89]         epoch 10 age 2: 0.327 12.81
+21/01/06 01:53:15 485 [INFO,train:46] gc len at 15: 85558
+21/01/06 01:54:22 528 [INFO,train:82] 15: 0.574 33.31 6656 104
+21/01/06 01:54:22 528 [INFO,train:89]         epoch 15 age 0: 0.574 33.31
+21/01/06 01:54:24 309 [INFO,train:89]         epoch 15 age 1: 0.429 20.85
+21/01/06 01:54:26 152 [INFO,train:89]         epoch 15 age 2: 0.340 14.15
+21/01/06 01:59:11 892 [INFO,train:46] gc len at 20: 97624
+21/01/06 02:00:20 004 [INFO,train:82] 20: 0.596 31.45 6656 104
+21/01/06 02:00:20 004 [INFO,train:89]         epoch 20 age 0: 0.596 31.45
+21/01/06 02:00:21 902 [INFO,train:89]         epoch 20 age 1: 0.459 19.66
+21/01/06 02:00:23 845 [INFO,train:89]         epoch 20 age 2: 0.376 13.37
+21/01/06 02:05:10 615 [INFO,train:46] gc len at 25: 92847
+21/01/06 02:06:18 779 [INFO,train:82] 25: 0.590 33.07 6656 104
+21/01/06 02:06:18 779 [INFO,train:89]         epoch 25 age 0: 0.590 33.07
+21/01/06 02:06:20 721 [INFO,train:89]         epoch 25 age 1: 0.445 20.79
+21/01/06 02:06:22 653 [INFO,train:89]         epoch 25 age 2: 0.359 14.12
+21/01/06 02:23:05 789 [INFO,train:46] gc len at 40: 98325
+21/01/06 02:24:14 375 [INFO,train:82] 40: 0.548 30.30 6656 104
+21/01/06 02:24:14 375 [INFO,train:89]         epoch 40 age 0: 0.548 30.30
+21/01/06 02:24:16 187 [INFO,train:89]         epoch 40 age 1: 0.418 18.70
+21/01/06 02:24:18 072 [INFO,train:89]         epoch 40 age 2: 0.338 12.30
+21/01/06 02:47:27 726 [INFO,train:46] gc len at 60: 87638
+21/01/06 02:48:35 628 [INFO,train:82] 60: 0.546 32.80 6656 104
+21/01/06 02:48:35 629 [INFO,train:89]         epoch 60 age 0: 0.546 32.80
+21/01/06 02:48:37 586 [INFO,train:89]         epoch 60 age 1: 0.420 20.10
+21/01/06 02:48:39 501 [INFO,train:89]         epoch 60 age 2: 0.346 13.85
+21/01/06 03:11:30 271 [INFO,train:46] gc len at 80: 102328
+21/01/06 03:11:30 705 [INFO,benchmark:264] start benchmark against MrGreed for 512x2
+21/01/06 03:12:47 846 [INFO,train:82] 80: 0.545 30.04 6656 104
+21/01/06 03:12:47 846 [INFO,train:89]         epoch 80 age 0: 0.545 30.04
+21/01/06 03:12:49 629 [INFO,train:89]         epoch 80 age 1: 0.421 18.89
+21/01/06 03:12:51 429 [INFO,train:89]         epoch 80 age 2: 0.347 12.43
+21/01/06 03:25:17 756 [INFO,benchmark:289] benchmark at epoch 80's result: 26.14 8.04
+21/01/06 03:37:30 610 [INFO,train:46] gc len at 100: 95787
+21/01/06 03:38:42 080 [INFO,train:82] 100: 0.524 29.55 6656 104
+21/01/06 03:38:42 081 [INFO,train:89]         epoch 100 age 0: 0.524 29.55
+21/01/06 03:38:43 852 [INFO,train:89]         epoch 100 age 1: 0.405 18.10
+21/01/06 03:38:45 623 [INFO,train:89]         epoch 100 age 2: 0.339 11.91
+21/01/06 04:01:45 813 [INFO,train:46] gc len at 120: 91087
+21/01/06 04:02:54 805 [INFO,train:82] 120: 0.534 28.91 6656 104
+21/01/06 04:02:54 805 [INFO,train:89]         epoch 120 age 0: 0.534 28.91
+21/01/06 04:02:56 767 [INFO,train:89]         epoch 120 age 1: 0.408 18.13
+21/01/06 04:02:58 722 [INFO,train:89]         epoch 120 age 2: 0.340 11.91
+21/01/06 04:26:01 683 [INFO,train:46] gc len at 140: 91481
+21/01/06 04:27:13 384 [INFO,train:82] 140: 0.539 29.65 6656 104
+21/01/06 04:27:13 384 [INFO,train:89]         epoch 140 age 0: 0.539 29.65
+21/01/06 04:27:15 342 [INFO,train:89]         epoch 140 age 1: 0.413 17.86
+21/01/06 04:27:17 279 [INFO,train:89]         epoch 140 age 2: 0.340 12.30
+21/01/06 04:50:34 752 [INFO,train:46] gc len at 160: 92487
+21/01/06 04:50:35 189 [INFO,benchmark:264] start benchmark against MrGreed for 512x2
+21/01/06 04:51:52 790 [INFO,train:82] 160: 0.528 30.74 6656 104
+21/01/06 04:51:52 790 [INFO,train:89]         epoch 160 age 0: 0.528 30.74
+21/01/06 04:51:54 721 [INFO,train:89]         epoch 160 age 1: 0.411 18.61
+21/01/06 04:51:56 669 [INFO,train:89]         epoch 160 age 2: 0.342 12.78
+21/01/06 05:04:31 875 [INFO,benchmark:289] benchmark at epoch 160's result: 22.46 8.05
+21/01/06 05:16:18 706 [INFO,train:46] gc len at 180: 101293
+21/01/06 05:17:26 819 [INFO,train:82] 180: 0.525 30.23 6656 104
+21/01/06 05:17:26 819 [INFO,train:89]         epoch 180 age 0: 0.525 30.23
+21/01/06 05:17:28 751 [INFO,train:89]         epoch 180 age 1: 0.406 18.48
+21/01/06 05:17:30 708 [INFO,train:89]         epoch 180 age 2: 0.339 12.61
+21/01/06 05:40:58 392 [INFO,train:46] gc len at 200: 90475
+21/01/06 05:42:07 717 [INFO,train:82] 200: 0.496 28.17 6656 104
+21/01/06 05:42:07 717 [INFO,train:89]         epoch 200 age 0: 0.496 28.17
+21/01/06 05:42:09 498 [INFO,train:89]         epoch 200 age 1: 0.381 17.38
+21/01/06 05:42:11 310 [INFO,train:89]         epoch 200 age 2: 0.316 11.63
+21/01/06 06:05:11 685 [INFO,train:46] gc len at 220: 91417
+21/01/06 06:06:19 966 [INFO,train:82] 220: 0.518 31.39 6656 104
+21/01/06 06:06:19 966 [INFO,train:89]         epoch 220 age 0: 0.518 31.39
+21/01/06 06:06:21 909 [INFO,train:89]         epoch 220 age 1: 0.399 19.58
+21/01/06 06:06:23 703 [INFO,train:89]         epoch 220 age 2: 0.330 13.25
+21/01/06 06:29:41 735 [INFO,train:46] gc len at 240: 86325
+21/01/06 06:29:42 184 [INFO,benchmark:264] start benchmark against MrGreed for 512x2
+21/01/06 06:30:59 841 [INFO,train:82] 240: 0.512 28.54 6656 104
+21/01/06 06:30:59 841 [INFO,train:89]         epoch 240 age 0: 0.512 28.54
+21/01/06 06:31:01 680 [INFO,train:89]         epoch 240 age 1: 0.396 17.34
+21/01/06 06:31:03 577 [INFO,train:89]         epoch 240 age 2: 0.328 11.56
+21/01/06 06:43:17 980 [INFO,benchmark:289] benchmark at epoch 240's result: 20.91 7.95
+21/01/06 06:55:22 831 [INFO,train:46] gc len at 260: 98843
+21/01/06 06:56:32 323 [INFO,train:82] 260: 0.517 28.45 6656 104
+21/01/06 06:56:32 323 [INFO,train:89]         epoch 260 age 0: 0.517 28.45
+21/01/06 06:56:34 216 [INFO,train:89]         epoch 260 age 1: 0.398 17.22
+21/01/06 06:56:36 167 [INFO,train:89]         epoch 260 age 2: 0.330 11.76
+21/01/06 07:19:54 569 [INFO,train:46] gc len at 280: 99765
+21/01/06 07:21:05 560 [INFO,train:82] 280: 0.496 29.46 6656 104
+21/01/06 07:21:05 560 [INFO,train:89]         epoch 280 age 0: 0.496 29.46
+21/01/06 07:21:07 347 [INFO,train:89]         epoch 280 age 1: 0.378 18.46
+21/01/06 07:21:09 116 [INFO,train:89]         epoch 280 age 2: 0.313 12.64
+21/01/06 07:44:11 091 [INFO,train:46] gc len at 300: 92878
+21/01/06 07:45:19 594 [INFO,train:82] 300: 0.519 29.23 6656 104
+21/01/06 07:45:19 594 [INFO,train:89]         epoch 300 age 0: 0.519 29.23
+21/01/06 07:45:21 536 [INFO,train:89]         epoch 300 age 1: 0.406 17.89
+21/01/06 07:45:23 508 [INFO,train:89]         epoch 300 age 2: 0.340 12.71
+21/01/06 08:08:27 229 [INFO,train:46] gc len at 320: 87090
+21/01/06 08:08:27 725 [INFO,benchmark:264] start benchmark against MrGreed for 512x2
+21/01/06 08:09:45 352 [INFO,train:82] 320: 0.526 29.98 6656 104
+21/01/06 08:09:45 353 [INFO,train:89]         epoch 320 age 0: 0.526 29.98
+21/01/06 08:09:47 152 [INFO,train:89]         epoch 320 age 1: 0.405 18.87
+21/01/06 08:09:48 946 [INFO,train:89]         epoch 320 age 2: 0.341 12.75
+21/01/06 08:22:26 329 [INFO,benchmark:289] benchmark at epoch 320's result: 8.66 7.93
+21/01/06 08:34:09 742 [INFO,train:46] gc len at 340: 92576
+21/01/06 08:35:18 797 [INFO,train:82] 340: 0.511 28.32 6656 104
+21/01/06 08:35:18 797 [INFO,train:89]         epoch 340 age 0: 0.511 28.32
+21/01/06 08:35:20 745 [INFO,train:89]         epoch 340 age 1: 0.399 17.57
+21/01/06 08:35:22 669 [INFO,train:89]         epoch 340 age 2: 0.338 11.95
+21/01/06 08:58:18 918 [INFO,train:46] gc len at 360: 97932
+21/01/06 08:59:27 784 [INFO,train:82] 360: 0.527 29.23 6656 104
+21/01/06 08:59:27 785 [INFO,train:89]         epoch 360 age 0: 0.527 29.23
+21/01/06 08:59:29 757 [INFO,train:89]         epoch 360 age 1: 0.413 18.00
+21/01/06 08:59:31 703 [INFO,train:89]         epoch 360 age 2: 0.350 12.83
+21/01/06 09:22:57 073 [INFO,train:46] gc len at 380: 99782
+21/01/06 09:24:04 907 [INFO,train:82] 380: 0.500 28.72 6656 104
+21/01/06 09:24:04 907 [INFO,train:89]         epoch 380 age 0: 0.500 28.72
+21/01/06 09:24:06 840 [INFO,train:89]         epoch 380 age 1: 0.389 17.37
+21/01/06 09:24:08 775 [INFO,train:89]         epoch 380 age 2: 0.328 11.88
+21/01/06 09:47:07 676 [INFO,train:46] gc len at 400: 91207
+21/01/06 09:47:08 095 [INFO,benchmark:264] start benchmark against MrGreed for 512x2
+21/01/06 09:48:24 668 [INFO,train:82] 400: 0.493 27.29 6656 104
+21/01/06 09:48:24 669 [INFO,train:89]         epoch 400 age 0: 0.493 27.29
+21/01/06 09:48:26 439 [INFO,train:89]         epoch 400 age 1: 0.386 17.02
+21/01/06 09:48:28 232 [INFO,train:89]         epoch 400 age 2: 0.324 11.91
+21/01/06 10:01:01 915 [INFO,benchmark:289] benchmark at epoch 400's result: 23.36 7.95
+21/01/06 10:13:08 765 [INFO,train:46] gc len at 420: 87956
+21/01/06 10:14:18 004 [INFO,train:82] 420: 0.509 28.46 6656 104
+21/01/06 10:14:18 004 [INFO,train:89]         epoch 420 age 0: 0.509 28.46
+21/01/06 10:14:19 943 [INFO,train:89]         epoch 420 age 1: 0.396 17.44
+21/01/06 10:14:21 864 [INFO,train:89]         epoch 420 age 2: 0.333 11.99
+21/01/06 10:37:42 997 [INFO,train:46] gc len at 440: 96482
+21/01/06 10:38:55 158 [INFO,train:82] 440: 0.505 29.34 6656 104
+21/01/06 10:38:55 158 [INFO,train:89]         epoch 440 age 0: 0.505 29.34
+21/01/06 10:38:56 931 [INFO,train:89]         epoch 440 age 1: 0.397 17.86
+21/01/06 10:38:58 711 [INFO,train:89]         epoch 440 age 2: 0.335 12.54
+21/01/06 11:02:46 042 [INFO,train:46] gc len at 460: 97439
+21/01/06 11:03:56 806 [INFO,train:82] 460: 0.494 28.62 6656 104
+21/01/06 11:03:56 807 [INFO,train:89]         epoch 460 age 0: 0.494 28.62
+21/01/06 11:03:58 582 [INFO,train:89]         epoch 460 age 1: 0.387 17.38
+21/01/06 11:04:00 493 [INFO,train:89]         epoch 460 age 2: 0.325 12.08
+21/01/06 11:27:58 168 [INFO,train:46] gc len at 480: 90548
+21/01/06 11:27:58 631 [INFO,benchmark:264] start benchmark against MrGreed for 512x2
+21/01/06 11:29:17 227 [INFO,train:82] 480: 0.496 28.04 6656 104
+21/01/06 11:29:17 228 [INFO,train:89]         epoch 480 age 0: 0.496 28.04
+21/01/06 11:29:19 013 [INFO,train:89]         epoch 480 age 1: 0.381 17.05
+21/01/06 11:29:20 801 [INFO,train:89]         epoch 480 age 2: 0.318 11.61
+21/01/06 11:42:03 441 [INFO,benchmark:289] benchmark at epoch 480's result: 36.04 8.01
