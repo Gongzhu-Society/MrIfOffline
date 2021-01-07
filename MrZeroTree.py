@@ -127,7 +127,7 @@ class MrZeroTree(MrRandom):
             oh[52*i+ORDER_DICT[c]]=1"""
         oh=torch.zeros(54*3)
         for i,c in enumerate(cards_on_table[:0:-1]):
-            index=54*i+ORDER_DICT[c]
+            index=54*i+ORDER_DICT[c] #TODO!!!!!!!!
             oh[index-1:index+2]=1
         """oh=torch.zeros(54*3+20*4)#,dtype=torch.uint8)
         for i,c in enumerate(cards_on_table[:0:-1]):

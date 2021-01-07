@@ -25,7 +25,7 @@ def train(pv_net,dev_train_num,dev_bench_num=0):
 
     device_main=device("cuda:%d"%(dev_train_num))
     pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.00005,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    optimizer=optim.Adam(pv_net.parameters(),lr=0.0002,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
@@ -101,7 +101,7 @@ def main():
     pv_net=RES_NET_18();log("init pv_net: %s"%(pv_net))
     #start_from="./ZeroNets/from-zero-29/PV_NET-B-25-11416629-480.pkl"
     #pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
-    train(pv_net,dev_train_num,0)
+    train(pv_net,dev_train_num,dev_train_num)
 
 
 if __name__=="__main__":
