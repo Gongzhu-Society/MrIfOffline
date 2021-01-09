@@ -4,7 +4,7 @@ from Util import log,calc_score
 from Util import ORDER_DICT,ORDER_DICT2,ORDER_DICT5,SCORE_DICT,INIT_CARDS
 from MrRandom import MrRandom
 from MrGreed import MrGreed
-from ScenarioGen import ScenarioGen
+from ScenarioGenerator.ScenarioGen import ScenarioGen
 from OfflineInterface import OfflineInterface
 from MCTS.mcts import mcts
 
@@ -127,7 +127,7 @@ class MrZeroTree(MrRandom):
             oh[52*i+ORDER_DICT[c]]=1"""
         oh=torch.zeros(54*3)
         for i,c in enumerate(cards_on_table[:0:-1]):
-            index=54*i+ORDER_DICT[c] #TODO!!!!!!!!
+            index=54*i+ORDER_DICT[c]+1
             oh[index-1:index+2]=1
         """oh=torch.zeros(54*3+20*4)#,dtype=torch.uint8)
         for i,c in enumerate(cards_on_table[:0:-1]):
@@ -145,16 +145,14 @@ class MrZeroTree(MrRandom):
         oh_table=MrZeroTree.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
 
-    def pv_policy(self,state,deep):
+    def pv_policy(self,state):
         if state.isTerminal():
             return state.getReward()
-        elif deep==0:
+        else:
             netin=MrZeroTree.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.pnext)
             with torch.no_grad():
                 _,v=self.pv_net(netin.to(self.device))
             return v.item()*state.getCurrentPlayer()+state.getReward()
-        else:
-            log("pv-deep feature has been abondoned",l=2)
 
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
@@ -190,11 +188,10 @@ class MrZeroTree(MrRandom):
             if self.mcts_k>=0:
                 searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
                 searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
-                              explorationConstant=MCTS_EXPL,pv_deep=0)
-                searcher.search(initialState=gamestate,needNodeValue=False)
+                              explorationConstant=MCTS_EXPL)
+                searcher.search(initialState=gamestate)
                 for action,node in searcher.root.children.items():
                     d_legal[action]+=node.totalReward/node.numVisits
-                    #d_legal[action]+=MrZeroTree.minmax(action,node)
             elif self.mcts_k==-1:
                 netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                 with torch.no_grad():
@@ -223,8 +220,8 @@ class MrZeroTree(MrRandom):
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
-                        explorationConstant=MCTS_EXPL,pv_deep=0)
-        searcher.search(initialState=gamestate,needNodeValue=False)
+                        explorationConstant=MCTS_EXPL)
+        searcher.search(initialState=gamestate)
         d_legal_temp={action: node.totalReward/node.numVisits for action,node in searcher.root.children.items()}
         #save data for train
         value_max=max(d_legal_temp.values())

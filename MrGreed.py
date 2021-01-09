@@ -4,7 +4,7 @@ from Util import log,cards_order
 from Util import ORDER_DICT2,SCORE_DICT
 from MrRandom import MrRandom
 #from MrO_Trainer import cards_in_hand_oh,score_oh,four_cards_oh #a failed module
-from ScenarioGen import ScenarioGen
+from ScenarioGenerator.ScenarioGen import ScenarioGen
 import random,itertools,copy,torch
 
 class MrGreed(MrRandom):

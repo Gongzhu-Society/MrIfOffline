@@ -170,18 +170,18 @@ class BasicBlock(nn.Module):
         return out
 
 class RES_NET_18(PV_NET_FATHER):
-    def __init__(self, block=BasicBlock,num_blocks=[2,2,2,2]):#,num_classes=52):
+    def __init__(self,block=BasicBlock,num_blocks=[2,2,2,2]):#,num_classes=52):
         super(RES_NET_18,self).__init__()
         self.in_planes=64
 
-        self.fc0=nn.Linear(52*4+54*3+16*4,3*32*32)
-        self.conv1=nn.Conv2d(3,64,kernel_size=3,stride=1,padding=1,bias=False) #why bias=False?
+        #self.fc0=nn.Linear(52*4+54*3+16*4,3*32*32)
+        self.conv1=nn.Conv2d(3,64,kernel_size=5,stride=1,padding=1,bias=False)
         self.bn1=nn.BatchNorm2d(64)
 
-        self.layer1 = self._make_layer(block,64,num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block,128,num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block,256,num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block,512,num_blocks[3], stride=2)
+        self.layer1 = self._make_layer(block,64,num_blocks[0],stride=1)
+        self.layer2 = self._make_layer(block,128,num_blocks[1],stride=2)
+        self.layer3 = self._make_layer(block,256,num_blocks[2],stride=2)
+        self.layer4 = self._make_layer(block,512,num_blocks[3],stride=2)
         self.fcp=nn.Linear(512*block.expansion,52)
         self.fcv=nn.Linear(512*block.expansion,1)
 
@@ -191,10 +191,13 @@ class RES_NET_18(PV_NET_FATHER):
         for stride in strides:
             layers.append(block(self.in_planes,planes,stride))
             self.in_planes=planes*block.expansion
-        return nn.Sequential(*layers) #?
+        return nn.Sequential(*layers)
 
     def forward(self, x):
-        out=F.relu(self.fc0(x)).view(-1,3,32,32)
+        #out=F.relu(self.fc0(x)).view(-1,3,32,32)
+        out=torch.cat((F.pad(x.repeat(1,2),(0,156)).view(-1,1,32,32),
+            F.pad(x.repeat(1,2),(78,78)).view(-1,1,32,32),
+            F.pad(x.repeat(1,2),(156,0)).view(-1,1,32,32)),1)
         out=F.relu(self.bn1(self.conv1(out)))
         out=self.layer1(out)
         out=self.layer2(out)
