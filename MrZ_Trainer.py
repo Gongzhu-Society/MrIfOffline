@@ -11,6 +11,8 @@ torch.multiprocessing.set_sharing_strategy('file_system') #fuck pytorch
 
 import copy,itertools,numpy,gc,time
 
+from MrZ_NETs import PV_NET
+
 def train(pv_net,dev_train_nums=[0,],dev_bench_num=1):
     import torch.optim as optim
     import gc

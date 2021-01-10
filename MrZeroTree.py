@@ -9,6 +9,7 @@ from OfflineInterface import OfflineInterface
 from MCTS.mcts import mcts
 
 import torch
+import torch.nn.functional as F
 import copy,gc,math
 
 class GameState():
@@ -127,7 +128,7 @@ class MrZeroTree(MrRandom):
             oh[52*i+ORDER_DICT[c]]=1"""
         oh=torch.zeros(54*3)
         for i,c in enumerate(cards_on_table[:0:-1]):
-            index=54*i+ORDER_DICT[c]+1
+            index=54*i+ORDER_DICT[c]#TODO +1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             oh[index-1:index+2]=1
         """oh=torch.zeros(54*3+20*4)#,dtype=torch.uint8)
         for i,c in enumerate(cards_on_table[:0:-1]):
@@ -154,6 +155,72 @@ class MrZeroTree(MrRandom):
                 _,v=self.pv_net(netin.to(self.device))
             return v.item()*state.getCurrentPlayer()+state.getReward()
 
+    def possi_rectify_sub(self,cards_lists,scores,cards_on_table,pnext,suit,choice):
+        cards_list=cards_lists[pnext]
+        cards_dict=MrGreed.gen_cards_dict(cards_list)
+        legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_list)
+        legal_mask=torch.zeros(52)
+        for k in legal_choice:
+            legal_mask[ORDER_DICT[k]]=1
+        if print_level>=3:
+            log(legal_choice)
+
+        netin=MrZeroTree.prepare_ohs(cards_lists,cards_on_table,scores,pnext)
+        with torch.no_grad():
+            p,_=self.pv_net(netin.to(self.device))
+        log_p=F.log_softmax(p*legal_mask.to(self.device),dim=0)
+        possi=log_p[ORDER_DICT[choice]].item()
+        if print_level>=3:
+            log(possi)
+        return possi
+
+    def possi_rectify(self,cards_lists):
+        """
+            posterior probability rectify
+            cards_lists is in absolute order
+        """
+        cards_lists=copy.deepcopy(cards_lists)
+        scores=copy.deepcopy(self.scores)
+        cards_on_table=copy.deepcopy(self.cards_on_table)
+        result=0
+
+        pnext=self.place
+        for i in range(len(cards_on_table)-1):
+            pnext=(pnext-1)%4
+            choice=cards_on_table.pop()
+            cards_lists[pnext].append(choice)
+            if len(cards_on_table)==1:
+                suit="A"
+            else:
+                suit=cards_on_table[1][0]
+            if pnext!=self.place:
+                if print_level>=3:
+                    log("%d, %s, %s, %s"%(pnext,choice,suit,cards_lists))
+                result+=self.possi_rectify_sub(cards_lists,scores,cards_on_table,pnext,suit,choice)
+
+        last_winner=self.cards_on_table[0]
+        for history in self.history[::-1]:
+            for c in history[1:]:
+                if c in SCORE_DICT:
+                    scores[last_winner].remove(c)
+            last_winner=history[0]
+            cards_on_table=copy.copy(history)
+            pnext=cards_on_table[0]
+            for i in range(4):
+                pnext=(pnext-1)%4
+                choice=cards_on_table.pop()
+                cards_lists[pnext].append(choice)
+                if len(cards_on_table)==1:
+                    suit="A"
+                else:
+                    suit=cards_on_table[1][0]
+                if pnext!=self.place:
+                    if print_level>=3:
+                        log("%d, %s, %s, %s"%(pnext,choice,suit,cards_lists))
+                    result+=self.possi_rectify_sub(cards_lists,scores,cards_on_table,pnext,suit,choice)
+
+        return result
+
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
@@ -172,18 +239,32 @@ class MrZeroTree(MrRandom):
 
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
+
         sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
         sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
-        for cards_list_list in sce_gen:
-            #initialize gamestate
+        scenarios=[i for i in sce_gen]
+        #scenarios=sce_gen.get_scenarios()
+        scenarios_weight=[]
+        cards_lists_list=[]
+        for cards_list_list in scenarios:
             cards_lists=[None,None,None,None]
             cards_lists[self.place]=copy.copy(self.cards_list)
             for i in range(3):
                 cards_lists[(self.place+i+1)%4]=cards_list_list[i]
+            if print_level>=3:
+                log("cards_lists: %s"%(cards_lists))
+                log("history: %s"%(self.history))
+            scenarios_weight.append(self.possi_rectify(cards_lists))
+            cards_lists_list.append(cards_lists)
+        weight_max=max(scenarios_weight)
+        scenarios_weight=[math.exp(i-weight_max) for i in scenarios_weight]
+        weight_sum=sum(scenarios_weight)
+        scenarios_weight=[i/weight_sum for i in scenarios_weight]
+        if print_level>=2:
+            print(scenarios_weight)
+        for i,cards_lists in enumerate(cards_lists_list):
+            #initialize gamestate
             gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.place)
-            if print_level>=2:
-                log("gened scenario: %s"%(cards_lists))
-
             #mcts
             if self.mcts_k>=0:
                 searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
@@ -191,7 +272,7 @@ class MrZeroTree(MrRandom):
                               explorationConstant=MCTS_EXPL)
                 searcher.search(initialState=gamestate)
                 for action,node in searcher.root.children.items():
-                    d_legal[action]+=node.totalReward/node.numVisits
+                    d_legal[action]+=scenarios_weight[i]*node.totalReward/node.numVisits
             elif self.mcts_k==-1:
                 netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                 with torch.no_grad():
@@ -272,9 +353,8 @@ def benchmark(save_name,epoch,device_num,print_process=False):
         if print_process and l==N2-1:
             print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
+    s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
-    del s_temp,stats,interface,g,zt,pv_net,device_bench
-    gc.collect()
 
 def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
     device_train=torch.device("cuda:%d"%(device_num))
