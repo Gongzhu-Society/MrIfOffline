@@ -84,7 +84,7 @@ MCTS_EXPL=30
 
 class MrZeroTree(MrRandom):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
-                 sample_b=None,sample_k=None,mcts_b=None,mcts_k=None):
+                 sample_b=10,sample_k=1,mcts_b=10,mcts_k=2):
         MrRandom.__init__(self,room,place,name)
         self.pv_net=pv_net
         self.device=device
@@ -200,8 +200,8 @@ class MrZeroTree(MrRandom):
                     suit=cards_on_table[1][0]
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
-                if len(set(legal_choice).intersection(set(["SQ","SK","SA","C10","DJ","HA","HK","HQ"])))==0:
-                    continue
+                #if len(set(legal_choice).intersection(set(["SQ","SK","SA","C10","DJ","HA","HK","HQ"])))==0:
+                #    continue
                 if (pnext-self.place)%2==0:
                     confidence=c2
                 else:

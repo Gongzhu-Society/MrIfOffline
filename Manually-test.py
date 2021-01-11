@@ -14,7 +14,7 @@ def benchmark(print_process=False):
     against_greed=True
 
     save_name_0="Zero-29th-25-11416629-720.pt"
-    device_bench=torch.device("cuda:0")
+    device_bench=torch.device("cuda:1")
     pv_net_0=PV_NET_2()
     pv_net_0.load_state_dict(torch.load(save_name_0,map_location=device_bench))
     pv_net_0.to(device_bench)
@@ -24,7 +24,7 @@ def benchmark(print_process=False):
         pass
 
     zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-                   mcts_b=10,mcts_k=2,sample_b=-2,sample_k=-2) for i in [0,2]]
+                   mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
     #g_aux=[MrImpGreed(room=255,place=i,name='greed_aux%d'%(i)) for i in range(4)]
     #zt0[0].g_aux=g_aux;zt0[1].g_aux=g_aux
     if against_greed:
