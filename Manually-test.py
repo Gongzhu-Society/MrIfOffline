@@ -2,29 +2,29 @@
 # -*- coding: UTF-8 -*-
 from Util import log
 
+#torch.save(pv_net_0.state_dict(),"Zero-29th-25-11416629-720.pt")
+
 def benchmark(print_process=False):
     from MrGreed import MrGreed
     from MrZeroTree import MrZeroTree
+    from MrZ_NETs import PV_NET_2
     from OfflineInterface import OfflineInterface
     import itertools,numpy,torch
 
     against_greed=True
 
-    device_bench=torch.device("cuda:3")
-    save_name_0="./ZeroNets/from-zero-29b/PV_NET-B-25-11416629-240.pkl"
-    pv_net_0=torch.load(save_name_0,map_location=device_bench)
+    save_name_0="Zero-29th-25-11416629-720.pt"
+    device_bench=torch.device("cuda:0")
+    pv_net_0=PV_NET_2()
+    pv_net_0.load_state_dict(torch.load(save_name_0,map_location=device_bench))
+    pv_net_0.to(device_bench)
 
     if not against_greed:
         del save_name_0
-        #save_name_1="./ZeroNets/from-zero-9a/PV_NET-17-9479221-560.pkl"
-        pv_net_1=torch.load(save_name_1,map_location=device_bench)
-        pv_net_1.to(device_bench)
-        del save_name_1
-
+        pass
 
     zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-                   #mcts_b=10,mcts_k=2,sample_b=10,sample_k=1) for i in [0,2]]
-                   mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-1) for i in [0,2]]
+                   mcts_b=10,mcts_k=2,sample_b=-2,sample_k=-2) for i in [0,2]]
     #g_aux=[MrImpGreed(room=255,place=i,name='greed_aux%d'%(i)) for i in range(4)]
     #zt0[0].g_aux=g_aux;zt0[1].g_aux=g_aux
     if against_greed:
@@ -36,6 +36,7 @@ def benchmark(print_process=False):
 
     N1=256;N2=2;
     log("%s v.s. %s for %dx%d"%(interface.players[0].__class__.__name__,interface.players[1].__class__.__name__,N1,N2))
+    log("mcts_b/k: %d/%d sample_b/k: %d/%d"%(zt0[0].mcts_b,zt0[0].mcts_k,zt0[0].sample_b,zt0[0].sample_k))
     stats=[]
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:

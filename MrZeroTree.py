@@ -156,11 +156,7 @@ class MrZeroTree(MrRandom):
                 _,v=self.pv_net(netin.to(self.device))
             return v.item()*state.getCurrentPlayer()+state.getReward()
 
-    def possi_rectify_sub(self,cards_lists,scores,cards_on_table,pnext,suit,choice,confidence):
-        cards_list=cards_lists[pnext]
-        cards_dict=MrGreed.gen_cards_dict(cards_list)
-        legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_list)
-
+    def possi_rectify_sub(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence):
         netin=MrZeroTree.prepare_ohs(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
@@ -172,11 +168,7 @@ class MrZeroTree(MrRandom):
         assert (sum((v for c,v in p_legal))-1)<1e-5, sum((v for c,v in p_legal))
 
         p_choice=(v for c,v in p_legal if c==choice).__next__()
-        if len(legal_choice)==1:
-            assert abs(p_choice-1)<1e-5, p_choice
-            possi=confidence
-        elif len(legal_choice)>1:
-            possi=confidence*p_choice+(1-confidence)*(1-p_choice)/(len(legal_choice)-1)
+        possi=confidence*p_choice*len(legal_choice)/(1-confidence)+1  #(1-confidence)/len(legal_choice)
         return possi
 
     def possi_rectify(self,cards_lists,c1=0.5,c2=0.55):
@@ -199,19 +191,24 @@ class MrZeroTree(MrRandom):
                 pnext=(pnext-1)%4
                 choice=cards_on_table.pop()
                 cards_lists[pnext].append(choice)
+
                 if pnext==self.place:
                     continue
-                elif (pnext-self.place)%2==0:
-                    confidence=c2
-                else:
-                    confidence=c1
                 if len(cards_on_table)==1:
                     suit="A"
                 else:
                     suit=cards_on_table[1][0]
+                cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
+                legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
+                if len(set(legal_choice).intersection(set(["SQ","SK","SA","C10","DJ","HA","HK","HQ"])))==0:
+                    continue
+                if (pnext-self.place)%2==0:
+                    confidence=c2
+                else:
+                    confidence=c1
                 if print_level>=3:
                     log("%s\n%s\n%s %s %s %s %.2f"%(cards_lists,scores,cards_on_table,pnext,suit,choice,confidence))
-                result*=self.possi_rectify_sub(cards_lists,scores,cards_on_table,pnext,suit,choice,confidence)
+                result*=self.possi_rectify_sub(cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence)
         assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, scores
         assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, cards_lists
         return result
@@ -237,11 +234,13 @@ class MrZeroTree(MrRandom):
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
 
-        #sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
-        #sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
-        #scenarios=[i for i in sce_gen] #
-        sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,level=2,num_per_imp=2)
-        scenarios=sce_gen.get_scenarios()
+        if self.sample_b>=0 and self.sample_k>=0:
+            sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
+            sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
+            scenarios=[i for i in sce_gen]
+        elif self.sample_b<0 and self.sample_k<0:
+            sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,level=-1*self.sample_k,num_per_imp=-1*self.sample_b)
+            scenarios=sce_gen.get_scenarios()
         scenarios_weight=[]
         cards_lists_list=[]
         for cll in scenarios:
@@ -251,8 +250,8 @@ class MrZeroTree(MrRandom):
                 cards_lists[(self.place+i+1)%4]=cll[i]
             if print_level>=3:
                 log("%s\n%s"%(self.history,cards_lists))
-            scenarios_weight.append(self.possi_rectify(cards_lists))
-            #scenarios_weight.append(1.0)
+            #scenarios_weight.append(self.possi_rectify(cards_lists))
+            scenarios_weight.append(1.0)
             if print_level>=3:
                 log("weight: %.4e\n%s"%(scenarios_weight[-1],cards_lists))
             cards_lists_list.append(cards_lists)
