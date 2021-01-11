@@ -4,13 +4,13 @@ from Util import log,cards_order
 from Util import ORDER_DICT2,SCORE_DICT
 from MrGreed import MrGreed
 from ScenarioGenerator.ImpScenarioGen import ImpScenarioGen
-import random,itertools,copy
+import itertools
 
 class MrImpGreed(MrGreed):
     L_SAMPLE=2
     N_PER_IMP=5
 
-    def pick_a_card(self):
+    def pick_a_card(self,sce_gen=None):
         #确认桌上牌的数量和自己坐的位置相符
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
         #utility datas
@@ -46,7 +46,8 @@ class MrImpGreed(MrGreed):
             four_cards=['','','','']
         #expire_date=0 #for sampling
         d_legal={c:0 for c in MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)} #dict of legal choice
-        sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,level=MrImpGreed.L_SAMPLE,num_per_imp=MrImpGreed.N_PER_IMP)
+        if sce_gen==None:
+            sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,level=MrImpGreed.L_SAMPLE,num_per_imp=MrImpGreed.N_PER_IMP)
         for cards_list_list in sce_gen:
             #decide
             if len(self.cards_on_table)==3:
@@ -107,7 +108,6 @@ class MrImpGreed(MrGreed):
         return 'MrImpGreed'
 
 def benchmark(print_process=True):
-    from MrGreed import MrGreed
     from OfflineInterface import OfflineInterface
     import itertools,numpy
 

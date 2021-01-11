@@ -5,6 +5,7 @@ from Util import ORDER_DICT,ORDER_DICT2,ORDER_DICT5,SCORE_DICT,INIT_CARDS
 from MrRandom import MrRandom
 from MrGreed import MrGreed
 from ScenarioGenerator.ScenarioGen import ScenarioGen
+from ScenarioGenerator.ImpScenarioGen import ImpScenarioGen
 from OfflineInterface import OfflineInterface
 from MCTS.mcts import mcts
 
@@ -128,7 +129,7 @@ class MrZeroTree(MrRandom):
             oh[52*i+ORDER_DICT[c]]=1"""
         oh=torch.zeros(54*3)
         for i,c in enumerate(cards_on_table[:0:-1]):
-            index=54*i+ORDER_DICT[c]#TODO +1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            index=54*i+ORDER_DICT[c]#TODO +1 !!!
             oh[index-1:index+2]=1
         """oh=torch.zeros(54*3+20*4)#,dtype=torch.uint8)
         for i,c in enumerate(cards_on_table[:0:-1]):
@@ -155,70 +156,64 @@ class MrZeroTree(MrRandom):
                 _,v=self.pv_net(netin.to(self.device))
             return v.item()*state.getCurrentPlayer()+state.getReward()
 
-    def possi_rectify_sub(self,cards_lists,scores,cards_on_table,pnext,suit,choice):
+    def possi_rectify_sub(self,cards_lists,scores,cards_on_table,pnext,suit,choice,confidence):
         cards_list=cards_lists[pnext]
         cards_dict=MrGreed.gen_cards_dict(cards_list)
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_list)
-        legal_mask=torch.zeros(52)
-        for k in legal_choice:
-            legal_mask[ORDER_DICT[k]]=1
-        if print_level>=3:
-            log(legal_choice)
 
         netin=MrZeroTree.prepare_ohs(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
-        log_p=F.log_softmax(p*legal_mask.to(self.device),dim=0)
-        possi=log_p[ORDER_DICT[choice]].item()
-        if print_level>=3:
-            log(possi)
+        p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
+        v_max=max((v for c,v in p_legal))
+        p_legal=[(c,math.exp(v-v_max)) for c,v in p_legal]
+        v_sum=sum((v for c,v in p_legal))
+        p_legal=[(c,v/v_sum) for c,v in p_legal]
+        assert (sum((v for c,v in p_legal))-1)<1e-5, sum((v for c,v in p_legal))
+
+        p_choice=(v for c,v in p_legal if c==choice).__next__()
+        if len(legal_choice)==1:
+            assert abs(p_choice-1)<1e-5, p_choice
+            possi=confidence
+        elif len(legal_choice)>1:
+            possi=confidence*p_choice+(1-confidence)*(1-p_choice)/(len(legal_choice)-1)
         return possi
 
-    def possi_rectify(self,cards_lists):
+    def possi_rectify(self,cards_lists,c1=0.5,c2=0.55):
         """
             posterior probability rectify
             cards_lists is in absolute order
         """
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
-        cards_on_table=copy.deepcopy(self.cards_on_table)
-        result=0
-
-        pnext=self.place
-        for i in range(len(cards_on_table)-1):
-            pnext=(pnext-1)%4
-            choice=cards_on_table.pop()
-            cards_lists[pnext].append(choice)
-            if len(cards_on_table)==1:
-                suit="A"
-            else:
-                suit=cards_on_table[1][0]
-            if pnext!=self.place:
-                if print_level>=3:
-                    log("%d, %s, %s, %s"%(pnext,choice,suit,cards_lists))
-                result+=self.possi_rectify_sub(cards_lists,scores,cards_on_table,pnext,suit,choice)
-
-        last_winner=self.cards_on_table[0]
-        for history in self.history[::-1]:
-            for c in history[1:]:
-                if c in SCORE_DICT:
-                    scores[last_winner].remove(c)
+        result=1
+        for history in [self.cards_on_table,]+self.history[::-1]:
+            if len(history)==5:
+                for c in history[1:]:
+                    if c in SCORE_DICT:
+                        scores[last_winner].remove(c)
             last_winner=history[0]
             cards_on_table=copy.copy(history)
-            pnext=cards_on_table[0]
-            for i in range(4):
+            pnext=(cards_on_table[0]+len(history)-1)%4
+            for i in range(len(cards_on_table)-1):
                 pnext=(pnext-1)%4
                 choice=cards_on_table.pop()
                 cards_lists[pnext].append(choice)
+                if pnext==self.place:
+                    continue
+                elif (pnext-self.place)%2==0:
+                    confidence=c2
+                else:
+                    confidence=c1
                 if len(cards_on_table)==1:
                     suit="A"
                 else:
                     suit=cards_on_table[1][0]
-                if pnext!=self.place:
-                    if print_level>=3:
-                        log("%d, %s, %s, %s"%(pnext,choice,suit,cards_lists))
-                    result+=self.possi_rectify_sub(cards_lists,scores,cards_on_table,pnext,suit,choice)
-
+                if print_level>=3:
+                    log("%s\n%s\n%s %s %s %s %.2f"%(cards_lists,scores,cards_on_table,pnext,suit,choice,confidence))
+                result*=self.possi_rectify_sub(cards_lists,scores,cards_on_table,pnext,suit,choice,confidence)
+        assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, scores
+        assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, cards_lists
         return result
 
     def pick_a_card(self):
@@ -233,6 +228,8 @@ class MrZeroTree(MrRandom):
             if print_level>=1:
                 log("I have no choice but %s"%(choice))
             return choice
+        if  len(self.cards_list)==1:
+            return self.cards_list[0]
 
         if print_level>=1:
             log("my turn: %s, %s, %s"%(self.cards_on_table,self.cards_list,self.scores))
@@ -240,26 +237,28 @@ class MrZeroTree(MrRandom):
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
 
-        sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
-        sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
-        scenarios=[i for i in sce_gen]
-        #scenarios=sce_gen.get_scenarios()
+        #sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
+        #sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
+        #scenarios=[i for i in sce_gen] #
+        sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,level=2,num_per_imp=2)
+        scenarios=sce_gen.get_scenarios()
         scenarios_weight=[]
         cards_lists_list=[]
-        for cards_list_list in scenarios:
+        for cll in scenarios:
             cards_lists=[None,None,None,None]
             cards_lists[self.place]=copy.copy(self.cards_list)
             for i in range(3):
-                cards_lists[(self.place+i+1)%4]=cards_list_list[i]
+                cards_lists[(self.place+i+1)%4]=cll[i]
             if print_level>=3:
-                log("cards_lists: %s"%(cards_lists))
-                log("history: %s"%(self.history))
+                log("%s\n%s"%(self.history,cards_lists))
             scenarios_weight.append(self.possi_rectify(cards_lists))
+            #scenarios_weight.append(1.0)
+            if print_level>=3:
+                log("weight: %.4e\n%s"%(scenarios_weight[-1],cards_lists))
             cards_lists_list.append(cards_lists)
-        weight_max=max(scenarios_weight)
-        scenarios_weight=[math.exp(i-weight_max) for i in scenarios_weight]
         weight_sum=sum(scenarios_weight)
         scenarios_weight=[i/weight_sum for i in scenarios_weight]
+        assert abs(sum(scenarios_weight)-1)<1e-5, scenarios_weight
         if print_level>=2:
             print(scenarios_weight)
         for i,cards_lists in enumerate(cards_lists_list):
@@ -282,6 +281,30 @@ class MrZeroTree(MrRandom):
                 d_legal[p_legal[0][0]]+=1
             else:
                 raise Exception("reserved")
+
+            """netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
+            with torch.no_grad():
+                p,_=self.pv_net(netin.to(self.device))
+            p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
+            v_max=max((v for c,v in p_legal))
+            p_legal=[(c,math.exp(v-v_max)) for c,v in p_legal]
+            v_sum=sum((v for c,v in p_legal))
+            p_legal=[(c,v/v_sum) for c,v in p_legal]
+            assert (sum((v for c,v in p_legal))-1)<1e-5, sum((v for c,v in p_legal))"""
+
+            """choice=[(action,node.totalReward/node.numVisits) for action,node in searcher.root.children.items()]
+            choice.sort(key=lambda x:x[1],reverse=True)
+            choice=choice[0][0]
+            print("%.4f"%([v for c,v in p_legal if c==choice][0]),end=", ",flush=True)"""
+
+            """g=self.g_aux[self.place]
+            g.cards_on_table=copy.copy(self.cards_on_table)
+            g.history=copy.deepcopy(self.history)
+            g.scores=copy.deepcopy(self.scores)
+            g.cards_list=copy.deepcopy(self.cards_list)
+            gc=g.pick_a_card(sce_gen=[scenarios[i]])
+            print("%.4f"%([v for c,v in p_legal if c==gc][0]),end=", ",flush=True)"""
+
         if print_level>=2:
             log(d_legal)
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)

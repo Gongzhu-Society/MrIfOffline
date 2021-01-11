@@ -2,21 +2,15 @@
 # -*- coding: UTF-8 -*-
 from Util import log
 
-def benchmark(print_process=True):
-    """
-        benchmark raw network against MrGreed
-        METHOD=-1, N1=512, 7min
-        METHOD=-2, N1=512, 3.5min
-    """
+def benchmark(print_process=False):
     from MrGreed import MrGreed
     from MrZeroTree import MrZeroTree
-    from MrZ_NETs import PV_NET
     from OfflineInterface import OfflineInterface
     import itertools,numpy,torch
 
     against_greed=True
 
-    device_bench=torch.device("cuda:0")
+    device_bench=torch.device("cuda:3")
     save_name_0="./ZeroNets/from-zero-29b/PV_NET-B-25-11416629-240.pkl"
     pv_net_0=torch.load(save_name_0,map_location=device_bench)
 
@@ -27,8 +21,12 @@ def benchmark(print_process=True):
         pv_net_1.to(device_bench)
         del save_name_1
 
+
     zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-                   mcts_b=10,mcts_k=2,sample_b=5,sample_k=0) for i in [0,2]]
+                   #mcts_b=10,mcts_k=2,sample_b=10,sample_k=1) for i in [0,2]]
+                   mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-1) for i in [0,2]]
+    #g_aux=[MrImpGreed(room=255,place=i,name='greed_aux%d'%(i)) for i in range(4)]
+    #zt0[0].g_aux=g_aux;zt0[1].g_aux=g_aux
     if against_greed:
         g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
         interface=OfflineInterface([zt0[0],g[0],zt0[1],g[1]],print_flag=False)
@@ -58,6 +56,8 @@ def benchmark(print_process=True):
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark result: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
+    suc_ct=sum([1 for i in s_temp if i>0])/len(s_temp)
+    log("success rate: %.2f"%(suc_ct))
 
 def plot_log(fileperfix):
     import matplotlib
