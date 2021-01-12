@@ -13,26 +13,23 @@ def benchmark(print_process=False):
 
     against_greed=True
 
-    save_name_0="Zero-29th-25-11416629-720.pt"
     device_bench=torch.device("cuda:1")
+    save_name_0="Zero-29th-25-11416629-720.pt"
+    state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
-    pv_net_0.load_state_dict(torch.load(save_name_0,map_location=device_bench))
+    pv_net_0.load_state_dict(state_dict_0)
     pv_net_0.to(device_bench)
-
-    if not against_greed:
-        del save_name_0
-        pass
-
     zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-                   mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
-    #g_aux=[MrImpGreed(room=255,place=i,name='greed_aux%d'%(i)) for i in range(4)]
-    #zt0[0].g_aux=g_aux;zt0[1].g_aux=g_aux
+                   mcts_b=10,mcts_k=2,sample_b=5,sample_k=0) for i in [0,2]]
+
     if against_greed:
         g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
         interface=OfflineInterface([zt0[0],g[0],zt0[1],g[1]],print_flag=False)
     else:
-        zt1=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_1,device=device_bench,mcts_searchnum=mcts_searchnum,pv_deep=pv_deep,N_SAMPLE=n_sample) for i in [1,3]]
-        interface=OfflineInterface([zt[0],zt1[0],zt0[1],zt1[1]],print_flag=False)
+        pass
+        #zt1=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
+        #           mcts_b=0,mcts_k=1,sample_b=5,sample_k=0) for i in [1,3]]
+        #interface=OfflineInterface([zt0[0],zt1[0],zt0[1],zt1[1]],print_flag=False)
 
     N1=256;N2=2;
     log("%s v.s. %s for %dx%d"%(interface.players[0].__class__.__name__,interface.players[1].__class__.__name__,N1,N2))
@@ -54,6 +51,7 @@ def benchmark(print_process=False):
                 log("%2d %4d: %s"%(k,sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2,stats[-N2:]))
             else:
                 print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
+
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark result: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))

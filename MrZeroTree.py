@@ -168,14 +168,19 @@ class MrZeroTree(MrRandom):
         assert (sum((v for c,v in p_legal))-1)<1e-5, sum((v for c,v in p_legal))
 
         p_choice=(v for c,v in p_legal if c==choice).__next__()
-        possi=confidence*p_choice*len(legal_choice)/(1-confidence)+1  #(1-confidence)/len(legal_choice)
+        #possi=confidence*p_choice*len(legal_choice)/(1-confidence)+1  #(1-confidence)/len(legal_choice)
+        #possi=confidence*p_choice+(1-confidence)/len(legal_choice)
+        possi=confidence*p_choice*len(legal_choice)+(1-confidence)
+        if print_level>=3:
+            log(possi)
         return possi
 
-    def possi_rectify(self,cards_lists,c1=0.5,c2=0.55):
+    def possi_rectify(self,cards_lists,thisuit,c1=0.5,c2=0.5):
         """
             posterior probability rectify
             cards_lists is in absolute order
         """
+        cards_lists_origin=cards_lists
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
         result=1
@@ -186,6 +191,17 @@ class MrZeroTree(MrRandom):
                         scores[last_winner].remove(c)
             last_winner=history[0]
             cards_on_table=copy.copy(history)
+
+            if len(cards_on_table)!=5:
+                same_flag=False
+            else:
+                same_flag=True
+                for i in range(4):
+                    if (cards_on_table[0]+i)%4==self.place:
+                        continue
+                    if cards_on_table[i+1][0]!=cards_on_table[1][0]:
+                        same_flag=False
+
             pnext=(cards_on_table[0]+len(history)-1)%4
             for i in range(len(cards_on_table)-1):
                 pnext=(pnext-1)%4
@@ -194,20 +210,38 @@ class MrZeroTree(MrRandom):
 
                 if pnext==self.place:
                     continue
+                do_flag=False
+                #if thisuit in ("S","A") and choice[0]=="S" and "SQ" in cards_lists_origin[pnext]:
+                if thisuit in ("S","A") and choice[0]=="S" and len(set(cards_lists_origin[pnext]).intersection(set(["SQ","SK","SA"])))>0:
+                    do_flag=True
+                #elif thisuit in ("D","A") and choice[0]=="D" and "DJ" in cards_lists_origin[pnext]:
+                elif thisuit in ("D",) and choice[0]=="D" and len(set(cards_lists_origin[pnext]).intersection(set(["DJ","DA","DK","DQ"])))>0:
+                    do_flag=True
+                elif thisuit in ("C") and choice[0]=="C" and "C10" in cards_lists_origin[pnext]:
+                    do_flag=True
+                elif thisuit in ("H",) and choice[0]=="H" and len(set(cards_lists_origin[pnext]).intersection(set(["HA","HK","HQ"])))>0:
+                    do_flag=True
+                if (not do_flag) or (not same_flag):
+                    continue
+
                 if len(cards_on_table)==1:
                     suit="A"
                 else:
                     suit=cards_on_table[1][0]
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
+
                 #if len(set(legal_choice).intersection(set(["SQ","SK","SA","C10","DJ","HA","HK","HQ"])))==0:
                 #    continue
+                #if choice[0]!=thisuit:
+                #    continue
+
                 if (pnext-self.place)%2==0:
                     confidence=c2
                 else:
                     confidence=c1
                 if print_level>=3:
-                    log("%s\n%s\n%s %s %s %s %.2f"%(cards_lists,scores,cards_on_table,pnext,suit,choice,confidence))
+                    log("rectifying %s"%(choice))
                 result*=self.possi_rectify_sub(cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence)
         assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, scores
         assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, cards_lists
@@ -241,6 +275,7 @@ class MrZeroTree(MrRandom):
         elif self.sample_b<0 and self.sample_k<0:
             sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,level=-1*self.sample_k,num_per_imp=-1*self.sample_b)
             scenarios=sce_gen.get_scenarios()
+
         scenarios_weight=[]
         cards_lists_list=[]
         for cll in scenarios:
@@ -248,16 +283,31 @@ class MrZeroTree(MrRandom):
             cards_lists[self.place]=copy.copy(self.cards_list)
             for i in range(3):
                 cards_lists[(self.place+i+1)%4]=cll[i]
-            if print_level>=3:
-                log("%s\n%s"%(self.history,cards_lists))
-            #scenarios_weight.append(self.possi_rectify(cards_lists))
-            scenarios_weight.append(1.0)
+            scenarios_weight.append(self.possi_rectify(cards_lists,suit))
+            #scenarios_weight.append(1.0)
+            cards_lists_list.append(cards_lists)
             if print_level>=3:
                 log("weight: %.4e\n%s"%(scenarios_weight[-1],cards_lists))
-            cards_lists_list.append(cards_lists)
+        else:
+            del scenarios
+
+        """scenarios_weight_bk=copy.copy(scenarios_weight)
+        scenarios_weight_bk.sort(reverse=True)
+        sel_num=min(4,len(scenarios_weight_bk)-1)
+        weight_thres=scenarios_weight_bk[sel_num];del scenarios_weight_bk
+        temp=[]
+        for i,cards_lists in enumerate(cards_lists_list):
+            if scenarios_weight[i]>=weight_thres:
+                temp.append((scenarios_weight[i],cards_lists))
+            if len(temp)>=sel_num+1:
+                break
+        del scenarios_weight,cards_lists_list
+        scenarios_weight=[1.0]*(sel_num+1)
+        cards_lists_list=[j for i,j in temp]
+        assert len(scenarios_weight)==len(cards_lists_list), "%d %d"%(len(scenarios_weight),len(cards_lists_list))"""
+
         weight_sum=sum(scenarios_weight)
         scenarios_weight=[i/weight_sum for i in scenarios_weight]
-        assert abs(sum(scenarios_weight)-1)<1e-5, scenarios_weight
         if print_level>=2:
             print(scenarios_weight)
         for i,cards_lists in enumerate(cards_lists_list):
