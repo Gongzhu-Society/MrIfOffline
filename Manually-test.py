@@ -6,21 +6,25 @@ from Util import log
 
 def benchmark(print_process=False):
     from MrGreed import MrGreed
-    from MrZeroTree import MrZeroTree
+    #from MrZeroTree import MrZeroTree
+    from MrZeroTreeSimple import MrZeroTreeSimple
     from MrZ_NETs import PV_NET_2
     from OfflineInterface import OfflineInterface
     import itertools,numpy,torch
 
     against_greed=True
+    complete_info=False
+    log("complete info mode: %s, against greed: %s"%(complete_info,against_greed))
 
-    device_bench=torch.device("cuda:1")
+    device_bench=torch.device("cuda:0")
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
     pv_net_0.load_state_dict(state_dict_0)
     pv_net_0.to(device_bench)
-    zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
+    zt0=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
                    mcts_b=10,mcts_k=2,sample_b=5,sample_k=0) for i in [0,2]]
+    log("mcts_b/k: %d/%d, sample_b/k: %d/%d"%(zt0[0].mcts_b,zt0[0].mcts_k,zt0[0].sample_b,zt0[0].sample_k))
 
     if against_greed:
         g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
@@ -33,7 +37,6 @@ def benchmark(print_process=False):
 
     N1=256;N2=2;
     log("%s v.s. %s for %dx%d"%(interface.players[0].__class__.__name__,interface.players[1].__class__.__name__,N1,N2))
-    log("mcts_b/k: %d/%d sample_b/k: %d/%d"%(zt0[0].mcts_b,zt0[0].mcts_k,zt0[0].sample_b,zt0[0].sample_k))
     stats=[]
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
@@ -42,7 +45,10 @@ def benchmark(print_process=False):
             cards=cards[39:52]+cards[0:39]
             interface.shuffle(cards=cards)
         for i,j in itertools.product(range(13),range(4)):
-            interface.step()
+            if complete_info and interface.players[interface.pnext].family_name().startswith("MrZeroTree"):
+                interface.step_complete_info()
+            else:
+                interface.step()
             #input("continue...")
         stats.append(interface.clear())
         interface.prepare_new()
