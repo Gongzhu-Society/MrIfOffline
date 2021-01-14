@@ -9,7 +9,7 @@ from MCTS.mcts import mcts
 
 import torch
 import torch.nn.functional as F
-import copy,gc,math
+import copy,math
 
 class GameState():
     def __init__(self,cards_lists,score_lists,cards_on_table,play_for):
@@ -77,12 +77,12 @@ class GameState():
         return scores[0]+scores[2]-scores[1]-scores[3]
 
 print_level=0
-BETA=0.2
+BETA=0.2 #for pareparing train data
 MCTS_EXPL=30
 
 class MrZeroTreeSimple(MrRandom):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
-                 sample_b=10,sample_k=1,mcts_b=10,mcts_k=2):
+                 sample_b=10,sample_k=1,mcts_b=20,mcts_k=2):
         MrRandom.__init__(self,room,place,name)
         self.pv_net=pv_net
         self.device=device
@@ -186,18 +186,19 @@ class MrZeroTreeSimple(MrRandom):
         #MCTS并对Scenario平均
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
+        searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         for i,cards_lists in enumerate(cards_lists_list):
             #initialize gamestate
             gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.place)
             #mcts
             if self.mcts_k>=0:
-                searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
                 searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
                               explorationConstant=MCTS_EXPL)
                 searcher.search(initialState=gamestate)
                 for action,node in searcher.root.children.items():
-                    d_legal[action]+=node.totalReward/node.numVisits
+                    d_legal[action]+=(node.totalReward/node.numVisits)/len(cards_lists_list)
             elif self.mcts_k==-1:
+                input("not using this mode")
                 netin=MrZeroTreeSimple.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
                 with torch.no_grad():
                     p,_=self.pv_net(netin.to(self.device))
@@ -207,6 +208,7 @@ class MrZeroTreeSimple(MrRandom):
             else:
                 raise Exception("reserved")
         #挑选出最好的并返回
+        #d_legal={k:v/ for k,v in d_legal.items()}
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 

@@ -201,10 +201,6 @@ class MrGreed(MrRandom):
                 best_choices=[k]
             elif v==best_score:
                 best_choices.append(k)
-        """if len(best_choices)>1:
-            log("have to choice: %s"%(d_legal))
-            for i in range(10):
-                print(random.choice(best_choices))"""
         return random.choice(best_choices)
 
     def pick_a_card(self,need_details=False):
@@ -336,73 +332,6 @@ class MrGreed(MrRandom):
     @staticmethod
     def family_name():
         return 'MrGreed'
-
-def gen_data_for_o(N1=2,N2=1,save=False):
-    from OfflineInterface import OfflineInterface
-    import pickle
-    global for_o
-    for_o=([],[],[],[])
-    g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
-    offlineinterface=OfflineInterface(g,print_flag=False)
-    stats=[]
-    for k,l in itertools.product(range(N1),range(N2)):
-        if l==0:
-            cards=offlineinterface.shuffle()
-        else:
-            cards=cards[39:52]+cards[0:39]
-            offlineinterface.shuffle(cards=cards)
-        for i,j in itertools.product(range(13),range(4)):
-            offlineinterface.step()
-        stats.append(offlineinterface.clear())
-        print(".",end=" ",flush=True)
-        offlineinterface.prepare_new()
-    print("")
-    if save:
-        with open("Greed_%d.data"%(N1),'wb') as f:
-            pickle.dump(for_o,f)
-        log("saved")
-    return for_o
-
-def optimize_target(paras):
-    """
-        will be called by optimize_para to optimize parameters of MrGreed
-        should import:
-    from MrIf import MrIf
-    from OfflineInterface import OfflineInterface
-    import numpy
-    """
-    print(paras,end=" ",flush=True)
-    g0=MrGreed(room=0,place=0,name='greed0')
-    g2=MrGreed(room=0,place=2,name='greed2')
-    f1=MrIf(room=0,place=1,name="if1")
-    f3=MrIf(room=0,place=3,name="if3")
-    for g in [g0,g2]:
-        g.SHORT_PREFERENCE=paras[0]*100
-    offlineinterface=OfflineInterface([g0,f1,g2,f3],print_flag=False)
-    N1=256;N2=2
-    stats=[]
-    for k,l in itertools.product(range(N1),range(N2)):
-        if l==0:
-            cards=offlineinterface.shuffle()
-        else:
-            cards=cards[39:52]+cards[0:39]
-            offlineinterface.shuffle(cards=cards)
-        for i,j in itertools.product(range(13),range(4)):
-            offlineinterface.step()
-        stats.append(offlineinterface.clear())
-        offlineinterface.prepare_new()
-    s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
-    print("%.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),))
-    return numpy.mean(s_temp)
-
-def optimize_para():
-    """
-        want to optimize MrGreed's parameter by scipy.optimize, but failed
-    """
-    import scipy.optimize
-    init_para=(8,)
-    res=scipy.optimize.minimize(optimize_target,init_para,options={'eps':1})#,bounds=np.array([2,None]))
-    print(res)
 
 def bug_shi():
     g=MrGreed(room=0,place=1,name='shi')

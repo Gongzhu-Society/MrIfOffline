@@ -6,7 +6,8 @@ from Util import log
 
 def benchmark(print_process=False):
     from MrGreed import MrGreed
-    #from MrZeroTree import MrZeroTree
+    from MrImpGreed import MrImpGreed
+    from MrZeroTree import MrZeroTree
     from MrZeroTreeSimple import MrZeroTreeSimple
     from MrZ_NETs import PV_NET_2
     from OfflineInterface import OfflineInterface
@@ -16,14 +17,20 @@ def benchmark(print_process=False):
     complete_info=False
     log("complete info mode: %s, against greed: %s"%(complete_info,against_greed))
 
-    device_bench=torch.device("cuda:0")
+    device_bench=torch.device("cuda:1")
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
     pv_net_0.load_state_dict(state_dict_0)
     pv_net_0.to(device_bench)
-    zt0=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
+    #zt0=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
+    zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
                    mcts_b=10,mcts_k=2,sample_b=5,sample_k=0) for i in [0,2]]
+    g_aux=[None,None,None,None]
+    g_aux[1]=MrImpGreed(room=255,place=1,name='gaux1')
+    g_aux[3]=MrImpGreed(room=255,place=3,name='gaux3')
+    zt0[0].g_aux=g_aux
+    zt0[1].g_aux=g_aux
     log("mcts_b/k: %d/%d, sample_b/k: %d/%d"%(zt0[0].mcts_b,zt0[0].mcts_k,zt0[0].sample_b,zt0[0].sample_k))
 
     if against_greed:
@@ -57,12 +64,13 @@ def benchmark(print_process=False):
                 log("%2d %4d: %s"%(k,sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2,stats[-N2:]))
             else:
                 print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
-
+    #input("continue...")
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark result: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
     suc_ct=sum([1 for i in s_temp if i>0])/len(s_temp)
-    log("success rate: %.2f"%(suc_ct))
+    draw_ct=sum([1 for i in s_temp if i==0])/len(s_temp)
+    log("success rate: %.4f %.4f"%(suc_ct,draw_ct))
 
 def plot_log(fileperfix):
     import matplotlib
