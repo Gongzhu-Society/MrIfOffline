@@ -30,7 +30,7 @@ class MrZeroTree(MrZeroTreeSimple):
         if self.train_mode:
             self.train_datas=[]
     
-    def possi_rectify_sub_not_using(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence):
+    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence):
         netin=MrZeroTree.prepare_ohs(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
@@ -48,7 +48,7 @@ class MrZeroTree(MrZeroTreeSimple):
             log(possi);input()
         return possi
 
-    def possi_rectify_greed(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence=0.5):
+    def possi_rectify_greed(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence=0.6):
         g=self.g_aux[pnext]
         g.cards_on_table=copy.copy(cards_on_table)
         g.scores=copy.deepcopy(scores)
@@ -60,44 +60,12 @@ class MrZeroTree(MrZeroTreeSimple):
         else:
             #log("%s!=%s"%(choice,g_choice))
             return (1-confidence)/(1-2*confidence*(1-confidence))
-    
-    def possi_rectify(self,cards_lists,thisuit):
+   
+    def decide_rect_necessity(self,thisuit,suit,choice,pnext,cards_lists):
         """
-            posterior probability rectify
-            cards_lists is in absolute order
+            return True for necessary
         """
-        cards_lists_origin=cards_lists
-        cards_lists=copy.deepcopy(cards_lists)
-        scores=copy.deepcopy(self.scores)
-        result=1
-        for history in [self.cards_on_table,]+self.history[::-1]:
-            if len(history)==5:
-                for c in history[1:]:
-                    if c in SCORE_DICT:
-                        scores[last_winner].remove(c)
-            last_winner=history[0]
-            cards_on_table=copy.copy(history)
-
-            """if len(cards_on_table)!=5:
-                same_flag=False
-            else:
-                same_flag=True
-                for i in range(4):
-                    if (cards_on_table[0]+i)%4==self.place:
-                        continue
-                    if cards_on_table[i+1][0]!=cards_on_table[1][0]:
-                        same_flag=False"""
-
-            pnext=(cards_on_table[0]+len(history)-1)%4
-            for i in range(len(cards_on_table)-1):
-                pnext=(pnext-1)%4
-                choice=cards_on_table.pop()
-                cards_lists[pnext].append(choice)
-
-                if pnext==self.place:
-                    continue
-                
-                """do_flag=False
+        """do_flag=False
                 #if thisuit in ("S","A") and choice[0]=="S" and "SQ" in cards_lists_origin[pnext]:
                 if thisuit in ("S","A") and choice[0]=="S"\
                 and len(set(cards_lists_origin[pnext]).intersection(set(["SQ","SK","SA"])))>0:
@@ -115,21 +83,57 @@ class MrZeroTree(MrZeroTreeSimple):
                     do_flag=True
                 if (not do_flag) or (not same_flag):
                     continue"""
+        """if len(cards_on_table)!=5:
+                same_flag=False
+            else:
+                same_flag=True
+                for i in range(4):
+                    if (cards_on_table[0]+i)%4==self.place:
+                        continue
+                    if cards_on_table[i+1][0]!=cards_on_table[1][0]:
+                        same_flag=False"""
+        if thisuit==choice[0] and choice[1] not in "234":
+            return True
+        if thisuit=="A" and choice in ("SA","SK","DA","DK","DQ","HA","HK","HQ","HJ"):
+            return True
+    
+        return False
 
+    def possi_rectify(self,cards_lists,thisuit):
+        """
+            posterior probability rectify
+            cards_lists is in absolute order
+        """
+        #log(cards_lists)
+        cards_lists=copy.deepcopy(cards_lists)
+        scores=copy.deepcopy(self.scores)
+        result=1
+        for history in [self.cards_on_table,]+self.history[::-1]:
+            if len(history)==5:
+                for c in history[1:]:
+                    if c in SCORE_DICT:
+                        scores[last_winner].remove(c)
+            last_winner=history[0]
+            cards_on_table=copy.copy(history)
+            pnext=(cards_on_table[0]+len(history)-1)%4
+            for i in range(len(cards_on_table)-1):
+                pnext=(pnext-1)%4
+                choice=cards_on_table.pop()
+                cards_lists[pnext].append(choice)
+                #不用修正我自己
+                if pnext==self.place:
+                    continue
+                #决定是否需要修正
                 if len(cards_on_table)==1:
                     suit="A"
                 else:
                     suit=cards_on_table[1][0]
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
-
-                if print_level>=3:
-                    log("rectifying %s"%(choice))
-                
-                if abs(pnext-self.place)==2:
-                    pass
-                else:
-                    result*=self.possi_rectify_greed(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
+                if not self.decide_rect_necessity(thisuit,suit,choice,pnext,cards_lists):
+                    continue
+                result*=self.possi_rectify_greed(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
+                #log("rectifying: %s %s %.4f"%(cards_on_table,choice,result));input()
         else:
             assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, scores
             assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, cards_lists
@@ -152,8 +156,6 @@ class MrZeroTree(MrZeroTreeSimple):
         if print_level>=1:
             log("my turn: %s, %s, %s"%(self.cards_on_table,self.cards_list,self.scores))
 
-        
-
         if self.sample_b>=0 and self.sample_k>=0:
             sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
             sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
@@ -172,6 +174,7 @@ class MrZeroTree(MrZeroTreeSimple):
             for i in range(3):
                 cards_lists[(self.place+i+1)%4]=cll[i]
             scenarios_weight.append(self.possi_rectify(cards_lists,suit))
+            #scenarios_weight.append(1.0)
             cards_lists_list.append(cards_lists)
             if print_level>=3:
                 log("weight: %.4e\n%s"%(scenarios_weight[-1],cards_lists))

@@ -7,43 +7,44 @@ from Util import log
 def benchmark(print_process=False):
     from MrGreed import MrGreed
     from MrImpGreed import MrImpGreed
-    from MrZeroTree import MrZeroTree
     from MrZeroTreeSimple import MrZeroTreeSimple
+    from MrZeroTree import MrZeroTree
     from MrZ_NETs import PV_NET_2
     from OfflineInterface import OfflineInterface
-    import itertools,numpy,torch
+    import itertools,numpy,torch,random
 
-    against_greed=True
+    mode=2
     complete_info=False
-    log("complete info mode: %s, against greed: %s"%(complete_info,against_greed))
+    log("complete info: %s, mode: %s"%(complete_info,mode))
 
-    device_bench=torch.device("cuda:1")
+    device_bench=torch.device("cuda:%d"%(random.randint(0,2)))
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
     pv_net_0.load_state_dict(state_dict_0)
     pv_net_0.to(device_bench)
-    #zt0=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-    zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-                   mcts_b=10,mcts_k=2,sample_b=5,sample_k=0) for i in [0,2]]
-    g_aux=[None,None,None,None]
-    g_aux[1]=MrImpGreed(room=255,place=1,name='gaux1')
-    g_aux[3]=MrImpGreed(room=255,place=3,name='gaux3')
-    zt0[0].g_aux=g_aux
-    zt0[1].g_aux=g_aux
-    log("mcts_b/k: %d/%d, sample_b/k: %d/%d"%(zt0[0].mcts_b,zt0[0].mcts_k,zt0[0].sample_b,zt0[0].sample_k))
-
-    if against_greed:
+    
+    if mode==0:
+        zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
+                        mcts_b=10,mcts_k=2,sample_b=5,sample_k=0) for i in [0,2]]
         g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
         interface=OfflineInterface([zt0[0],g[0],zt0[1],g[1]],print_flag=False)
-    else:
+    elif mode==1:
         pass
-        #zt1=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-        #           mcts_b=0,mcts_k=1,sample_b=5,sample_k=0) for i in [1,3]]
-        #interface=OfflineInterface([zt0[0],zt1[0],zt0[1],zt1[1]],print_flag=False)
+    elif mode==2:
+        #zt0=MrZeroTreeSimple(room=255,place=0,name='zerotreesimple0',
+        zt0=MrZeroTree(room=255,place=0,name='zerotree0',
+            pv_net=pv_net_0,device=device_bench,mcts_b=10,mcts_k=2,sample_b=5,sample_k=0)
+        zt0.g_aux=[MrImpGreed(room=255,place=i,name='gaux%d'%(i)) for i in [1,2,3]]
+        zt0.g_aux.insert(0,None)
+        g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,2,3]]
+        interface=OfflineInterface([zt0,g[0],g[1],g[2]],print_flag=False)
 
-    N1=256;N2=2;
-    log("%s v.s. %s for %dx%d"%(interface.players[0].__class__.__name__,interface.players[1].__class__.__name__,N1,N2))
+    N1=512;N2=2;
+    log("(%s+%s) v.s. (%s+%s) for %dx%d"%(interface.players[0].family_name(),interface.players[2].family_name(),
+                                          interface.players[1].family_name(),interface.players[3].family_name(),N1,N2))
+    log("mcts_b/k: %d/%d, sample_b/k: %d/%d"%(interface.players[0].mcts_b,interface.players[0].mcts_k,
+                                              interface.players[0].sample_b,interface.players[0].sample_k))
     stats=[]
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
