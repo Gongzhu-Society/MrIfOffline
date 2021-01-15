@@ -17,7 +17,8 @@ def benchmark(print_process=False):
     complete_info=False
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
-    device_bench=torch.device("cuda:%d"%(random.randint(0,2)))
+    device_bench=torch.device("cuda:%d"%(random.randint(0,3)))
+    #device_bench=torch.device("cuda:2")
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
@@ -40,7 +41,7 @@ def benchmark(print_process=False):
         g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,2,3]]
         interface=OfflineInterface([zt0,g[0],g[1],g[2]],print_flag=False)
 
-    N1=512;N2=2;
+    N1=1024;N2=2;
     log("(%s+%s) v.s. (%s+%s) for %dx%d"%(interface.players[0].family_name(),interface.players[2].family_name(),
                                           interface.players[1].family_name(),interface.players[3].family_name(),N1,N2))
     log("mcts_b/k: %d/%d, sample_b/k: %d/%d"%(interface.players[0].mcts_b,interface.players[0].mcts_k,

@@ -48,7 +48,7 @@ class MrZeroTree(MrZeroTreeSimple):
             log(possi);input()
         return possi
 
-    def possi_rectify_greed(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence=0.6):
+    def possi_rectify_greed(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence=0.4):
         g=self.g_aux[pnext]
         g.cards_on_table=copy.copy(cards_on_table)
         g.scores=copy.deepcopy(scores)
@@ -56,10 +56,12 @@ class MrZeroTree(MrZeroTreeSimple):
         g_choice=g.pick_a_card(sce_gen=[[cards_lists[(pnext+1)%4],cards_lists[(pnext+2)%4],cards_lists[(pnext+3)%4]]])
         if choice==g_choice:
             #log("%s==%s"%(choice,g_choice))
-            return confidence/(1-2*confidence*(1-confidence)) #renormalization factor: 1/(c**2+(1-c)**2)
+            #return confidence/(1-2*confidence*(1-confidence))
+            return confidence/(confidence**confidence*(1-confidence)**(1-confidence))
         else:
             #log("%s!=%s"%(choice,g_choice))
-            return (1-confidence)/(1-2*confidence*(1-confidence))
+            #return (1-confidence)/(1-2*confidence*(1-confidence))
+            return (1-confidence)/(confidence**confidence*(1-confidence)**(1-confidence))
    
     def decide_rect_necessity(self,thisuit,suit,choice,pnext,cards_lists):
         """
@@ -94,8 +96,8 @@ class MrZeroTree(MrZeroTreeSimple):
                         same_flag=False"""
         if thisuit==choice[0] and choice[1] not in "234":
             return True
-        if thisuit=="A" and choice in ("SA","SK","DA","DK","DQ","HA","HK","HQ","HJ"):
-            return True
+        #if thisuit=="A" and choice in ("SA","SK","DA","DK","DQ","HA","HK","HQ","HJ"):
+        #    return True
     
         return False
 
@@ -104,10 +106,10 @@ class MrZeroTree(MrZeroTreeSimple):
             posterior probability rectify
             cards_lists is in absolute order
         """
-        #log(cards_lists)
+        #input("should not happen")
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
-        result=1
+        result=1.0
         for history in [self.cards_on_table,]+self.history[::-1]:
             if len(history)==5:
                 for c in history[1:]:
@@ -132,12 +134,15 @@ class MrZeroTree(MrZeroTreeSimple):
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
                 if not self.decide_rect_necessity(thisuit,suit,choice,pnext,cards_lists):
                     continue
-                result*=self.possi_rectify_greed(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
-                #log("rectifying: %s %s %.4f"%(cards_on_table,choice,result));input()
+                possi_greed=self.possi_rectify_greed(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
+                result*=possi_greed
+                #result.append(possi_greed-1)
+                #log("rectifying: %s %s %s"%(cards_on_table,choice,result));input()
         else:
             assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, scores
             assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, cards_lists
         return result
+        #return 1.0+sum(result)+(sum(result)**2-sum([i**2 for i in result]))/2
 
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
