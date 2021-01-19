@@ -12,26 +12,6 @@ Offline(testing) version of several AIs.
     * functions: `log, calc_score, cards_order, ...`
     * datas    : `ORDER_DICT, INIT_CARDS, SCORE_DICT, ...`
 
-### ScenarioGen
-
-生成可能的手牌情形(Scenario). 用法如
-
-```
-sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=20,method=None,METHOD1_PREFERENCE=0,exhaust_threshold=None)
-for cards_list_list in sce_gen:
-    print(cards_list_list) #will get things like [['C4', 'C2', 'C6'], ['SQ', 'D8'], ['D2', 'DJ']]
-```
-
-其中`number`是要sample的数量; `method=None` 表示让程序自动选择 sample 方法, 程序会自动从 shot and test 和 constryct by table 中选一个, 如果选择了 constryct by table 并且可能的所有情况数小于想要的 sample 数, 则返回所有情况. 如果想指定方法请自行阅读代码或咨询作者.
-
-现在进行 benchmark, 使用两个 MrGreed 对战两个 MrIf 256x2 局, sample number 设为20, cpu 为 Intel i9-9960X, METHOD1_PREFERENCE=0. 结果如下
-
-Item   |Using Shot and Test|Full ScenarioGen|
-:-----:|:-----------------:|:--------------:|
-Time(s)|49                 |47              |
-
-平均每个 sample 需要`48/(256*2*26*20)=180us`.
-
 ### MrRandTree
 
 MrRandTree is an MCTS AI with random rollout policy. The table below contains benchmarks for MrRandTree. Its scenario number is set to 5, iteration number to 200. MrIf's stats are from stats in Appendix A. One can see that MrRandTree is rather strong.
