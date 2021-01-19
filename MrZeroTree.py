@@ -4,9 +4,9 @@ from Util import log,calc_score
 from Util import ORDER_DICT,ORDER_DICT2,ORDER_DICT5,SCORE_DICT,INIT_CARDS
 from MrRandom import MrRandom
 from MrGreed import MrGreed
-from MrZeroTreeSimple import GameState,MrZeroTreeSimple,MCTS_EXPL
+from MrZeroTreeSimple import GameState,MrZeroTreeSimple,MCTS_EXPL,BETA
 from ScenarioGenerator.ScenarioGen import ScenarioGen
-#from ScenarioGenerator.ImpScenarioGen import ImpScenarioGen
+from ScenarioGenerator.ImpScenarioGen import ImpScenarioGen
 from OfflineInterface import OfflineInterface
 from MCTS.mcts import mcts
 
@@ -15,6 +15,8 @@ import torch.nn.functional as F
 import copy,math
 
 print_level=0
+BETA_POST_RECT=0.015
+log("BETA_POST_RECT: %.3f"%(BETA_POST_RECT,))
 
 class MrZeroTree(MrZeroTreeSimple):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
@@ -29,76 +31,71 @@ class MrZeroTree(MrZeroTreeSimple):
         self.train_mode=train_mode
         if self.train_mode:
             self.train_datas=[]
-    
-    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence):
-        netin=MrZeroTree.prepare_ohs(cards_lists,cards_on_table,scores,pnext)
+
+    def cards_lists_oh_post_rect(cards_lists,place):
+        """
+            return a 208-length one hot, in raletive order
+            the order is [me,me+1,me+2,me+3]
+        """
+        oh=torch.zeros(52*4)
+        for c in cards_lists[place]:
+            oh[ORDER_DICT[c]]=1
+        for i in range(1,4):
+            for c in cards_lists[(place+i)%4]:
+                oh[52*1+ORDER_DICT[c]]=1/3
+                oh[52*2+ORDER_DICT[c]]=1/3
+                oh[52*3+ORDER_DICT[c]]=1/3
+        return oh
+
+    def prepare_ohs_post_rect(cards_lists,cards_on_table,score_lists,place):
+        oh_card=MrZeroTree.cards_lists_oh_post_rect(cards_lists,place)
+        oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
+        oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
+        return torch.cat([oh_card,oh_score,oh_table])
+
+    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,restrict_flag=True):
+        netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
-        p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
+        if restrict_flag:
+            p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]]
+        else:
+            p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
         v_max=max((v for c,v in p_legal))
-        p_legal=[(c,math.exp(v-v_max)) for c,v in p_legal]
+        p_legal=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
+        """p_legal=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
         v_sum=sum((v for c,v in p_legal))
         p_legal=[(c,v/v_sum) for c,v in p_legal]
-        assert (sum((v for c,v in p_legal))-1)<1e-5, sum((v for c,v in p_legal))
+        assert (sum((v for c,v in p_legal))-1)<1e-5, sum((v for c,v in p_legal))"""
+        if print_level>=4:
+            log(["%s: %.4f"%(c,v) for c,v in p_legal])
 
         p_choice=(v for c,v in p_legal if c==choice).__next__()
         #possi=confidence*p_choice+(1-confidence)/len(legal_choice)
-        possi=confidence*p_choice*len(legal_choice)+(1-confidence)
-        if print_level>=3:
-            log(possi);input()
+        #possi=confidence*p_choice*len(legal_choice)+(1-confidence)
+        #possi=p_choice*len(p_legal)
+        possi=max(p_choice,0.2)
         return possi
 
-    def possi_rectify_greed(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence=0.65):
-        g=self.g_aux[pnext]
-        g.cards_on_table=copy.copy(cards_on_table)
-        g.scores=copy.deepcopy(scores)
-        g.cards_list=copy.deepcopy(cards_lists[pnext])
-        g_choice=g.pick_a_card(sce_gen=[[cards_lists[(pnext+1)%4],cards_lists[(pnext+2)%4],cards_lists[(pnext+3)%4]]])
-        if choice==g_choice:
-            #log("%s==%s"%(choice,g_choice))
-            return confidence/(1-2*confidence*(1-confidence))
-            #return confidence/(confidence**confidence*(1-confidence)**(1-confidence))
-        else:
-            #log("%s!=%s"%(choice,g_choice))
-            return (1-confidence)/(1-2*confidence*(1-confidence))
-            #return (1-confidence)/(confidence**confidence*(1-confidence)**(1-confidence))
-   
     def decide_rect_necessity(self,thisuit,suit,choice,pnext,cards_lists):
         """
             return True for necessary
         """
-        """do_flag=False
-                #if thisuit in ("S","A") and choice[0]=="S" and "SQ" in cards_lists_origin[pnext]:
-                if thisuit in ("S","A") and choice[0]=="S"\
-                and len(set(cards_lists_origin[pnext]).intersection(set(["SQ","SK","SA"])))>0:
-                    do_flag=True
-                #elif thisuit in ("D","A") and choice[0]=="D"\
-                and "DJ" in cards_lists_origin[pnext]:
-                elif thisuit in ("D",) and choice[0]=="D"\
-                and len(set(cards_lists_origin[pnext]).intersection(set(["DJ","DA","DK","DQ"])))>0:
-                    do_flag=True
-                elif thisuit in ("C") and choice[0]=="C"\
-                and "C10" in cards_lists_origin[pnext]:
-                    do_flag=True
-                elif thisuit in ("H",) and choice[0]=="H"\
-                and len(set(cards_lists_origin[pnext]).intersection(set(["HA","HK","HQ"])))>0:
-                    do_flag=True
-                if (not do_flag) or (not same_flag):
-                    continue"""
-        """if len(cards_on_table)!=5:
-                same_flag=False
-            else:
-                same_flag=True
-                for i in range(4):
-                    if (cards_on_table[0]+i)%4==self.place:
-                        continue
-                    if cards_on_table[i+1][0]!=cards_on_table[1][0]:
-                        same_flag=False"""
-        if thisuit==choice[0] and suit!="A" and choice[1] not in "234567":
-            return True
-        #if thisuit=="A" and choice in ("SA","SK","DA","DK","DQ","HA","HK","HQ","HJ"):
+        """if thisuit==choice[0]:
+            if choice[0]=="S" and choice[1] in "AKQ":
+                return True
+            elif choice[0]=="H" and choice[1] in "AKQJ09":
+                return True
+            elif choice[0]=="D" and choice[1] in "AKQJ":
+                return True
+            elif choice[0]=="C" and choice[1] in "AKQJ0":
+                return True"""
+        #if thisuit==choice[0] and choice[1] not in "234567":
         #    return True
-    
+        #if thisuit=="A" and choice[1] not in "234567":
+        #    return True
+        if suit!="A" and choice[0]!=suit:
+            return True
         return False
 
     def possi_rectify(self,cards_lists,thisuit):
@@ -125,6 +122,9 @@ class MrZeroTree(MrZeroTreeSimple):
                 #不用修正我自己
                 if pnext==self.place:
                     continue
+                #只修正前6圈
+                #if len(cards_lists[pnext])<8:
+                #    continue
                 #决定是否需要修正
                 if len(cards_on_table)==1:
                     suit="A"
@@ -134,10 +134,10 @@ class MrZeroTree(MrZeroTreeSimple):
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
                 if not self.decide_rect_necessity(thisuit,suit,choice,pnext,cards_lists):
                     continue
-                possi_greed=self.possi_rectify_greed(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
-                result*=possi_greed
-                #result.append(possi_greed-1)
-                #log("rectifying: %s %s %s"%(cards_on_table,choice,result));input()
+                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
+                if print_level>=4:
+                    log("rectify: %s %s: %.4f"%(cards_on_table,choice,possi_pvnet),end="");input()
+                result*=possi_pvnet
         else:
             assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, scores
             assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, cards_lists
@@ -161,19 +161,22 @@ class MrZeroTree(MrZeroTreeSimple):
         if print_level>=1:
             log("my turn: %s, %s, %s"%(self.cards_on_table,self.cards_list,self.scores))
 
-        if self.sample_b>=0 and self.sample_k>=0:
+        if self.sample_k>=0:
             sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
+            assert self.sample_b>=0 and sce_num>0
             sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
             scenarios=[i for i in sce_gen]
-        elif self.sample_b<0 and self.sample_k<0:
-            input("not using")
-            sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,
+        else:
+            assert self.sample_k<0 and self.sample_b<0
+            sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,suit,
                                    level=-1*self.sample_k,num_per_imp=-1*self.sample_b)
             scenarios=sce_gen.get_scenarios()
 
         scenarios_weight=[]
         cards_lists_list=[]
         for cll in scenarios:
+            if print_level>=3:
+                log("analyzing: %s"%(cll))
             cards_lists=[None,None,None,None]
             cards_lists[self.place]=copy.copy(self.cards_list)
             for i in range(3):
@@ -182,16 +185,14 @@ class MrZeroTree(MrZeroTreeSimple):
             #scenarios_weight.append(1.0)
             cards_lists_list.append(cards_lists)
             if print_level>=3:
-                log("weight: %.4e\n%s"%(scenarios_weight[-1],cards_lists))
+                log("weight: %.4f"%(scenarios_weight[-1]),end="");input()
         else:
             del scenarios
         if print_level>=2:
-            log("scenarios_weight: %s"%(scenarios_weight,))
+            log("scenarios_weight: %s"%(["%.4f"%(i) for i in scenarios_weight],))
         weight_sum=sum(scenarios_weight)
         scenarios_weight=[i/weight_sum for i in scenarios_weight]
-        if print_level>=2:
-            log("scenarios_weight: %s"%(scenarios_weight,))
-        
+
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
         searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
@@ -213,18 +214,80 @@ class MrZeroTree(MrZeroTreeSimple):
                 p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
                 p_legal.sort(key=lambda x:x[1],reverse=True)
                 d_legal[p_legal[0][0]]+=1
+            elif self.mcts_k==-2:
+                assert self.sample_b==1 and self.sample_k==0 and self.mcts_b==0, "This is raw-policy mode"
+                netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,self.cards_on_table,self.scores,self.place)
+                with torch.no_grad():
+                    p,_=self.pv_net(netin.to(self.device))
+                p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
+                p_legal.sort(key=lambda x:x[1],reverse=True)
+                return p_legal[0][0]
             else:
-                raise Exception("reserved")  
+                raise Exception("reserved")
 
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
-    
+
     @staticmethod
     def family_name():
         return 'MrZeroTree'
 
+def example_DJ():
+    from MrZ_NETs import PV_NET_2
+    from MrImpGreed import MrImpGreed
+    device_bench=torch.device("cuda:2")
+    state_dict=torch.load("Zero-29th-25-11416629-720.pt",map_location=device_bench)
+    pv_net=PV_NET_2()
+    pv_net.load_state_dict(state_dict)
+    pv_net.to(device_bench)
+    zt3=MrZeroTree(room=255,place=3,name='zerotree3',pv_net=pv_net,device=device_bench,mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
+
+    zt3.cards_list=["HQ","HJ","H8","SA","S5","S4","S3","CQ","CJ","C4"]
+    zt3.cards_on_table=[1,"DJ","D8"]
+    zt3.history=[[0,"H3","H5","H4","H7"],[3,"S6","SJ","HK","S10"],[0,"DQ","DA","D9","D3"]]
+    zt3.scores=[["HK"],[],[],["H3","H5","H4","H7"]]
+    log(zt3.pick_a_card())
+    return
+    l=[zt3.pick_a_card() for i in range(20)]
+    log("%d %d %d"%(len([i[0] for i in l if i[0]=="H"]),len([i[0] for i in l if i[0]=="C"]),len([i[0] for i in l if i[0]=="S"])))
+
+
+def example_SQ():
+    #not include so far
+    from MrZ_NETs import PV_NET_2
+    from MrImpGreed import MrImpGreed
+    device_bench=torch.device("cuda:2")
+    state_dict=torch.load("Zero-29th-25-11416629-720.pt",map_location=device_bench)
+    pv_net=PV_NET_2()
+    pv_net.load_state_dict(state_dict)
+    pv_net.to(device_bench)
+    zt3=MrZeroTree(room=255,place=3,name='zerotree3',pv_net=pv_net,device=device_bench,mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
+
+    zt3.cards_list=["HQ","HJ","H8","H7","SA","S6","S5","S4","S3","CQ","CJ","D3"]
+    zt3.cards_on_table=[1,"S7","SJ"]
+    zt3.history=[[1,"C9","C7","C4","H9"],]
+    zt3.scores=[[],["H9"],[],[]]
+    log(zt3.pick_a_card())
+
+def example_SQ2():
+    from MrZ_NETs import PV_NET_2
+    from MrImpGreed import MrImpGreed
+    device_bench=torch.device("cuda:2")
+    state_dict=torch.load("Zero-29th-25-11416629-720.pt",map_location=device_bench)
+    pv_net=PV_NET_2()
+    pv_net.load_state_dict(state_dict)
+    pv_net.to(device_bench)
+    zt3=MrZeroTree(room=255,place=3,name='zerotree3',pv_net=pv_net,device=device_bench,mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-1)
+
+    zt3.cards_list=["HQ","HJ","H8","H7","SA","SJ","S4","S3","CQ","D3","D10"]
+    zt3.cards_on_table=[2,"S6"]
+    zt3.history=[[0,"S7","SK","S10","S8"],[1,"C2","C9","C8","C7"]]
+    zt3.scores=[[],[],[],[]]
+    log(zt3.pick_a_card())
+
 if __name__=="__main__":
-    pass
+    #example_DJ()
+    example_SQ2()
 
     """ 统计重复率
             netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
@@ -237,7 +300,7 @@ if __name__=="__main__":
             p_legal=[(c,v/v_sum) for c,v in p_legal]
             assert (sum((v for c,v in p_legal))-1)<1e-5, sum((v for c,v in p_legal))
             p_legal.sort(key=lambda x: x[1],reverse=True)
-            
+
             choice=[(action,node.totalReward/node.numVisits) for action,node in searcher.root.children.items()]
             choice.sort(key=lambda x:x[1],reverse=True)
             choice=choice[0][0]

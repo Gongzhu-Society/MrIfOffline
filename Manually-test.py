@@ -13,21 +13,21 @@ def benchmark(print_process=False):
     from OfflineInterface import OfflineInterface
     import itertools,numpy,torch,random
 
-    mode=2
+    mode=0
     complete_info=False
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
     #device_bench=torch.device("cuda:%d"%(random.randint(0,3)))
-    device_bench=torch.device("cuda:2")
+    device_bench=torch.device("cuda:3")
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
     pv_net_0.load_state_dict(state_dict_0)
     pv_net_0.to(device_bench)
-    
+
     if mode==0:
         zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-                        mcts_b=10,mcts_k=2,sample_b=5,sample_k=0) for i in [0,2]]
+                        mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
         g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
         interface=OfflineInterface([zt0[0],g[0],zt0[1],g[1]],print_flag=False)
     elif mode==1:

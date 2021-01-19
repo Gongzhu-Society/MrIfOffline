@@ -137,9 +137,6 @@ class MrZeroTreeSimple(MrRandom):
         return oh
 
     def prepare_ohs(cards_lists,cards_on_table,score_lists,place):
-        """
-            double the time of four_cards for it to focus
-        """
         oh_card=MrZeroTreeSimple.cards_lists_oh(cards_lists,place)
         oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
@@ -243,11 +240,11 @@ class MrZeroTreeSimple(MrRandom):
             self.train_datas.append((netin,target_p,target_v,legal_mask))
         best_choice=MrGreed.pick_best_from_dlegal(d_legal_temp)
         return best_choice
-    
+
     @staticmethod
     def family_name():
         return 'MrZeroTreeSimple'
-    
+
 BENCH_SMP_B=5
 BENCH_SMP_K=0
 
@@ -285,7 +282,7 @@ def benchmark(save_name,epoch,device_num,print_process=False):
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
-    
+
 def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
 
     from OfflineInterface import OfflineInterface
