@@ -48,7 +48,7 @@ class MrZeroTree(MrZeroTreeSimple):
             log(possi);input()
         return possi
 
-    def possi_rectify_greed(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence=0.4):
+    def possi_rectify_greed(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,confidence=0.65):
         g=self.g_aux[pnext]
         g.cards_on_table=copy.copy(cards_on_table)
         g.scores=copy.deepcopy(scores)
@@ -56,12 +56,12 @@ class MrZeroTree(MrZeroTreeSimple):
         g_choice=g.pick_a_card(sce_gen=[[cards_lists[(pnext+1)%4],cards_lists[(pnext+2)%4],cards_lists[(pnext+3)%4]]])
         if choice==g_choice:
             #log("%s==%s"%(choice,g_choice))
-            #return confidence/(1-2*confidence*(1-confidence))
-            return confidence/(confidence**confidence*(1-confidence)**(1-confidence))
+            return confidence/(1-2*confidence*(1-confidence))
+            #return confidence/(confidence**confidence*(1-confidence)**(1-confidence))
         else:
             #log("%s!=%s"%(choice,g_choice))
-            #return (1-confidence)/(1-2*confidence*(1-confidence))
-            return (1-confidence)/(confidence**confidence*(1-confidence)**(1-confidence))
+            return (1-confidence)/(1-2*confidence*(1-confidence))
+            #return (1-confidence)/(confidence**confidence*(1-confidence)**(1-confidence))
    
     def decide_rect_necessity(self,thisuit,suit,choice,pnext,cards_lists):
         """
@@ -94,7 +94,7 @@ class MrZeroTree(MrZeroTreeSimple):
                         continue
                     if cards_on_table[i+1][0]!=cards_on_table[1][0]:
                         same_flag=False"""
-        if thisuit==choice[0] and choice[1] not in "234":
+        if thisuit==choice[0] and suit!="A" and choice[1] not in "234567":
             return True
         #if thisuit=="A" and choice in ("SA","SK","DA","DK","DQ","HA","HK","HQ","HJ"):
         #    return True
