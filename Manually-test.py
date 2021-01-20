@@ -18,7 +18,7 @@ def benchmark(print_process=False):
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
     #device_bench=torch.device("cuda:%d"%(random.randint(0,3)))
-    device_bench=torch.device("cuda:3")
+    device_bench=torch.device("cuda:1")
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()

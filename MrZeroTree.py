@@ -81,20 +81,16 @@ class MrZeroTree(MrZeroTreeSimple):
         """
             return True for necessary
         """
-        """if thisuit==choice[0]:
-            if choice[0]=="S" and choice[1] in "AKQ":
-                return True
-            elif choice[0]=="H" and choice[1] in "AKQJ09":
-                return True
-            elif choice[0]=="D" and choice[1] in "AKQJ":
-                return True
-            elif choice[0]=="C" and choice[1] in "AKQJ0":
-                return True"""
+        #不是第一个出时，所有跟我要出的花色一样的历史
         #if thisuit==choice[0] and choice[1] not in "234567":
         #    return True
+        #所有贴牌的历史
+        if thisuit=="A" and suit!="A" and choice[0]!=suit:
+            return True
+        #第一个出时
         #if thisuit=="A" and choice[1] not in "234567":
         #    return True
-        if suit!="A" and choice[0]!=suit:
+        if thisuit=="A" and suit=="A":
             return True
         return False
 
