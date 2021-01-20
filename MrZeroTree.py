@@ -81,17 +81,72 @@ class MrZeroTree(MrZeroTreeSimple):
         """
             return True for necessary
         """
-        #不是第一个出时，所有跟我要出的花色一样的历史
+        # C: 69.4(4.5)
         #if thisuit==choice[0] and choice[1] not in "234567":
         #    return True
-        #所有贴牌的历史
-        if thisuit=="A" and suit!="A" and choice[0]!=suit:
-            return True
-        #第一个出时
+
+        # C2:
+        #if thisuit==choice[0] and choice[1] not in "23456":
+        #    return True
+
+        # C3:
+        #if thisuit==choice[0] and choice[1] not in "2345678":
+        #    return True
+
+        # C4:
+        #if thisuit==choice[0] and choice[1] not in "2345":
+        #    return True
+
+        # C5:
+        #if thisuit==choice[0] and choice[1] not in "23456789":
+        #    return True
+
+        # D: 68.0(4.6)
         #if thisuit=="A" and choice[1] not in "234567":
         #    return True
-        if thisuit=="A" and suit=="A":
+
+        # D2
+        #if thisuit=="A" and choice[1] not in "2345":
+        #    return True
+
+        # D3
+        if thisuit=="A" and choice[1] not in "23456789":
             return True
+
+        # F: 68.4(4.7) 67.2(4.7)
+        #if suit!="A" and choice[0]!=suit:
+        #    return True
+
+        # F2: 65.6(4.4)
+        #if thisuit!="A" and suit!="A" and choice[0]!=suit:
+        #    return True
+
+        # F3: 65.3(4.8)
+        #if thisuit=="A" and suit!="A" and choice[0]!=suit:
+        #    return True
+
+        # H=C+F+following: 68.8(4.6)
+        #if thisuit=="A" and suit=="A":
+        #    return True
+
+        # G=C+D+F: 59.2(4.5) 60.2(4.6) WHY?
+        # K=C+F: 66.4(4.6)
+        # L=C+D: 75.6(4.8)
+        # M=D+F:
+
+        # J: 63.0(4.7)
+        #if thisuit=="A" and choice[1] not in "234567":
+        #    if suit=="A":
+        #        return True
+        #    elif choice[0]!=suit:
+        #        return True
+
+        # J2: 62.7(4.8) 65.6(4.7)
+        #if thisuit=="A":
+        #    if suit=="A":
+        #        return True
+        #    elif choice[0]!=suit:
+        #        return True
         return False
 
     def possi_rectify(self,cards_lists,thisuit):

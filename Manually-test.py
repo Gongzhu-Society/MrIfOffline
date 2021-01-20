@@ -4,6 +4,16 @@ from Util import log
 
 #torch.save(pv_net_0.state_dict(),"Zero-29th-25-11416629-720.pt")
 
+def log_source(s):
+    s=s.split("\n")
+    s2=[]
+    for j,i in enumerate(s):
+        if not i.strip().startswith("#") and len(i.strip())>0:
+            if i.strip().startswith("if"):
+                s2.append(s[j-1])
+            s2.append(i)
+    print("\n".join(s2))
+
 def benchmark(print_process=False):
     from MrGreed import MrGreed
     from MrImpGreed import MrImpGreed
@@ -11,14 +21,14 @@ def benchmark(print_process=False):
     from MrZeroTree import MrZeroTree
     from MrZ_NETs import PV_NET_2
     from OfflineInterface import OfflineInterface
-    import itertools,numpy,torch,random
+    import itertools,torch,random,inspect
 
     mode=0
     complete_info=False
+    log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
-    #device_bench=torch.device("cuda:%d"%(random.randint(0,3)))
-    device_bench=torch.device("cuda:1")
+    device_bench=torch.device("cuda:3")
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
@@ -42,8 +52,8 @@ def benchmark(print_process=False):
         interface=OfflineInterface([zt0,g[0],g[1],g[2]],print_flag=False)
 
     N1=1024;N2=2;
-    log("(%s+%s) v.s. (%s+%s) for %dx%d"%(interface.players[0].family_name(),interface.players[2].family_name(),
-                                          interface.players[1].family_name(),interface.players[3].family_name(),N1,N2))
+    log("(%s+%s) v.s. (%s+%s) for %dx%d on %s"%(interface.players[0].family_name(),interface.players[2].family_name(),
+                                          interface.players[1].family_name(),interface.players[3].family_name(),N1,N2,device_bench))
     log("mcts_b/k: %d/%d, sample_b/k: %d/%d"%(interface.players[0].mcts_b,interface.players[0].mcts_k,
                                               interface.players[0].sample_b,interface.players[0].sample_k))
     stats=[]
@@ -66,13 +76,20 @@ def benchmark(print_process=False):
                 log("%2d %4d: %s"%(k,sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2,stats[-N2:]))
             else:
                 print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
-    #input("continue...")
+        if (k+1)%256==0:
+            bench_stat(stats,N2,device_bench)
+    bench_stat(stats,N2,device_bench)
+
+def bench_stat(stats,N2,comments):
+    import numpy
+    print("")
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark result: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
-    suc_ct=sum([1 for i in s_temp if i>0])/len(s_temp)
-    draw_ct=sum([1 for i in s_temp if i==0])/len(s_temp)
-    log("success rate: %.4f %.4f"%(suc_ct,draw_ct))
+    suc_ct=len([1 for i in s_temp if i>0])
+    draw_ct=len([1 for i in s_temp if i==0])
+    log("success rate: (%d+%d)/%d"%(suc_ct,draw_ct,len(s_temp)))
+    log(comments)
 
 def plot_log(fileperfix):
     import matplotlib
