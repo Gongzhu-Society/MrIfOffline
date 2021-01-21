@@ -85,62 +85,57 @@ class MrZeroTree(MrZeroTreeSimple):
         #if thisuit==choice[0] and choice[1] not in "234567":
         #    return True
 
-        # C2:
-        #if thisuit==choice[0] and choice[1] not in "23456":
-        #    return True
-
-        # C3:
-        #if thisuit==choice[0] and choice[1] not in "2345678":
-        #    return True
-
-        # C4:
-        #if thisuit==choice[0] and choice[1] not in "2345":
-        #    return True
-
-        # C5:
-        #if thisuit==choice[0] and choice[1] not in "23456789":
-        #    return True
+        # C4="2345": 65.7(4.8)
+        # C2="23456": 67.5(4.8)
+        # C ="234567": 69.4(4.5)
+        # C3="2345678": 61.5(4.6)
+        # C5="23456789": 65.8(4.7)
 
         # D: 68.0(4.6)
         #if thisuit=="A" and choice[1] not in "234567":
         #    return True
 
-        # D2
-        #if thisuit=="A" and choice[1] not in "2345":
+        # D2="2345": 66.5(4.5)
+        # D ="234567": 68.0(4.6)
+        # D3="23456789": 61.8(4.7)
+
+        # D4
+        #if thisuit=="A" and choice[1] not in "23456":
         #    return True
 
-        # D3
-        if thisuit=="A" and choice[1] not in "23456789":
-            return True
-
-        # F: 68.4(4.7) 67.2(4.7)
-        #if suit!="A" and choice[0]!=suit:
-        #    return True
-
-        # F2: 65.6(4.4)
-        #if thisuit!="A" and suit!="A" and choice[0]!=suit:
-        #    return True
-
-        # F3: 65.3(4.8)
-        #if thisuit=="A" and suit!="A" and choice[0]!=suit:
+        # D5
+        #if thisuit=="A" and choice[1] not in "2345678":
         #    return True
 
         # H=C+F+following: 68.8(4.6)
         #if thisuit=="A" and suit=="A":
         #    return True
 
+        # N=DxH:
+        if thisuit=="A":
+            if suit=="A":
+                return True
+            elif choice[1] not in "234567":
+                return True
+
         # G=C+D+F: 59.2(4.5) 60.2(4.6) WHY?
         # K=C+F: 66.4(4.6)
         # L=C+D: 75.6(4.8)
-        # M=D+F:
+        # M=D+F: 64.4(4.6)
 
+        # Abandoned: F and its verity. 修正贴牌的想法不错，但是和其他修正相容性不好。
+        # F: 68.4(4.7) 67.2(4.7)
+        #if suit!="A" and choice[0]!=suit:
+        # F2: 65.6(4.4)
+        #if thisuit!="A" and suit!="A" and choice[0]!=suit:
+        # F3: 65.3(4.8)
+        #if thisuit=="A" and suit!="A" and choice[0]!=suit:
         # J: 63.0(4.7)
         #if thisuit=="A" and choice[1] not in "234567":
         #    if suit=="A":
         #        return True
         #    elif choice[0]!=suit:
         #        return True
-
         # J2: 62.7(4.8) 65.6(4.7)
         #if thisuit=="A":
         #    if suit=="A":

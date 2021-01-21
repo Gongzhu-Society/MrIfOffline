@@ -69,7 +69,7 @@ class MrRandom(Robot):
         See OfflineInterface.step to get a feel of how to use this
     """
     def __init__(self,room,place,name,create_room=False):
-        Robot.__init__(room,place,name,create_room=create_room)
+        Robot.__init__(self,room,place,name,create_room=create_room)
         #self.place=place
         #self.cards_list=[]        #cards in hand
         #self.history=[]           #list of (int,str,str,str,str)
