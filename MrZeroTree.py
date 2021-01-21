@@ -82,8 +82,8 @@ class MrZeroTree(MrZeroTreeSimple):
             return True for necessary
         """
         # C: 69.4(4.5)
-        #if thisuit==choice[0] and choice[1] not in "234567":
-        #    return True
+        if thisuit==choice[0] and choice[1] not in "234567":
+            return True
 
         # C4="2345": 65.7(4.8)
         # C2="23456": 67.5(4.8)
@@ -91,33 +91,38 @@ class MrZeroTree(MrZeroTreeSimple):
         # C3="2345678": 61.5(4.6)
         # C5="23456789": 65.8(4.7)
 
-        # D: 68.0(4.6)
-        #if thisuit=="A" and choice[1] not in "234567":
-        #    return True
-
-        # D2="2345": 66.5(4.5)
-        # D ="234567": 68.0(4.6)
-        # D3="23456789": 61.8(4.7)
+        # C6="34567": 63.37(4.65)
+        # C ="234567": 69.4(4.5)
 
         # D4
-        #if thisuit=="A" and choice[1] not in "23456":
-        #    return True
+        if thisuit=="A" and choice[1] not in "23456":
+            return True
 
-        # D5
-        #if thisuit=="A" and choice[1] not in "2345678":
+        # D2="2345": 66.5(4.5)
+        # D4="23456": 72.0(4.5)
+        # D ="234567": 68.0(4.6)
+        # D5="2345678": 67.3(4.5)
+        # D3="23456789": 61.8(4.7)
+
+        # D6="34567": 68.46 4.55
+        # D ="234567": 68.0(4.6)
+
+        # D7
+        #if thisuit=="A" and choice[1] not in "3456":
         #    return True
 
         # H=C+F+following: 68.8(4.6)
         #if thisuit=="A" and suit=="A":
         #    return True
 
-        # N=DxH:
-        if thisuit=="A":
-            if suit=="A":
-                return True
-            elif choice[1] not in "234567":
-                return True
+        # N=DxH: 61.3(4.4)
+        #if thisuit=="A":
+        #    if suit=="A":
+        #        return True
+        #    elif choice[1] not in "234567":
+        #        return True
 
+        # H=if True: 64.8(4.7)
         # G=C+D+F: 59.2(4.5) 60.2(4.6) WHY?
         # K=C+F: 66.4(4.6)
         # L=C+D: 75.6(4.8)
