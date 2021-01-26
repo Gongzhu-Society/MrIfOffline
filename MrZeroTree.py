@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import copy,math
 
 print_level=0
-BETA_POST_RECT=0.015
+BETA_POST_RECT=-0.01
 log("BETA_POST_RECT: %.3f"%(BETA_POST_RECT,))
 
 class MrZeroTree(MrZeroTreeSimple):
@@ -58,32 +58,35 @@ class MrZeroTree(MrZeroTreeSimple):
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
         if restrict_flag:
-            p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]]
+            p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #!
         else:
             p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
         v_max=max((v for c,v in p_legal))
-        p_legal=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
-        """p_legal=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
+        #p_legal=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
+        p_legal=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
         v_sum=sum((v for c,v in p_legal))
         p_legal=[(c,v/v_sum) for c,v in p_legal]
-        assert (sum((v for c,v in p_legal))-1)<1e-5, sum((v for c,v in p_legal))"""
         if print_level>=4:
             log(["%s: %.4f"%(c,v) for c,v in p_legal])
 
         p_choice=(v for c,v in p_legal if c==choice).__next__()
         #possi=confidence*p_choice+(1-confidence)/len(legal_choice)
         #possi=confidence*p_choice*len(legal_choice)+(1-confidence)
-        #possi=p_choice*len(p_legal)
-        possi=max(p_choice,0.2)
+        possi=p_choice*len(p_legal)
+        #possi=max(p_choice,0.2)
         return possi
 
     def decide_rect_necessity(self,thisuit,suit,choice,pnext,cards_lists):
         """
             return True for necessary
         """
+        #只修正对手
+        #if (pnext-self.place)%2==0:
+        #    return -2
+
         # C: 69.4(4.5)
         if thisuit==choice[0] and choice[1] not in "234567":
-            return True
+            return 3
 
         # C4="2345": 65.7(4.8)
         # C2="23456": 67.5(4.8)
@@ -94,9 +97,9 @@ class MrZeroTree(MrZeroTreeSimple):
         # C6="34567": 63.37(4.65)
         # C ="234567": 69.4(4.5)
 
-        # D4
-        if thisuit=="A" and choice[1] not in "23456":
-            return True
+        # D
+        if thisuit=="A" and choice[1] not in "234567":
+            return 4
 
         # D2="2345": 66.5(4.5)
         # D4="23456": 72.0(4.5)
@@ -104,12 +107,10 @@ class MrZeroTree(MrZeroTreeSimple):
         # D5="2345678": 67.3(4.5)
         # D3="23456789": 61.8(4.7)
 
+        # D8="": 63.9(4.5)
+        # D7="3456": 69.24 4.62
         # D6="34567": 68.46 4.55
         # D ="234567": 68.0(4.6)
-
-        # D7
-        #if thisuit=="A" and choice[1] not in "3456":
-        #    return True
 
         # H=C+F+following: 68.8(4.6)
         #if thisuit=="A" and suit=="A":
@@ -126,6 +127,7 @@ class MrZeroTree(MrZeroTreeSimple):
         # G=C+D+F: 59.2(4.5) 60.2(4.6) WHY?
         # K=C+F: 66.4(4.6)
         # L=C+D: 75.6(4.8)
+        # L2=C+D4: 66.6(4.7)
         # M=D+F: 64.4(4.6)
 
         # Abandoned: F and its verity. 修正贴牌的想法不错，但是和其他修正相容性不好。
@@ -147,17 +149,17 @@ class MrZeroTree(MrZeroTreeSimple):
         #        return True
         #    elif choice[0]!=suit:
         #        return True
-        return False
+        return -1
 
-    def possi_rectify(self,cards_lists,thisuit):
+    def possi_rectify(self,cards_lists,thisuit,confidence=0.9):
         """
             posterior probability rectify
             cards_lists is in absolute order
         """
-        #input("should not happen")
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
         result=1.0
+        #possi_hist_0=[];possi_hist_1=[]
         for history in [self.cards_on_table,]+self.history[::-1]:
             if len(history)==5:
                 for c in history[1:]:
@@ -173,9 +175,6 @@ class MrZeroTree(MrZeroTreeSimple):
                 #不用修正我自己
                 if pnext==self.place:
                     continue
-                #只修正前6圈
-                #if len(cards_lists[pnext])<8:
-                #    continue
                 #决定是否需要修正
                 if len(cards_on_table)==1:
                     suit="A"
@@ -183,7 +182,8 @@ class MrZeroTree(MrZeroTreeSimple):
                     suit=cards_on_table[1][0]
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
-                if not self.decide_rect_necessity(thisuit,suit,choice,pnext,cards_lists):
+                nece=self.decide_rect_necessity(thisuit,suit,choice,pnext,cards_lists)
+                if nece<0:
                     continue
                 possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
                 if print_level>=4:
@@ -193,7 +193,6 @@ class MrZeroTree(MrZeroTreeSimple):
             assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, scores
             assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, cards_lists
         return result
-        #return 1.0+sum(result)+(sum(result)**2-sum([i**2 for i in result]))/2
 
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
@@ -213,6 +212,7 @@ class MrZeroTree(MrZeroTreeSimple):
             log("my turn: %s, %s, %s"%(self.cards_on_table,self.cards_list,self.scores))
 
         if self.sample_k>=0:
+            log("should not happen",end="");input()
             sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
             assert self.sample_b>=0 and sce_num>0
             sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
@@ -277,6 +277,35 @@ class MrZeroTree(MrZeroTreeSimple):
                 raise Exception("reserved")
 
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
+        """
+        if len(legal_choice)>1:
+            g=self.g_aux[self.place]
+            g.cards_on_table=copy.copy(self.cards_on_table)
+            g.history=copy.deepcopy(self.history)
+            g.scores=copy.deepcopy(self.scores)
+            g.cards_list=copy.deepcopy(self.cards_list)
+            gc=g.pick_a_card()
+
+            netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
+            with torch.no_grad():
+                p,_=self.pv_net(netin.to(self.device))
+
+            p_legal=[(c,p[ORDER_DICT[c]].item()) for c in legal_choice if c[0]==gc[0]]
+            v_max=max((v for c,v in p_legal))
+            p_legal=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
+            p_legal.sort(key=lambda x:x[1],reverse=True)
+            p_choice=(v for c,v in p_legal if c==gc).__next__()
+            possi=max(p_choice,0.2)
+            log("greed, %s, %s, %s, %.4f"%(gc,suit,gc==p_legal[0][0],possi),logfile="stat_sim.txt",fileonly=True)
+
+            p_legal=[(c,p[ORDER_DICT[c]].item()) for c in legal_choice if c[0]==best_choice[0]]
+            v_max=max((v for c,v in p_legal))
+            p_legal=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
+            p_legal.sort(key=lambda x:x[1],reverse=True)
+            p_choice=(v for c,v in p_legal if c==best_choice).__next__()
+            possi=max(p_choice,0.2)
+            log("zerotree, %s, %s, %s, %.4f"%(best_choice,suit,best_choice==p_legal[0][0],possi),logfile="stat_sim.txt",fileonly=True)"""
+
         return best_choice
 
     @staticmethod
