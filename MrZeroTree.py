@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import copy,math
 
 print_level=0
-BETA_POST_RECT=-0.01
+BETA_POST_RECT=0.015
 log("BETA_POST_RECT: %.3f"%(BETA_POST_RECT,))
 
 class MrZeroTree(MrZeroTreeSimple):
@@ -53,14 +53,14 @@ class MrZeroTree(MrZeroTreeSimple):
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
 
-    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,restrict_flag=True):
+    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
-        if restrict_flag:
-            p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #!
-        else:
-            p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
+        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
+        p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0] and c[1] not in "234567"]
+        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
+
         v_max=max((v for c,v in p_legal))
         #p_legal=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
         p_legal=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
@@ -70,8 +70,6 @@ class MrZeroTree(MrZeroTreeSimple):
             log(["%s: %.4f"%(c,v) for c,v in p_legal])
 
         p_choice=(v for c,v in p_legal if c==choice).__next__()
-        #possi=confidence*p_choice+(1-confidence)/len(legal_choice)
-        #possi=confidence*p_choice*len(legal_choice)+(1-confidence)
         possi=p_choice*len(p_legal)
         #possi=max(p_choice,0.2)
         return possi
@@ -130,7 +128,8 @@ class MrZeroTree(MrZeroTreeSimple):
         # L2=C+D4: 66.6(4.7)
         # M=D+F: 64.4(4.6)
 
-        # Abandoned: F and its verity. 修正贴牌的想法不错，但是和其他修正相容性不好。
+        # 修正贴牌的想法不错，但是和其他修正相容性不好。
+        # 但相容性不好可能是retrict_flag导致的，这还有待研究
         # F: 68.4(4.7) 67.2(4.7)
         #if suit!="A" and choice[0]!=suit:
         # F2: 65.6(4.4)

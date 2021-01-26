@@ -25,7 +25,7 @@ def benchmark(print_process=False):
 
     mode=0
     complete_info=False
-    log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
+    #log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
     device_bench=torch.device("cuda:3")
@@ -39,9 +39,9 @@ def benchmark(print_process=False):
         log("Tree v.s. Greed mode")
         zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
                         mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
-        g_aux=[None,None,None,None]
-        g_aux[0]=MrGreed(room=255,place=0,name='gaux');g_aux[2]=MrGreed(room=255,place=2,name='gaux')
-        zt0[0].g_aux=g_aux;zt0[1].g_aux=g_aux
+        #g_aux=[None,None,None,None]
+        #g_aux[0]=MrGreed(room=255,place=0,name='gaux');g_aux[2]=MrGreed(room=255,place=2,name='gaux')
+        #zt0[0].g_aux=g_aux;zt0[1].g_aux=g_aux
         g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
         interface=OfflineInterface([zt0[0],g[0],zt0[1],g[1]],print_flag=False)
     elif mode==1:
