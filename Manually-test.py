@@ -16,7 +16,7 @@ def log_source(s):
 
 def benchmark(print_process=False):
     from MrGreed import MrGreed
-    from MrImpGreed import MrImpGreed
+    #from MrImpGreed import MrImpGreed
     from MrZeroTreeSimple import MrZeroTreeSimple
     from MrZeroTree import MrZeroTree
     from MrZ_NETs import PV_NET_2
@@ -25,7 +25,7 @@ def benchmark(print_process=False):
 
     mode=0
     complete_info=False
-    #log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
+    log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
     device_bench=torch.device("cuda:3")

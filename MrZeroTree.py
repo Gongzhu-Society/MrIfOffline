@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import copy,math
 
 print_level=0
-BETA_POST_RECT=0.015
+BETA_POST_RECT=0.025
 log("BETA_POST_RECT: %.3f"%(BETA_POST_RECT,))
 
 class MrZeroTree(MrZeroTreeSimple):
@@ -57,98 +57,44 @@ class MrZeroTree(MrZeroTreeSimple):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
-        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
-        p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0] and c[1] not in "234567"]
-        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
+        p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
+        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0] and c[1] not in "234567"] #Change in T
+        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice] #Before Jan 19th
 
         v_max=max((v for c,v in p_legal))
         #p_legal=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
         p_legal=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
         v_sum=sum((v for c,v in p_legal))
         p_legal=[(c,v/v_sum) for c,v in p_legal]
+
         if print_level>=4:
             log(["%s: %.4f"%(c,v) for c,v in p_legal])
-
         p_choice=(v for c,v in p_legal if c==choice).__next__()
-        possi=p_choice*len(p_legal)
+        possi=p_choice
+        #possi=p_choice*len(p_legal)
         #possi=max(p_choice,0.2)
         return possi
 
-    def decide_rect_necessity(self,thisuit,suit,choice,pnext,cards_lists):
+    def decide_rect_necessity(self,thisuit,choice):
         """
             return True for necessary
         """
-        #只修正对手
-        #if (pnext-self.place)%2==0:
-        #    return -2
-
-        # C: 69.4(4.5)
+        # C
         if thisuit==choice[0] and choice[1] not in "234567":
             return 3
-
-        # C4="2345": 65.7(4.8)
-        # C2="23456": 67.5(4.8)
-        # C ="234567": 69.4(4.5)
-        # C3="2345678": 61.5(4.6)
-        # C5="23456789": 65.8(4.7)
-
-        # C6="34567": 63.37(4.65)
-        # C ="234567": 69.4(4.5)
-
         # D
         if thisuit=="A" and choice[1] not in "234567":
             return 4
-
-        # D2="2345": 66.5(4.5)
-        # D4="23456": 72.0(4.5)
-        # D ="234567": 68.0(4.6)
-        # D5="2345678": 67.3(4.5)
-        # D3="23456789": 61.8(4.7)
-
-        # D8="": 63.9(4.5)
-        # D7="3456": 69.24 4.62
-        # D6="34567": 68.46 4.55
-        # D ="234567": 68.0(4.6)
-
-        # H=C+F+following: 68.8(4.6)
-        #if thisuit=="A" and suit=="A":
-        #    return True
-
-        # N=DxH: 61.3(4.4)
-        #if thisuit=="A":
-        #    if suit=="A":
-        #        return True
-        #    elif choice[1] not in "234567":
-        #        return True
-
-        # H=if True: 64.8(4.7)
-        # G=C+D+F: 59.2(4.5) 60.2(4.6) WHY?
-        # K=C+F: 66.4(4.6)
-        # L=C+D: 75.6(4.8)
-        # L2=C+D4: 66.6(4.7)
-        # M=D+F: 64.4(4.6)
-
-        # 修正贴牌的想法不错，但是和其他修正相容性不好。
-        # 但相容性不好可能是retrict_flag导致的，这还有待研究
-        # F: 68.4(4.7) 67.2(4.7)
-        #if suit!="A" and choice[0]!=suit:
-        # F2: 65.6(4.4)
-        #if thisuit!="A" and suit!="A" and choice[0]!=suit:
-        # F3: 65.3(4.8)
-        #if thisuit=="A" and suit!="A" and choice[0]!=suit:
-        # J: 63.0(4.7)
-        #if thisuit=="A" and choice[1] not in "234567":
-        #    if suit=="A":
-        #        return True
-        #    elif choice[0]!=suit:
-        #        return True
-        # J2: 62.7(4.8) 65.6(4.7)
-        #if thisuit=="A":
-        #    if suit=="A":
-        #        return True
-        #    elif choice[0]!=suit:
-        #        return True
         return -1
+
+    def int_equ_class(self,cards_lists,thisuit):
+        lenirs=[]
+        for i in range(3):
+            lenirs.append(len([1 for j in cards_lists[(i+1+self.place)%4] if self.decide_rect_necessity(thisuit,j)<0]))
+        totir=sum(lenirs)
+        intvalue=(math.gamma(totir/3+1)**3)/(math.gamma(lenirs[0]+1)*math.gamma(lenirs[1]+1)*math.gamma(lenirs[2]+1))
+        #log("%s: %.4f"%(lenirs,intvalue))
+        return intvalue
 
     def possi_rectify(self,cards_lists,thisuit,confidence=0.9):
         """
@@ -158,7 +104,6 @@ class MrZeroTree(MrZeroTreeSimple):
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
         result=1.0
-        #possi_hist_0=[];possi_hist_1=[]
         for history in [self.cards_on_table,]+self.history[::-1]:
             if len(history)==5:
                 for c in history[1:]:
@@ -181,16 +126,18 @@ class MrZeroTree(MrZeroTreeSimple):
                     suit=cards_on_table[1][0]
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
-                nece=self.decide_rect_necessity(thisuit,suit,choice,pnext,cards_lists)
+                nece=self.decide_rect_necessity(thisuit,choice)
                 if nece<0:
                     continue
                 possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
                 if print_level>=4:
-                    log("rectify: %s %s: %.4f"%(cards_on_table,choice,possi_pvnet),end="");input()
+                    log("rectify: %s %s: %.4e"%(cards_on_table,choice,possi_pvnet),end="");input()
                 result*=possi_pvnet
         else:
-            assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, scores
-            assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, cards_lists
+            assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, "scores left not zero: %s"%(scores,)
+            assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, "cards_lists not equal 4x13: %s"%(cards_lists,)
+        if print_level>=3:
+            log("final cards possi: %.4e"%(result))
         return result
 
     def pick_a_card(self):
@@ -231,15 +178,15 @@ class MrZeroTree(MrZeroTreeSimple):
             cards_lists[self.place]=copy.copy(self.cards_list)
             for i in range(3):
                 cards_lists[(self.place+i+1)%4]=cll[i]
-            scenarios_weight.append(self.possi_rectify(cards_lists,suit))
+            scenarios_weight.append(self.possi_rectify(cards_lists,suit)*self.int_equ_class(cards_lists,suit))
             #scenarios_weight.append(1.0)
             cards_lists_list.append(cards_lists)
             if print_level>=3:
-                log("weight: %.4f"%(scenarios_weight[-1]),end="");input()
+                log("weight: %.4e"%(scenarios_weight[-1]),end="");input()
         else:
             del scenarios
         if print_level>=2:
-            log("scenarios_weight: %s"%(["%.4f"%(i) for i in scenarios_weight],))
+            log("scenarios_weight: %s"%(["%.4e"%(i) for i in scenarios_weight],))
         weight_sum=sum(scenarios_weight)
         scenarios_weight=[i/weight_sum for i in scenarios_weight]
 
@@ -365,8 +312,8 @@ def example_SQ2():
     log(zt3.pick_a_card())
 
 if __name__=="__main__":
-    #example_DJ()
-    example_SQ2()
+    example_DJ()
+    #example_SQ2()
 
     """ 统计重复率
             netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)
@@ -410,3 +357,63 @@ if __name__=="__main__":
         scenarios_weight=[1.0]*(sel_num+1)
         cards_lists_list=[j for i,j in temp]
         assert len(scenarios_weight)==len(cards_lists_list), "%d %d"%(len(scenarios_weight),len(cards_lists_list))"""
+
+    """
+        # C4="2345": 65.7(4.8)
+        # C2="23456": 67.5(4.8)
+        # C ="234567": 69.4(4.5)
+        # C3="2345678": 61.5(4.6)
+        # C5="23456789": 65.8(4.7)
+
+        # C6="34567": 63.37(4.65)
+        # C ="234567": 69.4(4.5)
+
+        # D2="2345": 66.5(4.5)
+        # D4="23456": 72.0(4.5)
+        # D ="234567": 68.0(4.6)
+        # D5="2345678": 67.3(4.5)
+        # D3="23456789": 61.8(4.7)
+
+        # D8="": 63.9(4.5)
+        # D7="3456": 69.24 4.62
+        # D6="34567": 68.46 4.55
+        # D ="234567": 68.0(4.6)
+
+        # H=C+F+following: 68.8(4.6)
+        #if thisuit=="A" and suit=="A":
+        #    return True
+
+        # N=DxH: 61.3(4.4)
+        #if thisuit=="A":
+        #    if suit=="A":
+        #        return True
+        #    elif choice[1] not in "234567":
+        #        return True
+
+        # H=if True: 64.8(4.7)
+        # G=C+D+F: 59.2(4.5) 60.2(4.6) WHY?
+        # K=C+F: 66.4(4.6)
+        # L=C+D: 75.6(4.8)
+        # L2=C+D4: 66.6(4.7)
+        # M=D+F: 64.4(4.6)
+
+        # 修正贴牌的想法不错，但是和其他修正相容性不好。
+        # 但相容性不好可能是retrict_flag导致的，这还有待研究
+        # F: 68.4(4.7) 67.2(4.7)
+        #if suit!="A" and choice[0]!=suit:
+        # F2: 65.6(4.4)
+        #if thisuit!="A" and suit!="A" and choice[0]!=suit:
+        # F3: 65.3(4.8)
+        #if thisuit=="A" and suit!="A" and choice[0]!=suit:
+        # J: 63.0(4.7)
+        #if thisuit=="A" and choice[1] not in "234567":
+        #    if suit=="A":
+        #        return True
+        #    elif choice[0]!=suit:
+        #        return True
+        # J2: 62.7(4.8) 65.6(4.7)
+        #if thisuit=="A":
+        #    if suit=="A":
+        #        return True
+        #    elif choice[0]!=suit:
+        #        return True"""
