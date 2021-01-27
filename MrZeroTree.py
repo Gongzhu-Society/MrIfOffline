@@ -31,6 +31,7 @@ class MrZeroTree(MrZeroTreeSimple):
         self.train_mode=train_mode
         if self.train_mode:
             self.train_datas=[]
+        self.int_method_printed_flag=False
 
     def cards_lists_oh_post_rect(cards_lists,place):
         """
@@ -80,7 +81,8 @@ class MrZeroTree(MrZeroTreeSimple):
             return True for necessary
         """
         # C
-        if thisuit==choice[0] and choice[1] not in "234567":
+        #if thisuit==choice[0] and choice[1] not in "234567":
+        if thisuit==choice[0]:
             return 3
         # D
         if thisuit=="A" and choice[1] not in "234567":
@@ -88,12 +90,29 @@ class MrZeroTree(MrZeroTreeSimple):
         return -1
 
     def int_equ_class(self,cards_lists,thisuit):
+        if not self.int_method_printed_flag:
+            log("using my int_equ_class")
+            self.int_method_printed_flag=True
         lenirs=[]
         for i in range(3):
             lenirs.append(len([1 for j in cards_lists[(i+1+self.place)%4] if self.decide_rect_necessity(thisuit,j)<0]))
         totir=sum(lenirs)
         intvalue=(math.gamma(totir/3+1)**3)/(math.gamma(lenirs[0]+1)*math.gamma(lenirs[1]+1)*math.gamma(lenirs[2]+1))
         #log("%s: %.4f"%(lenirs,intvalue))
+        return intvalue**0.8
+
+    def int_equ_class_li(self,cards_lists,thisuit):
+        if not self.int_method_printed_flag:
+            log("using Li's int_equ_class")
+            self.int_method_printed_flag=True
+        lens=[]
+        for i in range(3):
+            for c in "SHDC":
+                lens.append(len([1 for j in cards_lists[(i+1+self.place)%4] if j[0]==c]))
+        intvalue=1
+        for i in lens:
+            intvalue*=math.gamma(i+1)
+        #log("Li: %s %.4f"%(lens,intvalue))
         return intvalue
 
     def possi_rectify(self,cards_lists,thisuit,confidence=0.9):
@@ -178,8 +197,13 @@ class MrZeroTree(MrZeroTreeSimple):
             cards_lists[self.place]=copy.copy(self.cards_list)
             for i in range(3):
                 cards_lists[(self.place+i+1)%4]=cll[i]
-            scenarios_weight.append(self.possi_rectify(cards_lists,suit)*self.int_equ_class(cards_lists,suit))
+
             #scenarios_weight.append(1.0)
+            scenarios_weight.append(self.possi_rectify(cards_lists,suit))
+
+            scenarios_weight[-1]*=self.int_equ_class(cards_lists,suit)
+            #scenarios_weight[-1]*=self.int_equ_class_li(cards_lists,suit)
+
             cards_lists_list.append(cards_lists)
             if print_level>=3:
                 log("weight: %.4e"%(scenarios_weight[-1]),end="");input()
@@ -189,6 +213,7 @@ class MrZeroTree(MrZeroTreeSimple):
             log("scenarios_weight: %s"%(["%.4e"%(i) for i in scenarios_weight],))
         weight_sum=sum(scenarios_weight)
         scenarios_weight=[i/weight_sum for i in scenarios_weight]
+        assert (sum(scenarios_weight)-1)<1e-7, "scenario weight not equal to 1: %s"%(scenarios_weight,)
 
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
@@ -260,7 +285,7 @@ class MrZeroTree(MrZeroTreeSimple):
 
 def example_DJ():
     from MrZ_NETs import PV_NET_2
-    from MrImpGreed import MrImpGreed
+    #from MrImpGreed import MrImpGreed
     device_bench=torch.device("cuda:2")
     state_dict=torch.load("Zero-29th-25-11416629-720.pt",map_location=device_bench)
     pv_net=PV_NET_2()

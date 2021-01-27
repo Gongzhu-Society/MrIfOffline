@@ -12,7 +12,7 @@ def log_source(s):
             if i.strip().startswith("if"):
                 s2.append(s[j-1])
             s2.append(i)
-    print("\n".join(s2))
+    log("\n".join(s2))
 
 def benchmark(print_process=False):
     from MrGreed import MrGreed
@@ -28,7 +28,7 @@ def benchmark(print_process=False):
     log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
-    device_bench=torch.device("cuda:3")
+    device_bench=torch.device("cuda:2")
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
