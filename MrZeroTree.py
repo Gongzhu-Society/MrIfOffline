@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import copy,math
 
 print_level=0
-BETA_POST_RECT=0.025
+BETA_POST_RECT=0.015
 log("BETA_POST_RECT: %.3f"%(BETA_POST_RECT,))
 
 class MrZeroTree(MrZeroTreeSimple):
@@ -54,7 +54,7 @@ class MrZeroTree(MrZeroTreeSimple):
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
 
-    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
+    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,method=0):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
@@ -62,18 +62,22 @@ class MrZeroTree(MrZeroTreeSimple):
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0] and c[1] not in "234567"] #Change in T
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice] #Before Jan 19th
 
-        v_max=max((v for c,v in p_legal))
-        #p_legal=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
-        p_legal=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
-        v_sum=sum((v for c,v in p_legal))
-        p_legal=[(c,v/v_sum) for c,v in p_legal]
+        log("r/beta "+", ".join(["%s:%.2f"%(c,p[ORDER_DICT[c]]/BETA) for c in legal_choice]),logfile="stat_r.txt",fileonly=True)
 
-        if print_level>=4:
-            log(["%s: %.4f"%(c,v) for c,v in p_legal])
-        p_choice=(v for c,v in p_legal if c==choice).__next__()
-        possi=p_choice
-        #possi=p_choice*len(p_legal)
-        #possi=max(p_choice,0.2)
+        v_max=max((v for c,v in p_legal))
+        if method==0:
+            p_line=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
+            p_choice=(v for c,v in p_line if c==choice).__next__()
+            possi=max(p_choice,0.2)
+        elif method==1:
+            p_exp=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
+            v_sum=sum((v for c,v in p_exp))
+            p_exp=[(c,v/v_sum) for c,v in p_exp]
+            p_choice=(v for c,v in p_exp if c==choice).__next__()
+            possi=p_choice
+        log("reg "+", ".join(["%s:%.4f"%(c,r) for c,r in p_line]),logfile="stat_r.txt",fileonly=True)
+        #print(method)
+        #log(["%s: %.4f"%(c,v) for c,v in p_legal])
         return possi
 
     def decide_rect_necessity(self,thisuit,choice):
@@ -81,17 +85,16 @@ class MrZeroTree(MrZeroTreeSimple):
             return True for necessary
         """
         # C
-        #if thisuit==choice[0] and choice[1] not in "234567":
-        if thisuit==choice[0]:
+        if thisuit==choice[0] and choice[1] not in "234567":
             return 3
         # D
         if thisuit=="A" and choice[1] not in "234567":
             return 4
         return -1
 
-    def int_equ_class(self,cards_lists,thisuit):
+    def int_equ_class(self,cards_lists,thisuit,y=0.5):
         if not self.int_method_printed_flag:
-            log("using my int_equ_class")
+            log("using my int_equ_class, y=%.2f"%(y))
             self.int_method_printed_flag=True
         lenirs=[]
         for i in range(3):
@@ -99,7 +102,7 @@ class MrZeroTree(MrZeroTreeSimple):
         totir=sum(lenirs)
         intvalue=(math.gamma(totir/3+1)**3)/(math.gamma(lenirs[0]+1)*math.gamma(lenirs[1]+1)*math.gamma(lenirs[2]+1))
         #log("%s: %.4f"%(lenirs,intvalue))
-        return intvalue**0.8
+        return intvalue**y
 
     def int_equ_class_li(self,cards_lists,thisuit):
         if not self.int_method_printed_flag:
@@ -115,7 +118,7 @@ class MrZeroTree(MrZeroTreeSimple):
         #log("Li: %s %.4f"%(lens,intvalue))
         return intvalue
 
-    def possi_rectify(self,cards_lists,thisuit,confidence=0.9):
+    def possi_rectify(self,cards_lists,thisuit):
         """
             posterior probability rectify
             cards_lists is in absolute order
@@ -123,6 +126,19 @@ class MrZeroTree(MrZeroTreeSimple):
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
         result=1.0
+        #decide method for post_rect
+        """if thisuit=="A":
+            if len(self.cards_list)>4:
+                method=0
+            else:
+                method=1
+        else:
+            snum=len([1 for i in range(3) for j in cards_lists[(self.place+i+1)%4] if j[0]==thisuit])
+            if snum>0:
+                method=0
+            else:
+                method=1"""
+        method=0
         for history in [self.cards_on_table,]+self.history[::-1]:
             if len(history)==5:
                 for c in history[1:]:
@@ -148,7 +164,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 nece=self.decide_rect_necessity(thisuit,choice)
                 if nece<0:
                     continue
-                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
+                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice,method=method)
                 if print_level>=4:
                     log("rectify: %s %s: %.4e"%(cards_on_table,choice,possi_pvnet),end="");input()
                 result*=possi_pvnet
@@ -201,7 +217,7 @@ class MrZeroTree(MrZeroTreeSimple):
             #scenarios_weight.append(1.0)
             scenarios_weight.append(self.possi_rectify(cards_lists,suit))
 
-            scenarios_weight[-1]*=self.int_equ_class(cards_lists,suit)
+            #scenarios_weight[-1]*=self.int_equ_class(cards_lists,suit)
             #scenarios_weight[-1]*=self.int_equ_class_li(cards_lists,suit)
 
             cards_lists_list.append(cards_lists)
@@ -213,7 +229,7 @@ class MrZeroTree(MrZeroTreeSimple):
             log("scenarios_weight: %s"%(["%.4e"%(i) for i in scenarios_weight],))
         weight_sum=sum(scenarios_weight)
         scenarios_weight=[i/weight_sum for i in scenarios_weight]
-        assert (sum(scenarios_weight)-1)<1e-7, "scenario weight not equal to 1: %s"%(scenarios_weight,)
+        assert (sum(scenarios_weight)-1)<1e-5, "scenario weight is %.8f: %s"%(sum(scenarios_weight),scenarios_weight,)
 
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}

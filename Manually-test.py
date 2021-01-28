@@ -25,10 +25,11 @@ def benchmark(print_process=False):
 
     mode=0
     complete_info=False
-    log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
+    #log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
+    #log_source(inspect.getsource(MrZeroTree.possi_rectify_pvnet))
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
-    device_bench=torch.device("cuda:2")
+    device_bench=torch.device("cuda:1")
     save_name_0="Zero-29th-25-11416629-720.pt"
     state_dict_0=torch.load(save_name_0,map_location=device_bench)
     pv_net_0=PV_NET_2()
@@ -54,7 +55,7 @@ def benchmark(print_process=False):
                         mcts_b=10,mcts_k=2,sample_b=9,sample_k=0) for i in [1,3]]
         interface=OfflineInterface([zt[0],zts[0],zt[1],zts[1]],print_flag=False)
 
-    N1=1024;N2=2;
+    N1=16;N2=2;
     log("(%s+%s) v.s. (%s+%s) for %dx%d on %s"%(interface.players[0].family_name(),interface.players[2].family_name(),
                                           interface.players[1].family_name(),interface.players[3].family_name(),N1,N2,device_bench))
     if interface.players[0].family_name().startswith("MrZeroTree"):
@@ -201,7 +202,62 @@ def stat_rect_log(fname):
         l2=[float(j[3].strip()) for j in i]
         log("%d/%d %.4f %.4f"%(len(l1),len(i),numpy.mean(l2),numpy.var(l2)))
 
+def add_dict(l,d):
+    for i in l.split(","):
+        i=i.strip().split(":")
+        c=i[0];v=float(i[1])
+        if c not in d:
+            d[c]=[v]
+        else:
+            d[c].append(v)
+
+def stat_r_log(fname):
+    import re,numpy
+    from Util import INIT_CARDS
+    with open(fname,"r") as f:
+        lines=f.readlines()
+    dict_val={};dict_reg={}
+    for l in lines:
+        if "reg" in l:
+            add_dict(l.split("reg")[1],dict_reg)
+        elif "r/beta" in l:
+            add_dict(l.split("r/beta")[1],dict_val)
+    l_val=[(c,numpy.mean(dict_val[c]),numpy.var(dict_val[c]),numpy.var(dict_val[c])/numpy.sqrt(len(dict_val[c])-1)) for c in INIT_CARDS]
+    l_reg=[(c,numpy.mean(dict_reg[c]),numpy.var(dict_reg[c]),numpy.var(dict_reg[c])/numpy.sqrt(len(dict_reg[c])-1)) for c in INIT_CARDS]
+
+    line_vals=[]
+    for i in range(4):
+        val=[v for c,v,s,e in l_val[i*13:i*13+13]]
+        err=[e for c,v,s,e in l_val[i*13:i*13+13]]
+        line_vals.append((l_val[i*13][0][0],val,err))
+    line_val_vars=[]
+    for i in range(4):
+        var=[s for c,v,s,e in l_val[i*13:i*13+13]]
+        line_val_vars.append((l_val[i*13][0][0],var))
+    line_regs=[]
+    for i in range(4):
+        val=[v for c,v,s,e in l_reg[i*13:i*13+13]]
+        err=[e for c,v,s,e in l_reg[i*13:i*13+13]]
+        line_regs.append((l_val[i*13][0][0],val,err))
+    #log(line_vals)
+
+
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    fig=plt.figure()
+    fig.set_size_inches(8,6)
+    ax1=fig.subplots(1)
+    for suit,val,err in line_regs:
+        #ax1.errorbar(list(range(13)),val,yerr=err,capsize=5,label=suit)
+        ax1.plot(list(range(13)),val,"o-",label=suit)
+    ax1.legend()
+    plt.xticks(list(range(13)),["2","3","4","5","6","7","8","9","10","J","Q","K","A"])
+    plt.title("Regrets")
+    plt.savefig("stat_reg.png")
+
 if __name__ == '__main__':
     #plot_log(["from-zero-26","from-zero-29"])
-    benchmark()
+    #benchmark()
     #stat_rect_log("stat_Q2.txt")
+    stat_r_log("stat_r.txt")
