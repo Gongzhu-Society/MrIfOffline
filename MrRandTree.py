@@ -5,7 +5,7 @@ from Util import log
 from Util import ORDER_DICT2,SCORE_DICT
 from MrRandom import MrRandom
 from MrGreed import MrGreed
-from ScenarioGen import ScenarioGen
+from ScenarioGenerator.ScenarioGen import ScenarioGen
 from MCTS.mcts import mcts
 import copy,itertools,numpy,time
 
@@ -147,7 +147,7 @@ class MrRandTree(MrRandom):
             cards_on_table_copy=copy.copy(self.cards_on_table)
             gamestate=GameState(cards_lists,fmt_scores,cards_on_table_copy,self.place)
             searcher=mcts(iterationLimit=200,explorationConstant=100)
-            searcher.search(initialState=gamestate,needNodeValue=False)
+            searcher.search(initialState=gamestate)
             for action,node in searcher.root.children.items():
                 if print_level>=1:
                     log("%s: %s"%(action,node))

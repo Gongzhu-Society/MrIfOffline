@@ -15,6 +15,8 @@ def log_source(s):
     log("\n".join(s2))
 
 def benchmark(print_process=False):
+    from MrRandom import MrRandom
+    from MrIf import MrIf
     from MrGreed import MrGreed
     #from MrImpGreed import MrImpGreed
     from MrZeroTreeSimple import MrZeroTreeSimple
@@ -37,14 +39,16 @@ def benchmark(print_process=False):
     pv_net_0.to(device_bench)
 
     if mode==0:
-        log("Tree v.s. Greed mode")
         zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
                         mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
+                        #mcts_b=10,mcts_k=2,sample_b=9,sample_k=0) for i in [0,2]]
         #g_aux=[None,None,None,None]
         #g_aux[0]=MrGreed(room=255,place=0,name='gaux');g_aux[2]=MrGreed(room=255,place=2,name='gaux')
         #zt0[0].g_aux=g_aux;zt0[1].g_aux=g_aux
-        g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
-        interface=OfflineInterface([zt0[0],g[0],zt0[1],g[1]],print_flag=False)
+        team1=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
+        #team1=[MrRandom(room=255,place=i,name='random%d'%(i)) for i in [1,3]]
+        #team1=[MrIf(room=255,place=i,name='if%d'%(i)) for i in [1,3]]
+        interface=OfflineInterface([zt0[0],team1[0],zt0[1],team1[1]],print_flag=False)
     elif mode==1:
         input("1 MrZeroTree v.s. 3 MrGreed mode")
     elif mode==2:
@@ -55,7 +59,7 @@ def benchmark(print_process=False):
                         mcts_b=10,mcts_k=2,sample_b=9,sample_k=0) for i in [1,3]]
         interface=OfflineInterface([zt[0],zts[0],zt[1],zts[1]],print_flag=False)
 
-    N1=16;N2=2;
+    N1=1024;N2=2;
     log("(%s+%s) v.s. (%s+%s) for %dx%d on %s"%(interface.players[0].family_name(),interface.players[2].family_name(),
                                           interface.players[1].family_name(),interface.players[3].family_name(),N1,N2,device_bench))
     if interface.players[0].family_name().startswith("MrZeroTree"):
@@ -87,6 +91,58 @@ def benchmark(print_process=False):
         if (k+1)%256==0 and l==N2-1:
             bench_stat(stats,N2,device_bench)
     bench_stat(stats,N2,device_bench)
+
+def benchmark_transitivity(print_process=False):
+    from MrRandom import MrRandom
+    from MrIf import MrIf
+    from MrGreed import MrGreed
+    from MrRandTree import MrRandTree
+    from MrZ_NETs import PV_NET_2
+    from MrZeroTreeSimple import MrZeroTreeSimple
+    from OfflineInterface import OfflineInterface
+    import itertools,torch,random,inspect
+
+    device_bench=torch.device("cuda:0")
+    save_name_0="Zero-29th-25-11416629-720.pt"
+    state_dict_0=torch.load(save_name_0,map_location=device_bench)
+    pv_net_0=PV_NET_2()
+    pv_net_0.load_state_dict(state_dict_0)
+    pv_net_0.to(device_bench)
+    team0=[MrZeroTreeSimple(room=255,place=i,name='zts%d'%(i),pv_net=pv_net_0,device=device_bench,mcts_b=10,mcts_k=2,sample_b=9,sample_k=0) for i in [0,2]]
+    #team0=[MrRandTree(room=255,place=i,name='randtree%d'%(i)) for i in [0,2]]
+
+    #team1=[MrRandTree(room=255,place=i,name='randtree%d'%(i)) for i in [1,3]]
+    #team1=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
+    #team1=[MrRandom(room=255,place=i,name='random%d'%(i)) for i in [1,3]]
+    team1=[MrIf(room=255,place=i,name='if%d'%(i)) for i in [1,3]]
+    interface=OfflineInterface([team0[0],team1[0],team0[1],team1[1]],print_flag=False)
+
+    N1=256;N2=2;
+    log("(%s+%s) v.s. (%s+%s) for %dx%d"%(interface.players[0].family_name(),interface.players[2].family_name(),
+                                            interface.players[1].family_name(),interface.players[3].family_name(),N1,N2))
+    if interface.players[0].family_name().startswith("MrZeroTree"):
+        log("mcts_b/k: %d/%d, sample_b/k: %d/%d"%(interface.players[0].mcts_b,interface.players[0].mcts_k,
+                                                  interface.players[0].sample_b,interface.players[0].sample_k))
+    stats=[]
+    for k,l in itertools.product(range(N1),range(N2)):
+        if l==0:
+            cards=interface.shuffle()
+        else:
+            cards=cards[39:52]+cards[0:39]
+            interface.shuffle(cards=cards)
+        for i,j in itertools.product(range(13),range(4)):
+            interface.step()
+            #input("continue...")
+        stats.append(interface.clear())
+        interface.prepare_new()
+        if l==N2-1:
+            if print_process:
+                log("%2d %4d: %s"%(k,sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2,stats[-N2:]))
+            else:
+                print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
+        if (k+1)%(N1//4)==0 and l==N2-1:
+            bench_stat(stats,N2,None)
+    bench_stat(stats,N2,None)
 
 def bench_stat(stats,N2,comments):
     import numpy
@@ -222,14 +278,14 @@ def stat_r_log(fname):
             add_dict(l.split("reg")[1],dict_reg)
         elif "r/beta" in l:
             add_dict(l.split("r/beta")[1],dict_val)
-    l_val=[(c,numpy.mean(dict_val[c]),numpy.var(dict_val[c]),numpy.var(dict_val[c])/numpy.sqrt(len(dict_val[c])-1)) for c in INIT_CARDS]
-    l_reg=[(c,numpy.mean(dict_reg[c]),numpy.var(dict_reg[c]),numpy.var(dict_reg[c])/numpy.sqrt(len(dict_reg[c])-1)) for c in INIT_CARDS]
+    l_val=[(c,numpy.mean(dict_val[c]),numpy.sqrt(numpy.var(dict_val[c])),numpy.var(dict_val[c])/numpy.sqrt(len(dict_val[c])-1)) for c in INIT_CARDS]
+    l_reg=[(c,numpy.mean(dict_reg[c]),numpy.sqrt(numpy.var(dict_reg[c])),numpy.var(dict_reg[c])/numpy.sqrt(len(dict_reg[c])-1)) for c in INIT_CARDS]
 
-    line_vals=[]
+    """line_vals=[]
     for i in range(4):
         val=[v for c,v,s,e in l_val[i*13:i*13+13]]
         err=[e for c,v,s,e in l_val[i*13:i*13+13]]
-        line_vals.append((l_val[i*13][0][0],val,err))
+        line_vals.append((l_val[i*13][0][0],val,err))"""
     line_val_vars=[]
     for i in range(4):
         var=[s for c,v,s,e in l_val[i*13:i*13+13]]
@@ -238,26 +294,43 @@ def stat_r_log(fname):
     for i in range(4):
         val=[v for c,v,s,e in l_reg[i*13:i*13+13]]
         err=[e for c,v,s,e in l_reg[i*13:i*13+13]]
-        line_regs.append((l_val[i*13][0][0],val,err))
-    #log(line_vals)
+        line_regs.append((l_reg[i*13][0][0],val,err))
+    """line_reg_vars=[]
+    for i in range(4):
+        var=[s for c,v,s,e in l_reg[i*13:i*13+13]]
+        line_reg_vars.append((l_reg[i*13][0][0],var))"""
 
-
+    log("drawing...",l=0)
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     fig=plt.figure()
-    fig.set_size_inches(8,6)
+    fig.set_size_inches(12,9)
     ax1=fig.subplots(1)
+
+    #markers={"S":'$\\spadesuit$',"H":'$\\heartsuit$',"D":'$\\diamondsuit$',"C":'$\\clubsuit$'}
+    markers={"S":'o',"H":'>',"D":'s',"C":'^'}
+    colors={"S":"k","H":"r","D":"tomato","C":"dimgrey"}
     for suit,val,err in line_regs:
-        #ax1.errorbar(list(range(13)),val,yerr=err,capsize=5,label=suit)
-        ax1.plot(list(range(13)),val,"o-",label=suit)
-    ax1.legend()
-    plt.xticks(list(range(13)),["2","3","4","5","6","7","8","9","10","J","Q","K","A"])
-    plt.title("Regrets")
+        #ax1.errorbar(list(range(13)),val,yerr=err,fmt=marks[suit],capsize=3,label=suit)
+        ax1.plot(list(range(13)),val,color=colors[suit],marker=markers[suit],label=suit,markersize=10,linewidth=2)
+    """for suit,val in line_val_vars:
+        ax1.plot(list(range(13)),val,colors[suit],marker=markers[suit],label=suit,markersize=20,linewidth=2)"""
+
+    fontsize='xx-large'
+    ax1.legend(fontsize=fontsize)
+    plt.xticks(list(range(13)),["2","3","4","5","6","7","8","9","10","J","Q","K","A"],fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    ax1.set_xlabel("Cards",fontsize=fontsize)
+
+    #ax1.set_ylabel("Variance of Values",fontsize=fontsize)
+    ax1.set_ylabel("Average Regrets",fontsize=fontsize)
+    #plt.savefig("stat_val_var.png")
     plt.savefig("stat_reg.png")
 
 if __name__ == '__main__':
     #plot_log(["from-zero-26","from-zero-29"])
-    #benchmark()
+    benchmark()
+    #benchmark_transitivity()
     #stat_rect_log("stat_Q2.txt")
-    stat_r_log("stat_r.txt")
+    #stat_r_log("stat_r_1.txt")
