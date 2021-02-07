@@ -58,7 +58,7 @@ class Robot():
             s = "\n".join([", ".join([str(i) for i in trick]) for trick in self.history])
             s += '\nresult: %s\n\n'%(", ".join([str(n) for n in self.scores_num]))
             fname = [pl[0] for pl in self.players_information]
-            fname = "Records/" + "_".join(fname) + ".txt"
+            fname = "Records_" + "_".join(fname) + ".txt"
             log("writing to %s:\n%s"%(fname,s))
             with open(fname, 'a') as f:
                 f.write(s)

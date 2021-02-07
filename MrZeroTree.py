@@ -12,18 +12,29 @@ from MCTS.mcts import mcts
 
 import torch
 import torch.nn.functional as F
-import copy,math
+import copy,math,time,random
 
-print_level=0
+print_level=3
 BETA_POST_RECT=0.015
 log("BETA_POST_RECT: %.3f"%(BETA_POST_RECT,))
 
 class MrZeroTree(MrZeroTreeSimple):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
-                 sample_b=5,sample_k=0,mcts_b=10,mcts_k=2):
+                 sample_b=-3,sample_k=-3,mcts_b=50,mcts_k=2):
         MrRandom.__init__(self,room,place,name)
-        self.pv_net=pv_net
-        self.device=device
+
+        if device==None:
+            self.device=torch.device("cuda:3")
+        else:
+            self.device=device
+        if pv_net==None:
+            from MrZ_NETs import PV_NET_2
+            self.pv_net=PV_NET_2()
+            self.pv_net.load_state_dict(torch.load("/home/spinor/youran/MrIfOffline/Zero-29th-25-11416629-720.pt",map_location=self.device))
+            self.pv_net.to(self.device)
+        else:
+            self.pv_net=pv_net
+
         self.sample_b=sample_b
         self.sample_k=sample_k
         self.mcts_b=mcts_b
@@ -65,21 +76,21 @@ class MrZeroTree(MrZeroTreeSimple):
 
         v_max=max((v for c,v in p_legal))
 
-        #p_line=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
-        #possi_line=max((v for c,v in p_line if c==choice).__next__(),0.2)
+        p_line=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
+        possi_line=max((v for c,v in p_line if c==choice).__next__(),0.2)
         #log("reg "+", ".join(["%s:%.4f"%(c,r) for c,r in p_line]),logfile="stat_r.txt",fileonly=True)
 
-        p_exp=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
+        """p_exp=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
         v_sum=sum((v for c,v in p_exp))
         p_exp=[(c,v/v_sum) for c,v in p_exp]
-        possi_exp=(v for c,v in p_exp if c==choice).__next__()
+        possi_exp=(v for c,v in p_exp if c==choice).__next__()"""
 
         if print_level>=4:
             log(["%s: %.4f, %.4f"%(p_legal[i][0],p_line[i][1],p_exp[i][1]) for i in range(len(p_legal))])
 
         #log(["%s: %.4f"%(c,v) for c,v in p_legal])
         #assert line_weight<=1 and line_weight>=0, "line_weight is %s!"%(line_weight)
-        return possi_exp
+        return possi_line
 
     def decide_rect_necessity(self,thisuit,choice):
         """
@@ -110,12 +121,12 @@ class MrZeroTree(MrZeroTreeSimple):
             posterior probability rectify
             cards_lists is in absolute order
         """
-        if not self.int_method_printed_flag:
+        """if not self.int_method_printed_flag:
             log("using Li's int_equ_class: 1")
         lens_middle=[]
         for i in range(3):
             for c in "SHDC":
-                lens_middle.append(len([1 for j in cards_lists[(i+1+self.place)%4] if j[0]==c and j[1] not in "234567"]))
+                lens_middle.append(len([1 for j in cards_lists[(i+1+self.place)%4] if j[0]==c and j[1] not in "234567"]))"""
 
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
@@ -163,9 +174,9 @@ class MrZeroTree(MrZeroTreeSimple):
             assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, "scores left not zero: %s"%(scores,)
             assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, "cards_lists not equal 4x13: %s"%(cards_lists,)
         if print_level>=3:
-            log("final cards possi: %.4e"%(result));input()
+            log("final cards possi: %.4e"%(result))
 
-        if not self.int_method_printed_flag:
+        """if not self.int_method_printed_flag:
             log("using Li's int_equ_class: 2")
             self.int_method_printed_flag=True
         lens_init=[]
@@ -173,7 +184,7 @@ class MrZeroTree(MrZeroTreeSimple):
             for c in "SHDC":
                 lens_init.append(len([1 for j in cards_lists[(i+1+self.place)%4] if j[0]==c and j[1] not in "234567"]))
         for i in range(12):
-            result*=math.gamma(lens_init[i]+1)/math.gamma(lens_middle[i]+1)
+            result*=math.gamma(lens_init[i]+1)/math.gamma(lens_middle[i]+1)"""
         return result
 
     def pick_a_card(self):
@@ -262,6 +273,7 @@ class MrZeroTree(MrZeroTreeSimple):
 
         if print_level>=2:
             log("d_legal: %s"%(d_legal))
+            #time.sleep(5+10*random.random())
 
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         """
@@ -292,6 +304,7 @@ class MrZeroTree(MrZeroTreeSimple):
             p_choice=(v for c,v in p_legal if c==best_choice).__next__()
             possi=max(p_choice,0.2)
             log("zerotree, %s, %s, %s, %.4f"%(best_choice,suit,best_choice==p_legal[0][0],possi),logfile="stat_sim.txt",fileonly=True)"""
+
 
         return best_choice
 
@@ -415,11 +428,62 @@ def burdens():
     p_legal=[(c,"%.2f"%(p[ORDER_DICT[c]].item()/BETA)) for c in INIT_CARDS if (c[0]==suit_tested and c in cards_tested) or c[0]!=suit_tested]
     log("%.2f: %s"%(v,p_legal))
 
+def irrelevant_cards():
+    from MrZ_NETs import PV_NET_2
+    device=torch.device("cpu")
+    state_dict=torch.load("Zero-29th-25-11416629-720.pt")
+    pv_net=PV_NET_2()
+    pv_net.load_state_dict(state_dict)
+    pv_net.to(device)
+
+    """
+    [('S5', 0.9464), ('S10', 1.0), ('SJ', 0.9598)]
+    [('S5', 0.9424), ('S10', 1.0)]
+
+    [('S8', 0.9585), ('S10', 1.0), ('SQ', 0.495), ('SJ', 0.9528)]
+    [('S8', 0.956), ('S10', 1.0), ('SQ', 0.4818)]
+
+    [('S7', 1.0), ('SK', 0.8331), ('SJ', 0.9677)]
+    [('S7', 1.0), ('SK', 0.8302)]
+    """
+
+    suit_tested="S"
+    cards_on_table=[0,]
+    cards_tested=["S7","SK"]
+    place=0
+
+    oh_card=torch.zeros(52*4)
+    for c in cards_tested:
+        oh_card[ORDER_DICT[c]]=1
+    for c in INIT_CARDS:
+        if c in cards_tested or c in cards_on_table:
+            continue
+        if c.startswith(suit_tested):
+            oh_card[52*1+ORDER_DICT[c]]=1/3
+            oh_card[52*2+ORDER_DICT[c]]=1/3
+            oh_card[52*3+ORDER_DICT[c]]=1/3
+        else:
+            oh_card[52*0+ORDER_DICT[c]]=1/4
+            oh_card[52*1+ORDER_DICT[c]]=1/4
+            oh_card[52*2+ORDER_DICT[c]]=1/4
+            oh_card[52*3+ORDER_DICT[c]]=1/4
+    #print(oh_card)
+    print(oh_card.sum())
+    oh_score=torch.zeros(16*4)
+    oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
+    netin=torch.cat([oh_card,oh_score,oh_table])
+    with torch.no_grad():
+        p,v=pv_net(netin)
+    p_legal=[(c,p[ORDER_DICT[c]]) for c in cards_tested]
+    v_max=max((v for c,v in p_legal))
+    p_line=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
+    log([(c,float("%.4f"%(v))) for c,v in p_line])
 
 if __name__=="__main__":
     #example_DJ()
     #example_SQ2()
-    burdens()
+    #burdens()
+    irrelevant_cards()
 
     """ 统计重复率
             netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)

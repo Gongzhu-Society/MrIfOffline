@@ -31,17 +31,19 @@ def benchmark(print_process=False):
     #log_source(inspect.getsource(MrZeroTree.possi_rectify_pvnet))
     log("complete info: %s, mode: %s"%(complete_info,mode))
 
-    device_bench=torch.device("cuda:1")
-    save_name_0="Zero-29th-25-11416629-720.pt"
-    state_dict_0=torch.load(save_name_0,map_location=device_bench)
-    pv_net_0=PV_NET_2()
-    pv_net_0.load_state_dict(state_dict_0)
-    pv_net_0.to(device_bench)
+    device_bench=None
+    #device_bench=torch.device("cuda:1")
+    #save_name_0="Zero-29th-25-11416629-720.pt"
+    #state_dict_0=torch.load(save_name_0,map_location=device_bench)
+    #pv_net_0=PV_NET_2()
+    #pv_net_0.load_state_dict(state_dict_0)
+    #pv_net_0.to(device_bench)
 
     if mode==0:
-        zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-                        mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
+        #zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
+                        #mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
                         #mcts_b=10,mcts_k=2,sample_b=9,sample_k=0) for i in [0,2]]
+        zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i)) for i in [0,2]]
         #g_aux=[None,None,None,None]
         #g_aux[0]=MrGreed(room=255,place=0,name='gaux');g_aux[2]=MrGreed(room=255,place=2,name='gaux')
         #zt0[0].g_aux=g_aux;zt0[1].g_aux=g_aux
@@ -203,6 +205,10 @@ def plot_log(fileperfixes):
     log(bias_bench,l=0)
     log(t_bench,l=0)
     log(t_loss,l=0)
+    log(t_bench)
+    log(v_bench)
+    log(e_bench)
+    return
     fig=plt.figure()
     fig.set_size_inches(8,6)
     ax1=fig.subplots(1)
@@ -288,49 +294,23 @@ def stat_r_log(fname):
         line_vals.append((l_val[i*13][0][0],val,err))"""
     line_val_vars=[]
     for i in range(4):
-        var=[s for c,v,s,e in l_val[i*13:i*13+13]]
+        var=[float("%.4f"%(s)) for c,v,s,e in l_val[i*13:i*13+13]]
         line_val_vars.append((l_val[i*13][0][0],var))
     line_regs=[]
     for i in range(4):
-        val=[v for c,v,s,e in l_reg[i*13:i*13+13]]
-        err=[e for c,v,s,e in l_reg[i*13:i*13+13]]
+        val=[float("%.4f"%(v)) for c,v,s,e in l_reg[i*13:i*13+13]]
+        err=[float("%.1e"%(e)) for c,v,s,e in l_reg[i*13:i*13+13]]
         line_regs.append((l_reg[i*13][0][0],val,err))
     """line_reg_vars=[]
     for i in range(4):
         var=[s for c,v,s,e in l_reg[i*13:i*13+13]]
         line_reg_vars.append((l_reg[i*13][0][0],var))"""
-
-    log("drawing...",l=0)
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    fig=plt.figure()
-    fig.set_size_inches(12,9)
-    ax1=fig.subplots(1)
-
-    #markers={"S":'$\\spadesuit$',"H":'$\\heartsuit$',"D":'$\\diamondsuit$',"C":'$\\clubsuit$'}
-    markers={"S":'o',"H":'>',"D":'s',"C":'^'}
-    colors={"S":"k","H":"r","D":"tomato","C":"dimgrey"}
-    for suit,val,err in line_regs:
-        #ax1.errorbar(list(range(13)),val,yerr=err,fmt=marks[suit],capsize=3,label=suit)
-        ax1.plot(list(range(13)),val,color=colors[suit],marker=markers[suit],label=suit,markersize=10,linewidth=2)
-    """for suit,val in line_val_vars:
-        ax1.plot(list(range(13)),val,colors[suit],marker=markers[suit],label=suit,markersize=20,linewidth=2)"""
-
-    fontsize='xx-large'
-    ax1.legend(fontsize=fontsize)
-    plt.xticks(list(range(13)),["2","3","4","5","6","7","8","9","10","J","Q","K","A"],fontsize=fontsize)
-    plt.yticks(fontsize=fontsize)
-    ax1.set_xlabel("Cards",fontsize=fontsize)
-
-    #ax1.set_ylabel("Variance of Values",fontsize=fontsize)
-    ax1.set_ylabel("Average Regrets",fontsize=fontsize)
-    #plt.savefig("stat_val_var.png")
-    plt.savefig("stat_reg.png")
+    log(line_regs)
+    log(line_val_vars)
 
 if __name__ == '__main__':
-    #plot_log(["from-zero-26","from-zero-29"])
-    benchmark()
+    plot_log(["from-zero-26","from-zero-29"])
+    #benchmark()
     #benchmark_transitivity()
     #stat_rect_log("stat_Q2.txt")
     #stat_r_log("stat_r_1.txt")
