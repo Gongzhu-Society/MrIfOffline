@@ -35,7 +35,7 @@ class OfflineInterface():
         self.cards_remain=[]
         for i in range(4):
             list_temp=cards[i*13:i*13+13]
-            list_temp.sort(key=cards_order)
+            #list_temp.sort(key=cards_order) #will sort influence performance? 2021 Feb 7th
             self.cards_remain.append(list_temp)
             #seperate player and judge by copy.copy
             self.players[i].cards_list=copy.copy(list_temp)
@@ -166,53 +166,33 @@ class OfflineInterface():
         del self.scores_num
         del self.cards_remain
 
-def stat_ai():
-    from MrRandom import MrRandom,Human
-    from MrIf import MrIf
-    from MrGreed import MrGreed
-    from MrNN import MrNN
-    from MrNN_Trainer import NN_First,NN_Second,NN_Third,NN_Last
-    #prepare AIs
-    r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
-    f=[MrIf(room=0,place=i,name="if%d"%(i)) for i in range(4)]
-    g=[MrGreed(room=0,place=i,name='greed%d'%(i)) for i in range(4)]
-    n=[MrNN(room=0,place=i,name='net%d'%(i)) for i in range(4)]
-    para_dir="./NetPara20200715/"
-    for i in n:
-        i.prepare_net([(NN_First,para_dir+'NN_First_11_121012.ckpt'),(NN_Second,para_dir+'NN_Second_9_126004.ckpt'),
-                       (NN_Third,para_dir+'NN_Third_7_130996.ckpt'),(NN_Last,para_dir+'NN_Last_5_135988.ckpt')])
-    #initialize OfflineInterface
-    offlineinterface=OfflineInterface([g[0],f[1],g[2],f[3]],print_flag=False)
-    stats=[]
-    N1=4096;N2=2
-    log("start %dx%d"%(N1,N2))
-    tik=time.time()
-    for k,l in itertools.product(range(N1),range(N2)):
-        if l==0:
-            cards=offlineinterface.shuffle()
+def gen_shuffle(num,perfix):
+    cards=['S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'SJ', 'SQ', 'SK', 'SA',
+           'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'H10', 'HJ', 'HQ', 'HK', 'HA',
+           'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'DJ', 'DQ', 'DK', 'DA',
+           'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'CJ', 'CQ', 'CK', 'CA']
+    logfile="StdHands/%s_%d.hands"%(perfix,num)
+    for i in range(num):
+        random.shuffle(cards)
+        log("No.%04d: %s"%(i,cards),logfile=logfile,fileonly=True)
+        
+def read_std_hands(filename):
+    import re
+    from ast import literal_eval
+    p_cards=re.compile("No\\.[0-9]+: (.+)")
+    f=open(filename,"r")
+    stdhands=[]
+    for l in f:
+        s=p_cards.search(l)
+        if s==None:
+            log("failed to parse:\n%s"%(l),end="")
         else:
-            cards=cards[39:52]+cards[0:39]
-            offlineinterface.shuffle(cards=cards)
-        for i,j in itertools.product(range(13),range(4)):
-            offlineinterface.step()
-        stats.append(offlineinterface.clear())
-        #log("%d, %d: %s"%(k,l,stats[-1]))
-        offlineinterface.prepare_new()
-        if l==N2-1:
-            print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])),end=" ",flush=True)
-    tok=time.time()
-    log("time consume: %ds"%(tok-tik))
-
-    #statistic
-    #for i in range(4):
-    #    s_temp=[j[i] for j in stats]
-    #    log("%dth player: %.2f %.2f"%(i,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
-    #s_temp=[j[0]+j[2] for j in stats]
-    #log("0 2 player: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
-    #s_temp=[j[1]+j[3] for j in stats]
-    #log("1 3 player: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
-    s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
-    log(" 0+2 - 1+3: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1)),),l=2)
+            stdhands.append(s.group(1))
+    f.close()
+    stdhands=[literal_eval(l) for l in stdhands]
+    log("parsed %d hands, start with:\n%s"%(len(stdhands),stdhands[0]))
+    return stdhands
 
 if __name__=="__main__":
-    stat_ai()
+    gen_shuffle(1024,"random")
+    read_std_hands("StdHands/random_0_1024.hands")

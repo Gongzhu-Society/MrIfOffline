@@ -14,8 +14,8 @@ import torch
 import torch.nn.functional as F
 import copy,math,time,random
 
-print_level=3
-BETA_POST_RECT=0.015
+print_level=0
+BETA_POST_RECT=0.010
 log("BETA_POST_RECT: %.3f"%(BETA_POST_RECT,))
 
 class MrZeroTree(MrZeroTreeSimple):
@@ -24,7 +24,7 @@ class MrZeroTree(MrZeroTreeSimple):
         MrRandom.__init__(self,room,place,name)
 
         if device==None:
-            self.device=torch.device("cuda:3")
+            self.device=torch.device("cuda:%d"%(random.randint(0,3)))
         else:
             self.device=device
         if pv_net==None:
@@ -65,20 +65,17 @@ class MrZeroTree(MrZeroTreeSimple):
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
 
-    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):#,line_weight=1):
+    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
         p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
-        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0] and c[1] not in "234567"] #Change in T
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice] #Before Jan 19th
-        #log("r/beta "+", ".join(["%s:%.2f"%(c,p[ORDER_DICT[c]]/BETA) for c in legal_choice]),logfile="stat_r.txt",fileonly=True)
 
         v_max=max((v for c,v in p_legal))
 
         p_line=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
         possi_line=max((v for c,v in p_line if c==choice).__next__(),0.2)
-        #log("reg "+", ".join(["%s:%.4f"%(c,r) for c,r in p_line]),logfile="stat_r.txt",fileonly=True)
 
         """p_exp=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
         v_sum=sum((v for c,v in p_exp))
@@ -87,9 +84,6 @@ class MrZeroTree(MrZeroTreeSimple):
 
         if print_level>=4:
             log(["%s: %.4f, %.4f"%(p_legal[i][0],p_line[i][1],p_exp[i][1]) for i in range(len(p_legal))])
-
-        #log(["%s: %.4f"%(c,v) for c,v in p_legal])
-        #assert line_weight<=1 and line_weight>=0, "line_weight is %s!"%(line_weight)
         return possi_line
 
     def decide_rect_necessity(self,thisuit,choice):
@@ -104,7 +98,7 @@ class MrZeroTree(MrZeroTreeSimple):
             return 4
         return -1
 
-    def int_equ_class(self,cards_lists,thisuit,y=1.0):
+    """def int_equ_class(self,cards_lists,thisuit,y=1.0):
         if not self.int_method_printed_flag:
             log("using Sun's int_equ_class, y=%.2f"%(y))
             self.int_method_printed_flag=True
@@ -114,31 +108,16 @@ class MrZeroTree(MrZeroTreeSimple):
         totir=sum(lenirs)
         intvalue=(math.gamma(totir/3+1)**3)/(math.gamma(lenirs[0]+1)*math.gamma(lenirs[1]+1)*math.gamma(lenirs[2]+1))
         #log("%s: %.4f"%(lenirs,intvalue))
-        return intvalue**y
+        return intvalue**y"""
 
     def possi_rectify(self,cards_lists,thisuit):
         """
             posterior probability rectify
             cards_lists is in absolute order
         """
-        """if not self.int_method_printed_flag:
-            log("using Li's int_equ_class: 1")
-        lens_middle=[]
-        for i in range(3):
-            for c in "SHDC":
-                lens_middle.append(len([1 for j in cards_lists[(i+1+self.place)%4] if j[0]==c and j[1] not in "234567"]))"""
-
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
         result=1.0
-        #decide method for post_rect
-        """if thisuit=="A":
-            line_weight=max(0.0,min(1.0,(len(self.cards_list)-3)/7)) #3,10
-
-        else:
-            snum=len([1 for i in range(3) for j in cards_lists[(self.place+i+1)%4] if j[0]==thisuit])
-            line_weight=max(0.0,min(1.0,(snum-3)/6)) #3,9"""
-        line_weight=1.0
 
         for history in [self.cards_on_table,]+self.history[::-1]:
             if len(history)==5:
@@ -166,7 +145,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 if nece==-1:
                     continue
                 assert nece in (3,4)
-                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)#,line_weight)
+                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
                 if print_level>=4:
                     log("rectify: %s: %.4e"%(choice,possi_pvnet),end="");input()
                 result*=possi_pvnet
@@ -175,16 +154,6 @@ class MrZeroTree(MrZeroTreeSimple):
             assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, "cards_lists not equal 4x13: %s"%(cards_lists,)
         if print_level>=3:
             log("final cards possi: %.4e"%(result))
-
-        """if not self.int_method_printed_flag:
-            log("using Li's int_equ_class: 2")
-            self.int_method_printed_flag=True
-        lens_init=[]
-        for i in range(3):
-            for c in "SHDC":
-                lens_init.append(len([1 for j in cards_lists[(i+1+self.place)%4] if j[0]==c and j[1] not in "234567"]))
-        for i in range(12):
-            result*=math.gamma(lens_init[i]+1)/math.gamma(lens_middle[i]+1)"""
         return result
 
     def pick_a_card(self):
