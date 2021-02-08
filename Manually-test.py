@@ -22,7 +22,7 @@ def benchmark(handsfile,print_process=False):
     from OfflineInterface import OfflineInterface,read_std_hands
     import itertools,torch,random,inspect
 
-    #log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
+    log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
     #log_source(inspect.getsource(MrZeroTree.possi_rectify_pvnet))
     
     mode=0
@@ -41,7 +41,7 @@ def benchmark(handsfile,print_process=False):
                         #mcts_b=10,mcts_k=2,sample_b=9,sample_k=0) for i in [0,2]]
         zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
         team1=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
-        interface=OfflineInterface([zt0[0],team1[0],zt0[1],team1[1]],print_flag=True)
+        interface=OfflineInterface([zt0[0],team1[0],zt0[1],team1[1]],print_flag=False)
         device_bench=zt0[0].device
     elif mode==2:
         log("Tree v.s. TreeSimple mode")
@@ -73,7 +73,7 @@ def benchmark(handsfile,print_process=False):
                 interface.step_complete_info()
             else:"""
             interface.step()    
-            input("continue...")
+            #input("continue...")
         stats.append(interface.clear())
         interface.prepare_new()
         if l==N2-1:

@@ -24,13 +24,16 @@ class MrZeroTree(MrZeroTreeSimple):
         MrRandom.__init__(self,room,place,name)
 
         if device==None:
-            self.device=torch.device("cuda:%d"%(random.randint(0,3)))
+            #self.device=torch.device("cuda:%d"%(random.randint(0,3)))
+            self.device=torch.device("cuda:1")
         else:
             self.device=device
         if pv_net==None:
+            #net_para_loc="/home/spinor/youran/MrIfOffline/Zero-29th-25-11416629-720.pt"
+            net_para_loc="./Zero-29th-25-11416629-720.pt"
             from MrZ_NETs import PV_NET_2
             self.pv_net=PV_NET_2()
-            self.pv_net.load_state_dict(torch.load("/home/spinor/youran/MrIfOffline/Zero-29th-25-11416629-720.pt",map_location=self.device))
+            self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
             self.pv_net.to(self.device)
         else:
             self.pv_net=pv_net
@@ -86,11 +89,12 @@ class MrZeroTree(MrZeroTreeSimple):
 
     def decide_rect_necessity(self,thisuit,choice):
         # C
-        if thisuit==choice[0] and choice[1] not in "234567":
-            return 3
+        #if thisuit==choice[0] and choice[1] not in "234567":
+        #    return 3
         # D
-        if thisuit=="A" and choice[1] not in "234567":
-            return 4
+        #if thisuit=="A" and choice[1] not in "234567":
+        #    return 4
+        return 1
         return -1
 
     """def int_equ_class(self,cards_lists,thisuit,y=1.0):
