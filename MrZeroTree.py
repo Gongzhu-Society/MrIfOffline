@@ -15,8 +15,8 @@ import torch.nn.functional as F
 import copy,math,time,random
 
 print_level=0
-BETA_POST_RECT=0.010
-log("BETA_POST_RECT: %.3f"%(BETA_POST_RECT,))
+BETA_POST_RECT=0.015
+log("BETA_POST_RECT: %.3f, BETA: %.2f"%(BETA_POST_RECT,BETA))
 
 class MrZeroTree(MrZeroTreeSimple):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
@@ -42,7 +42,7 @@ class MrZeroTree(MrZeroTreeSimple):
         self.train_mode=train_mode
         if self.train_mode:
             self.train_datas=[]
-        self.int_method_printed_flag=False
+        #self.int_method_printed_flag=False
 
     def cards_lists_oh_post_rect(cards_lists,place):
         """
@@ -71,7 +71,6 @@ class MrZeroTree(MrZeroTreeSimple):
             p,_=self.pv_net(netin.to(self.device))
         p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice] #Before Jan 19th
-
         v_max=max((v for c,v in p_legal))
 
         p_line=[(c,1+BETA_POST_RECT*(v-v_max)/BETA) for c,v in p_legal]
@@ -82,14 +81,10 @@ class MrZeroTree(MrZeroTreeSimple):
         p_exp=[(c,v/v_sum) for c,v in p_exp]
         possi_exp=(v for c,v in p_exp if c==choice).__next__()"""
 
-        if print_level>=4:
-            log(["%s: %.4f, %.4f"%(p_legal[i][0],p_line[i][1],p_exp[i][1]) for i in range(len(p_legal))])
+        #log(["%s: %.4f, %.4f"%(p_legal[i][0],p_line[i][1],p_exp[i][1]) for i in range(len(p_legal))])
         return possi_line
 
     def decide_rect_necessity(self,thisuit,choice):
-        """
-            return True for necessary
-        """
         # C
         if thisuit==choice[0] and choice[1] not in "234567":
             return 3
@@ -118,7 +113,6 @@ class MrZeroTree(MrZeroTreeSimple):
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
         result=1.0
-
         for history in [self.cards_on_table,]+self.history[::-1]:
             if len(history)==5:
                 for c in history[1:]:
@@ -135,19 +129,16 @@ class MrZeroTree(MrZeroTreeSimple):
                 if pnext==self.place:
                     continue
                 #决定是否需要修正
-                if len(cards_on_table)==1:
-                    suit="A"
-                else:
-                    suit=cards_on_table[1][0]
+                nece=self.decide_rect_necessity(thisuit,choice)
+                if nece<0:
+                    continue
+                
+                suit=cards_on_table[1][0] if len(cards_on_table)>1 else "A"
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
-                nece=self.decide_rect_necessity(thisuit,choice)
-                if nece==-1:
-                    continue
-                assert nece in (3,4)
                 possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
                 if print_level>=4:
-                    log("rectify: %s: %.4e"%(choice,possi_pvnet),end="");input()
+                    log("rectify %s(%d): %.4e"%(choice,nece,possi_pvnet),end="");input()
                 result*=possi_pvnet
         else:
             assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, "scores left not zero: %s"%(scores,)
@@ -203,10 +194,11 @@ class MrZeroTree(MrZeroTreeSimple):
             cards_lists_list.append(cards_lists)
         else:
             del scenarios
-        #log("scenarios_weight: %s"%(["%.4e"%(i) for i in scenarios_weight],))
+        if print_level>=2:
+            log("scenarios_weight: %s"%(["%.4e"%(i) for i in scenarios_weight],))
         weight_sum=sum(scenarios_weight)
         scenarios_weight=[i/weight_sum for i in scenarios_weight]
-        assert (sum(scenarios_weight)-1)<1e-5, "scenario weight is %.8f: %s"%(sum(scenarios_weight),scenarios_weight,)
+        assert (sum(scenarios_weight)-1)<1e-6, "scenario weight is %.8f: %s"%(sum(scenarios_weight),scenarios_weight,)
 
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
@@ -241,7 +233,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 raise Exception("reserved")
 
         if print_level>=2:
-            log("d_legal: %s"%(d_legal))
+            log("d_legal: %s"%({k:float("%.1f"%(v)) for k,v in d_legal.items()}))
             #time.sleep(5+10*random.random())
 
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)

@@ -41,16 +41,10 @@ def benchmark(handsfile,print_process=False):
                         #mcts_b=10,mcts_k=2,sample_b=9,sample_k=0) for i in [0,2]]
         zt0=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
         team1=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
-        interface=OfflineInterface([zt0[0],team1[0],zt0[1],team1[1]],print_flag=False)
+        interface=OfflineInterface([zt0[0],team1[0],zt0[1],team1[1]],print_flag=True)
         device_bench=zt0[0].device
     elif mode==2:
         log("Tree v.s. TreeSimple mode")
-        zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net_0,device=device_bench,
-                        mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
-        zts=[MrZeroTreeSimple(room=255,place=i,name='ztsimple%d'%(i),pv_net=pv_net_0,device=device_bench,
-                        mcts_b=10,mcts_k=2,sample_b=9,sample_k=0) for i in [1,3]]
-        interface=OfflineInterface([zt[0],zts[0],zt[1],zts[1]],print_flag=False)
-
     
     if interface.players[0].family_name().startswith("MrZeroTree"):
         log("mcts_b/k: %d/%d, sample_b/k: %d/%d"%(interface.players[0].mcts_b,interface.players[0].mcts_k,
@@ -79,7 +73,7 @@ def benchmark(handsfile,print_process=False):
                 interface.step_complete_info()
             else:"""
             interface.step()    
-        #input("continue...")
+            input("continue...")
         stats.append(interface.clear())
         interface.prepare_new()
         if l==N2-1:

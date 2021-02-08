@@ -190,7 +190,7 @@ def read_std_hands(filename):
             stdhands.append(s.group(1))
     f.close()
     stdhands=[literal_eval(l) for l in stdhands]
-    log("parsed %d hands, start with:\n%s"%(len(stdhands),stdhands[0]))
+    log("parsed %d hands from %s, start with: %s"%(len(stdhands),filename,stdhands[0][0:4]))
     return stdhands
 
 if __name__=="__main__":
