@@ -9,8 +9,8 @@ def log_source(s):
     s2=[]
     for j,i in enumerate(s):
         if not i.strip().startswith("#") and len(i.strip())>0:
-            if i.strip().startswith("if"):
-                s2.append(s[j-1])
+            #if i.strip().startswith("if"):
+            #    s2.append(s[j-1])
             s2.append(i)
     log("\n".join(s2))
     
@@ -55,6 +55,7 @@ def benchmark(handsfile,print_process=False):
     
     hands=read_std_hands(handsfile)
     N1=len(hands);N2=2
+    #N1=256
     log("(%s+%s) v.s. (%s+%s) for %dx%d on %s"%(interface.players[0].family_name(),interface.players[2].family_name(),
                                                 interface.players[1].family_name(),interface.players[3].family_name(),
                                                 N1,N2,device_bench))
@@ -81,7 +82,7 @@ def benchmark(handsfile,print_process=False):
                 log("No.%4d %4d %s"%(k,sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2,stats[-N2:]))
             else:
                 print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)
-        if (k+1)%(N1//4)==0 and l==N2-1:
+        if (k+1)%(256)==0 and l==N2-1:
             bench_stat(stats,N2,device_bench)
     bench_stat(stats,N2,device_bench)
 
@@ -91,9 +92,12 @@ def bench_stat(stats,N2,comments):
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark result: %.2f %.2f"%(numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
-    suc_ct=len([1 for i in s_temp if i>0])
-    draw_ct=len([1 for i in s_temp if i==0])
-    log("success rate: (%d+%d)/%d"%(suc_ct,draw_ct,len(s_temp)))
+    #suc_ct=len([1 for i in s_temp if i>0])
+    #draw_ct=len([1 for i in s_temp if i==0])
+    #log("success rate: (%d+%d)/%d"%(suc_ct,draw_ct,len(s_temp)))
+    low_ct=len([1 for i in s_temp if i<-250])
+    high_ct=len([1 for i in s_temp if i>400])
+    log("low(<-250),high(>400): (%d,%d)/%d"%(low_ct,high_ct,len(s_temp)))
     log(comments)
 
 if __name__ == '__main__':
