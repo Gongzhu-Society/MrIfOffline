@@ -12,7 +12,7 @@ from MCTS.mcts import mcts
 
 import torch
 import torch.nn.functional as F
-import copy,math,time,random
+import copy,math,time,random,numpy
 
 print_level=0
 BETA_POST_RECT=0.015
@@ -69,6 +69,34 @@ class MrZeroTree(MrZeroTreeSimple):
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
 
+    def select_interact_cards(self):
+        oh_score=MrZeroTreeSimple.score_lists_oh(self.scores,self.place)
+        oh_table=MrZeroTreeSimple.four_cards_oh(self.cards_on_table,self.place)
+        cards_remain=ScenarioGen.gen_cards_remain(self.history,self.cards_on_table,self.cards_list)
+        oh_card=torch.zeros(52*4)
+        for c in self.cards_list:
+            oh_card[ORDER_DICT[c]]=1
+        for c in cards_remain:
+            oh_card[52*1+ORDER_DICT[c]]=1/3
+            oh_card[52*2+ORDER_DICT[c]]=1/3
+            oh_card[52*3+ORDER_DICT[c]]=1/3
+        l_re=[]
+        for c in cards_remain:
+            l_re.append((c,[]))
+            for i in range(1,4):
+                for j in range(1,4):
+                    oh_card_cp=oh_card.clone()
+                    if j==i:
+                        oh_card_cp[52*j+ORDER_DICT[c]]=1
+                    else:
+                        oh_card_cp[52*j+ORDER_DICT[c]]=0
+                netin=torch.cat([oh_card_cp,oh_score,oh_table])
+                with torch.no_grad():
+                    _,v=self.pv_net(netin.to(self.device))
+                l_re[-1][1].append(v.item())
+        l_re=[(c,numpy.std(l)) for c,l in l_re]
+        log(l_re)
+    
     def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
@@ -271,19 +299,14 @@ class MrZeroTree(MrZeroTreeSimple):
 
 def example_DJ():
     from MrZ_NETs import PV_NET_2
-    #from MrImpGreed import MrImpGreed
-    device_bench=torch.device("cuda:2")
-    state_dict=torch.load("Zero-29th-25-11416629-720.pt",map_location=device_bench)
-    pv_net=PV_NET_2()
-    pv_net.load_state_dict(state_dict)
-    pv_net.to(device_bench)
-    zt3=MrZeroTree(room=255,place=3,name='zerotree3',pv_net=pv_net,device=device_bench,mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
+    zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
 
     zt3.cards_list=["HQ","HJ","H8","SA","S5","S4","S3","CQ","CJ","C4"]
     zt3.cards_on_table=[1,"DJ","D8"]
     zt3.history=[[0,"H3","H5","H4","H7"],[3,"S6","SJ","HK","S10"],[0,"DQ","DA","D9","D3"]]
     zt3.scores=[["HK"],[],[],["H3","H5","H4","H7"]]
-    log(zt3.pick_a_card())
+    zt3.select_interact_cards()
+    #log(zt3.pick_a_card())
     return
     l=[zt3.pick_a_card() for i in range(20)]
     log("%d %d %d"%(len([i[0] for i in l if i[0]=="H"]),len([i[0] for i in l if i[0]=="C"]),len([i[0] for i in l if i[0]=="S"])))
@@ -437,10 +460,10 @@ def irrelevant_cards():
     log([(c,float("%.4f"%(v))) for c,v in p_line])
 
 if __name__=="__main__":
-    #example_DJ()
+    example_DJ()
     #example_SQ2()
     #burdens()
-    irrelevant_cards()
+    #irrelevant_cards()
 
     """ 统计重复率
             netin=MrZeroTree.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.place)

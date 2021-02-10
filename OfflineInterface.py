@@ -23,6 +23,18 @@ class OfflineInterface():
         #self.cards_remain should be initialized by self.shuffle
         #self.cards_remain=[[],[],[],[]]
 
+    def __str__(self):
+        players="(%s+%s) v.s. (%s+%s)"%(self.players[0].name,self.players[2].name,
+                                        self.players[1].name,self.players[3].name)
+        return players
+    
+    def reset(self,pstart=0):
+        self.pstart=pstart
+        self.pnext=self.pstart
+        self.cards_on_table=[self.pnext,]
+        self.history=[]
+        self.scores=[[],[],[],[]]
+    
     def shuffle(self,cards=None):
         if cards==None:
             cards=['S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'SJ', 'SQ', 'SK', 'SA',
@@ -193,6 +205,47 @@ def read_std_hands(filename):
     log("parsed %d hands from %s, start with: %s"%(len(stdhands),filename,stdhands[0][0:4]))
     return stdhands
 
+def play_a_game(interface,cards,n2,bias=0):
+    for i in range(bias):
+        cards=cards[39:52]+cards[0:39]
+    interface.reset(pstart=bias)
+    results=[]
+    for l in range(n2):
+        interface.shuffle(cards=cards)
+        cards=cards[39:52]+cards[0:39]
+        """for i in range(4):
+            p_index=(interface.pnext+i)%4
+            log("%s: %s"%(interface.players[p_index].name,interface.players[p_index].cards_list[0:4]))"""
+        for i,j in itertools.product(range(13),range(4)):
+            interface.step()
+        r_temp=interface.clear()
+        interface.prepare_new()
+        results.append(r_temp[0]+r_temp[2]-r_temp[1]-r_temp[3])
+    assert len(results)==n2
+    return sum(results)/n2
+
+def select_hands(filename):
+    from MrRandom import MrRandom
+    from MrIf import MrIf
+    from MrGreed import MrGreed
+    
+    rs=[MrRandom(room=255,place=i,name='R%d'%(i)) for i in range(4)]
+    ifs=[MrIf(room=255,place=i,name='I%d'%(i)) for i in range(4)]
+    gs=[MrGreed(room=255,place=i,name='G%d'%(i)) for i in range(4)]
+    I_GI=OfflineInterface([gs[0],ifs[1],gs[2],ifs[3]],print_flag=False)
+    I_GR=OfflineInterface([gs[0],rs[1],gs[2],rs[3]],print_flag=False)
+    I_IR=OfflineInterface([ifs[0],rs[1],ifs[2],rs[3]],print_flag=False)
+    
+    hands=read_std_hands(filename)
+    
+    stats=[]
+    for k in range(128):
+        r=play_a_game(I_GI,hands[2],1,bias=1)
+        stats.append(r)
+    log(stats)
+    
+
 if __name__=="__main__":
-    gen_shuffle(1024,"random")
-    read_std_hands("StdHands/random_0_1024.hands")
+    #gen_shuffle(1024,"random")
+    #read_std_hands("StdHands/random_0_1024.hands")
+    select_hands("StdHands/random_0_1024.hands")
