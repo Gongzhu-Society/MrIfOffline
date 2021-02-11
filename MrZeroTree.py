@@ -69,10 +69,15 @@ class MrZeroTree(MrZeroTreeSimple):
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
 
-    def select_interact_cards(self):
+    def wasserstein(l):
+        return (l[0]-l[1]).abs().sum()+(l[1]-l[2]).abs().sum()+(l[0]-l[2]).abs().sum()
+    
+    def select_interact_cards(self,legal_choice,level=2):
+        input("useless")
         oh_score=MrZeroTreeSimple.score_lists_oh(self.scores,self.place)
         oh_table=MrZeroTreeSimple.four_cards_oh(self.cards_on_table,self.place)
         cards_remain=ScenarioGen.gen_cards_remain(self.history,self.cards_on_table,self.cards_list)
+        #cards_remain.sort()
         oh_card=torch.zeros(52*4)
         for c in self.cards_list:
             oh_card[ORDER_DICT[c]]=1
@@ -82,27 +87,31 @@ class MrZeroTree(MrZeroTreeSimple):
             oh_card[52*3+ORDER_DICT[c]]=1/3
         l_re=[]
         for c in cards_remain:
-            l_re.append((c,[]))
+            p_temp=[]
             for i in range(1,4):
+                oh_card_cp=oh_card.clone()
                 for j in range(1,4):
-                    oh_card_cp=oh_card.clone()
                     if j==i:
                         oh_card_cp[52*j+ORDER_DICT[c]]=1
                     else:
                         oh_card_cp[52*j+ORDER_DICT[c]]=0
                 netin=torch.cat([oh_card_cp,oh_score,oh_table])
                 with torch.no_grad():
-                    _,v=self.pv_net(netin.to(self.device))
-                l_re[-1][1].append(v.item())
-        l_re=[(c,numpy.std(l)) for c,l in l_re]
-        log(l_re)
+                    p,_=self.pv_net(netin.to(self.device))
+                p_legal=torch.tensor([p[ORDER_DICT[c]] for c in legal_choice])
+                p_legal-=p_legal.max()
+                p_temp.append(p_legal)
+            l_re.append((c,MrZeroTree.wasserstein(p_temp).item()))
+        l_re.sort(key=lambda x:x[1],reverse=True)
+        l_re=l_re[0:min(len(l_re),level)]
+        return [c for c,v in l_re]
     
     def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
-        p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]!="C"] #G on Feb 9th
-        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
+        #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]!="C"] #G on Feb 9th
+        p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice] #Before Jan 19th
         v_max=max((v for c,v in p_legal))
 
@@ -118,17 +127,17 @@ class MrZeroTree(MrZeroTreeSimple):
         return possi_line
 
     def decide_rect_necessity(self,thisuit,choice):
-        if choice[0]=="C":
-            return -2
+        #if choice[0]=="C":
+        #    return -2
         # C
-        #if thisuit==choice[0] and choice[1] not in "234567":
-        #    return 3
+        if thisuit==choice[0] and choice[1] not in "234567":
+            return 3
         # D
-        #if thisuit=="A" and choice[1] not in "234567":
-        #    return 4
-        return 2
+        if thisuit=="A" and choice[1] not in "234567":
+            return 4
+        return -1
 
-    def possi_rectify(self,cards_lists,thisuit):
+    def possi_rectify_old(self,cards_lists,thisuit):
         """
             posterior probability rectify
             cards_lists is in absolute order
@@ -162,15 +171,53 @@ class MrZeroTree(MrZeroTreeSimple):
                 possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
                 if print_level>=4:
                     log("rectify %s(%d): %.4e"%(choice,nece,possi_pvnet),end="");input()
-                if possi_pvnet<0.6:
-                    result*=possi_pvnet
+                result*=possi_pvnet
         else:
             assert len(scores[0])==len(scores[1])==len(scores[2])==len(scores[3])==0, "scores left not zero: %s"%(scores,)
             assert len(cards_lists[0])==len(cards_lists[1])==len(cards_lists[2])==len(cards_lists[3])==13, "cards_lists not equal 4x13: %s"%(cards_lists,)
         if print_level>=3:
             log("final cards possi: %.4e"%(result))
         return result
+    
+    def possi_rectify(self,cards_lists,thisuit):
+        pass
 
+    def public_info(self):
+        """
+            collect public information for possi_rectfy, including:
+                cards_played,
+                scores at different stage,
+                break suits at different stage
+        """
+        cards_played=[[],[],[],[]] #absolute order
+        scores=[[],[],[],[]]
+        void_info=[{'S':False,'H':False,'D':False,'C':False},{'S':False,'H':False,'D':False,'C':False},
+                   {'S':False,'H':False,'D':False,'C':False},{'S':False,'H':False,'D':False,'C':False},]
+        scores_stage=[]
+        void_info_stage=[]
+        for r_num,history in enumertae(self.history+[self.cards_on_table]):
+            pnext=history[0]
+            for c in history[1:]:
+                cards_played[pnext].append(c)
+                if pnext!=history[0] and c[0]!=history[1][0]:
+                    void_info[pnext][history[1][0]]=True
+                scores_stage.append(copy.deepcopy(scores))
+                void_info_stage.append(copy.deepcopy(void_info))
+                pnext=(pnext+1)%4
+            if r_num<len(h_temp)-1:
+                winner=self.history[r_num+1][0]
+            elif r_num==len(h_temp)-1:
+                winner=self.cards_on_table[0]
+            else:
+                continue
+            for c in history[1:]:
+                if c in SCORE_DICT:
+                    scores[winner].append(c)
+        num_cards_played=sum([len(i) for i in cards_played])
+        assert len(scores_stage)==num_cards_played
+        assert len(void_info_stage)==num_cards_played
+        return cards_played,scores_stage,void_info_stage
+                
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
@@ -188,6 +235,9 @@ class MrZeroTree(MrZeroTreeSimple):
         if print_level>=1:
             log("my turn: %s, %s, %s"%(self.cards_on_table,self.cards_list,self.scores))
 
+        legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
+        #imp_cards=self.select_interact_cards(legal_choice)
+            
         if self.sample_k>=0:
             sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
             assert self.sample_b>=0 and sce_num>0
@@ -197,6 +247,7 @@ class MrZeroTree(MrZeroTreeSimple):
             assert self.sample_k<0 and self.sample_b<0
             sce_gen=ImpScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,suit,
                                    level=-1*self.sample_k,num_per_imp=-1*self.sample_b)
+                                   #imp_cards=imp_cards,num_per_imp=-1*self.sample_b)
             scenarios=sce_gen.get_scenarios()
 
         scenarios_weight=[]
@@ -224,7 +275,7 @@ class MrZeroTree(MrZeroTreeSimple):
         scenarios_weight=[i/weight_sum for i in scenarios_weight]
         assert (sum(scenarios_weight)-1)<1e-6, "scenario weight is %.8f: %s"%(sum(scenarios_weight),scenarios_weight,)
 
-        legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
+        #legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
         searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         for i,cards_lists in enumerate(cards_lists_list):
@@ -298,14 +349,18 @@ class MrZeroTree(MrZeroTreeSimple):
         return 'MrZeroTree'
 
 def example_DJ():
-    from MrZ_NETs import PV_NET_2
     zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
 
     zt3.cards_list=["HQ","HJ","H8","SA","S5","S4","S3","CQ","CJ","C4"]
     zt3.cards_on_table=[1,"DJ","D8"]
     zt3.history=[[0,"H3","H5","H4","H7"],[3,"S6","SJ","HK","S10"],[0,"DQ","DA","D9","D3"]]
     zt3.scores=[["HK"],[],[],["H3","H5","H4","H7"]]
-    zt3.select_interact_cards()
+    
+    """cards_dict=MrGreed.gen_cards_dict(zt3.cards_list)
+    legal_choice=MrGreed.gen_legal_choice("D",cards_dict,zt3.cards_list)
+    zt3.select_interact_cards(legal_choice)"""
+    cards_played,scores_stage,void_info_stage=zt3.public_info()
+    log(cards_played)
     #log(zt3.pick_a_card())
     return
     l=[zt3.pick_a_card() for i in range(20)]
@@ -313,20 +368,17 @@ def example_DJ():
 
 
 def example_SQ():
-    #not include so far
-    from MrZ_NETs import PV_NET_2
-    from MrImpGreed import MrImpGreed
-    device_bench=torch.device("cuda:2")
-    state_dict=torch.load("Zero-29th-25-11416629-720.pt",map_location=device_bench)
-    pv_net=PV_NET_2()
-    pv_net.load_state_dict(state_dict)
-    pv_net.to(device_bench)
-    zt3=MrZeroTree(room=255,place=3,name='zerotree3',pv_net=pv_net,device=device_bench,mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
+    zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
 
     zt3.cards_list=["HQ","HJ","H8","H7","SA","S6","S5","S4","S3","CQ","CJ","D3"]
     zt3.cards_on_table=[1,"S7","SJ"]
     zt3.history=[[1,"C9","C7","C4","H9"],]
     zt3.scores=[[],["H9"],[],[]]
+    
+    cards_dict=MrGreed.gen_cards_dict(zt3.cards_list)
+    legal_choice=MrGreed.gen_legal_choice("S",cards_dict,zt3.cards_list)
+    zt3.select_interact_cards(legal_choice)
+    return
     log(zt3.pick_a_card())
 
 def example_SQ2():
@@ -460,7 +512,8 @@ def irrelevant_cards():
     log([(c,float("%.4f"%(v))) for c,v in p_line])
 
 if __name__=="__main__":
-    example_DJ()
+    #example_DJ()
+    example_SQ()
     #example_SQ2()
     #burdens()
     #irrelevant_cards()

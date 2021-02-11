@@ -179,6 +179,7 @@ class OfflineInterface():
         del self.cards_remain
 
 def gen_shuffle(num,perfix):
+    """generate random shuffles"""
     cards=['S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'SJ', 'SQ', 'SK', 'SA',
            'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'H10', 'HJ', 'HQ', 'HK', 'HA',
            'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'DJ', 'DQ', 'DK', 'DA',
@@ -191,21 +192,27 @@ def gen_shuffle(num,perfix):
 def read_std_hands(filename):
     import re
     from ast import literal_eval
-    p_cards=re.compile("No\\.[0-9]+: (.+)")
+    p_cards=re.compile("No\\.([0-9]+): (.+)")
     f=open(filename,"r")
     stdhands=[]
     for l in f:
+        if l.startswith("#"):
+            continue
         s=p_cards.search(l)
         if s==None:
             log("failed to parse:\n%s"%(l),end="")
         else:
-            stdhands.append(s.group(1))
+            stdhands.append((s.group(1),s.group(2)))
     f.close()
-    stdhands=[literal_eval(l) for l in stdhands]
-    log("parsed %d hands from %s, start with: %s"%(len(stdhands),filename,stdhands[0][0:4]))
+    stdhands=[(float(i),literal_eval(l)) for i,l in stdhands]
+    log("parsed %d hands from %s, start with: %s"%(len(stdhands),filename,stdhands[0][1][0:4]))
     return stdhands
 
-def play_a_game(interface,cards,n2,bias=0):
+def play_a_test(interface,cards,n2,bias=0):
+    """
+        n2  : the round of games to play
+        bias: will shift the hands bias time, also set the first player to the bias-th player
+    """
     for i in range(bias):
         cards=cards[39:52]+cards[0:39]
     interface.reset(pstart=bias)
@@ -224,7 +231,8 @@ def play_a_game(interface,cards,n2,bias=0):
     assert len(results)==n2
     return sum(results)/n2
 
-def select_hands(filename):
+def select_hands_A(fromfile,tofile):
+    """select hands which Mr. Greed wins over Mr. If over 40 pts twice"""
     from MrRandom import MrRandom
     from MrIf import MrIf
     from MrGreed import MrGreed
@@ -236,16 +244,21 @@ def select_hands(filename):
     I_GR=OfflineInterface([gs[0],rs[1],gs[2],rs[3]],print_flag=False)
     I_IR=OfflineInterface([ifs[0],rs[1],ifs[2],rs[3]],print_flag=False)
     
-    hands=read_std_hands(filename)
-    
-    stats=[]
-    for k in range(128):
-        r=play_a_game(I_GI,hands[2],1,bias=1)
-        stats.append(r)
-    log(stats)
+    hands=read_std_hands(fromfile)
+    N3=4
+    for k,hand in hands:
+        gvf=[play_a_test(I_GI,hand,1,bias=0) for i in range(N3)]
+        fvg=[play_a_test(I_GI,hand,1,bias=1) for i in range(N3)]
+        gvf=numpy.mean(gvf)
+        fvg=numpy.mean(fvg)
+        if gvf>=40 and fvg>=40:
+            log("%.1f %.1f"%(gvf,fvg),l=0)
+            log("No.%04d: %s"%(k,hand),logfile=tofile)
+            time.sleep(1)
+            #input()
     
 
 if __name__=="__main__":
     #gen_shuffle(1024,"random")
     #read_std_hands("StdHands/random_0_1024.hands")
-    select_hands("StdHands/random_0_1024.hands")
+    select_hands_A("StdHands/random_0_1024.hands","StdHands/selectA_0.hands")

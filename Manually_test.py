@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log
+import numpy,itertools
 
 #torch.save(pv_net_0.state_dict(),"Zero-29th-25-11416629-720.pt")
 
@@ -20,7 +21,7 @@ def benchmark(handsfile,print_process=False):
     from MrZeroTree import MrZeroTree
     from MrZ_NETs import PV_NET_2
     from OfflineInterface import OfflineInterface,read_std_hands
-    import itertools,torch,random,inspect
+    import torch,inspect
 
     log_source(inspect.getsource(MrZeroTree.decide_rect_necessity))
     #log_source(inspect.getsource(MrZeroTree.possi_rectify_pvnet))
@@ -55,15 +56,13 @@ def benchmark(handsfile,print_process=False):
     
     hands=read_std_hands(handsfile)
     N1=len(hands);N2=2
-    #N1=256
-    log("(%s+%s) v.s. (%s+%s) for %dx%d on %s"%(interface.players[0].family_name(),interface.players[2].family_name(),
-                                                interface.players[1].family_name(),interface.players[3].family_name(),
-                                                N1,N2,device_bench))
+    log("%s for %dx%d on %s"%(interface,N1,N2,device_bench))
     stats=[]
+    
     for k,l in itertools.product(range(N1),range(N2)):
         if l==0:
             #cards=interface.shuffle()
-            cards=hands[k]
+            cards=hands[k][1]
             interface.shuffle(cards=cards)
         else:
             cards=cards[39:52]+cards[0:39]
@@ -87,7 +86,6 @@ def benchmark(handsfile,print_process=False):
     bench_stat(stats,N2,device_bench)
 
 def bench_stat(stats,N2,comments):
-    import numpy
     print("")
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
@@ -100,5 +98,27 @@ def bench_stat(stats,N2,comments):
     log("low(<-250),high(>400): (%d,%d)/%d"%(low_ct,high_ct,len(s_temp)))
     log(comments)
 
+def benchmark_B(handsfile):
+    from MrIf import MrIf
+    from MrGreed import MrGreed
+    from MrZeroTree import MrZeroTree
+    from OfflineInterface import OfflineInterface,read_std_hands,play_a_test
+    
+    ifs=[MrIf(room=255,place=i,name='I%d'%(i)) for i in range(4)]
+    gs=[MrGreed(room=255,place=i,name='G%d'%(i)) for i in range(4)]
+    zs=[MrZeroTree(room=255,place=i,name='Z%d'%(i),mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2) for i in [0,2]]
+    I_GI=OfflineInterface([gs[0],ifs[1],gs[2],ifs[3]],print_flag=False)
+    I_ZG=OfflineInterface([zs[0],gs[1],zs[1],gs[3]],print_flag=False)
+    
+    hands=read_std_hands(handsfile)
+    stats=[]
+    for k,hand in hands:
+        stats.append(play_a_test(I_ZG,hand,2))
+        print("%4d"%(stats[-1],),end=" ",flush=True)
+    else:
+        print("")
+    log("benchmark result: %.2f %.2f"%(numpy.mean(stats),numpy.sqrt(numpy.var(stats)/(len(stats)-1))))
+    
 if __name__ == '__main__':
     benchmark("StdHands/random_0_1024.hands")
+    #benchmark_B("StdHands/selectA_0_322.hands")
