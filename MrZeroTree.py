@@ -14,8 +14,8 @@ import torch
 import torch.nn.functional as F
 import copy,math,time,random,numpy
 
-print_level=2
-BETA_POST_RECT=0.1
+print_level=0
+BETA_POST_RECT=0.015
 log("BETA_POST_RECT: %.3f, BETA: %.2f"%(BETA_POST_RECT,BETA))
 
 class MrZeroTree(MrZeroTreeSimple):
@@ -48,28 +48,7 @@ class MrZeroTree(MrZeroTreeSimple):
             self.train_datas=[]
         #self.int_method_printed_flag=False
 
-    def cards_lists_oh_post_rect_old(cards_lists,place):
-        """
-            return a 208-length one hot, in raletive order
-            the order is [me,me+1,me+2,me+3]
-        """
-        oh=torch.zeros(52*4)
-        for c in cards_lists[place]:
-            oh[ORDER_DICT[c]]=1
-        for i in range(1,4):
-            for c in cards_lists[(place+i)%4]:
-                oh[52*1+ORDER_DICT[c]]=1/3
-                oh[52*2+ORDER_DICT[c]]=1/3
-                oh[52*3+ORDER_DICT[c]]=1/3
-        return oh
-
-    def prepare_ohs_post_rect_old(cards_lists,cards_on_table,score_lists,place):
-        oh_card=MrZeroTree.cards_lists_oh_post_rect(cards_lists,place)
-        oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
-        oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
-        return torch.cat([oh_card,oh_score,oh_table])
-
-    def wasserstein(l):
+    """def wasserstein(l):
         return (l[0]-l[1]).abs().sum()+(l[1]-l[2]).abs().sum()+(l[0]-l[2]).abs().sum()
     
     def select_interact_cards(self,legal_choice,level=2):
@@ -104,9 +83,30 @@ class MrZeroTree(MrZeroTreeSimple):
             l_re.append((c,MrZeroTree.wasserstein(p_temp).item()))
         l_re.sort(key=lambda x:x[1],reverse=True)
         l_re=l_re[0:min(len(l_re),level)]
-        return [c for c,v in l_re]
+        return [c for c,v in l_re]"""
     
-    def possi_rectify_pvnet_old(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
+    def cards_lists_oh_post_rect(cards_lists,place):
+        """
+            return a 208-length one hot, in raletive order
+            the order is [me,me+1,me+2,me+3]
+        """
+        oh=torch.zeros(52*4)
+        for c in cards_lists[place]:
+            oh[ORDER_DICT[c]]=1
+        for i in range(1,4):
+            for c in cards_lists[(place+i)%4]:
+                oh[52*1+ORDER_DICT[c]]=1/3
+                oh[52*2+ORDER_DICT[c]]=1/3
+                oh[52*3+ORDER_DICT[c]]=1/3
+        return oh
+
+    def prepare_ohs_post_rect(cards_lists,cards_on_table,score_lists,place):
+        oh_card=MrZeroTree.cards_lists_oh_post_rect(cards_lists,place)
+        oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
+        oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
+        return torch.cat([oh_card,oh_score,oh_table])
+    
+    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
             p,_=self.pv_net(netin.to(self.device))
@@ -135,7 +135,7 @@ class MrZeroTree(MrZeroTreeSimple):
             return 4
         return -1
 
-    def possi_rectify_old(self,cards_lists,thisuit):
+    def possi_rectify(self,cards_lists,thisuit):
         """
             posterior probability rectify
             cards_lists is in absolute order
@@ -177,7 +177,7 @@ class MrZeroTree(MrZeroTreeSimple):
             log("final cards possi: %.4e"%(result))
         return result
     
-    def cards_lists_oh_post_rect(cards_lists,void_info,place):
+    """def cards_lists_oh_post_rect(cards_lists,void_info,place):
         oh=torch.zeros(52*4)
         for c in cards_lists[place]:
             oh[ORDER_DICT[c]]=1
@@ -245,7 +245,7 @@ class MrZeroTree(MrZeroTreeSimple):
         assert cards_lists==cards_lists_ori
         if print_level>=3:
             log("final result: %.4e"%(result),end="");input()
-        return result          
+        return result"""      
 
     def public_info(self):
         """
@@ -254,6 +254,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 scores at different stage,
                 break suits at different stage
         """
+        input("not using")
         cards_played=[[],[],[],[]] #absolute order
         scores=[[],[],[],[]]
         void_info=[{'S':False,'H':False,'D':False,'C':False},{'S':False,'H':False,'D':False,'C':False},
@@ -315,7 +316,7 @@ class MrZeroTree(MrZeroTreeSimple):
                                    #imp_cards=imp_cards,num_per_imp=-1*self.sample_b)
             scenarios=sce_gen.get_scenarios()
 
-        cards_played,scores_stage,void_info_stage=self.public_info()
+        #cards_played,scores_stage,void_info_stage=self.public_info()
         scenarios_weight=[]
         cards_lists_list=[]
         for cll in scenarios:
@@ -327,7 +328,8 @@ class MrZeroTree(MrZeroTreeSimple):
                 cards_lists[(self.place+i+1)%4]=cll[i]
 
             #scenarios_weight.append(1.0)
-            scenarios_weight.append(self.possi_rectify(cards_lists,suit,cards_played,scores_stage,void_info_stage))
+            #scenarios_weight.append(self.possi_rectify(cards_lists,suit,cards_played,scores_stage,void_info_stage))
+            scenarios_weight.append(self.possi_rectify(cards_lists,suit))
 
             #scenarios_weight[-1]*=self.int_equ_class(cards_lists,suit)
             #scenarios_weight[-1]*=self.int_equ_class_li(cards_lists,suit)
@@ -363,6 +365,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 p_legal.sort(key=lambda x:x[1],reverse=True)
                 d_legal[p_legal[0][0]]+=1
             elif self.mcts_k==-2:
+                input("not using")
                 assert self.sample_b==1 and self.sample_k==0 and self.mcts_b==0, "This is raw-policy mode"
                 netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,self.cards_on_table,self.scores,self.place)
                 with torch.no_grad():
@@ -467,9 +470,9 @@ def example_SQ2():
 
 
 if __name__=="__main__":
-    #example_DJ()
+    example_DJ()
     #example_SQ()
-    example_SQ2()
+    #example_SQ2()
     #burdens()
     #irrelevant_cards()
 

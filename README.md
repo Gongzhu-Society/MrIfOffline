@@ -12,6 +12,15 @@ Offline(testing) version of several AIs.
     * functions: `log, calc_score, cards_order, ...`
     * datas    : `ORDER_DICT, INIT_CARDS, SCORE_DICT, ...`
 
+### MrZeroTree
+
+* Direct benchmark: `benchmark` in Manually_test.py
+* Read a standard shuffle: `read_std_hands` in OfflineInterface.py
+* Play one (or multiple) game: `play_a_test` in OfflibeInterface.py
+* Train in single threading: MrZ_TB.py
+* Train with multi-processing: MrZ_Trainer.py
+
+
 ### MrRandTree
 
 MrRandTree is an MCTS AI with random rollout policy. The table below contains benchmarks for MrRandTree. Its scenario number is set to 5, iteration number to 200. MrIf's stats are from stats in Appendix A. One can see that MrRandTree is rather strong.
