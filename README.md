@@ -12,8 +12,22 @@ Offline(testing) version of several AIs.
     * functions: `log, calc_score, cards_order, ...`
     * datas    : `ORDER_DICT, INIT_CARDS, SCORE_DICT, ...`
 
+### Git Multi-branch
+
+* show git branches: `git branch`, the one with asterisk is the current branch.
+* create new branch: `git branch branchname`
+* switch to branch: `git checkout branchname`
+
 ### MrZeroTree
 
+* setup: 
+```
+git clone https://github.com/Gongzhu-Society/MrIfOffline.git
+cd ./MrIfOffline
+git clone https://github.com/Gongzhu-Society/ScenarioGenerator.git
+git clone https://github.com/Gongzhu-Society/MCTS.git
+./Manually_test.py
+```
 * Direct benchmark: `benchmark` in Manually_test.py
 * Read a standard shuffle: `read_std_hands` in OfflineInterface.py
 * Play one (or multiple) game: `play_a_test` in OfflibeInterface.py
