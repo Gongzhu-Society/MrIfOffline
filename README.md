@@ -17,6 +17,7 @@ Offline(testing) version of several AIs.
 * show git branches: `git branch`, the one with asterisk is the current branch.
 * create new branch: `git branch branchname`
 * switch to branch: `git checkout branchname`
+* create new branch b2 on github based on local branch b1: `git push -u origin b1:b2`, b1 and b2 can have the same name
 
 ### MrZeroTree
 
