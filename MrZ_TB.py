@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log
-from MrZeroTree import benchmark,prepare_data
-from MrZ_NETs import RES_NET_18
+from MrZeroTreeSimple import benchmark,prepare_data
 
 from torch import device
 import torch.nn.functional as F
@@ -11,7 +10,7 @@ import torch.multiprocessing
 
 import copy,itertools,numpy,gc,time
 
-def train(pv_net,dev_train_num,dev_bench_num):
+def train(pv_net,dev_train_num=0,dev_bench_num=1):
     import torch.optim as optim
     import gc
     data_rounds=64
@@ -106,17 +105,18 @@ def train(pv_net,dev_train_num,dev_bench_num):
     p_benchmark.join()
 
 def main():
-    from MrZeroTree import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
+    from MrZeroTreeSimple import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
     from MrZ_NETs import VALUE_RENORMAL
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
-    dev_train_num=2
+    from MrZ_NETs import RES_NET_18
+    dev_train=0
     #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
     pv_net=RES_NET_18();log("init pv_net: %s"%(pv_net))
     #start_from="./ZeroNets/from-zero-29/PV_NET-B-25-11416629-480.pkl"
     #pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
-    train(pv_net,dev_train_num,3)
+    train(pv_net,dev_train_num=dev_train,dev_bench_num=1)
 
 
 if __name__=="__main__":

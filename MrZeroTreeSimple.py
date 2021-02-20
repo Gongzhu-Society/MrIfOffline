@@ -6,6 +6,7 @@ from MrRandom import MrRandom
 from MrGreed import MrGreed
 from ScenarioGenerator.ScenarioGen import ScenarioGen
 from MCTS.mcts import mcts
+from OfflineInterface import OfflineInterface
 
 import torch
 import torch.nn.functional as F
@@ -252,7 +253,6 @@ def benchmark(save_name,epoch,device_num,print_process=False):
     """
         benchmark raw network against MrGreed
     """
-    from OfflineInterface import OfflineInterface
     import itertools,numpy
 
     N1=512;N2=2;
@@ -261,7 +261,7 @@ def benchmark(save_name,epoch,device_num,print_process=False):
     device_bench=torch.device("cuda:%d"%(device_num))
     pv_net=torch.load(save_name,map_location=device_bench)
 
-    zt=[MrZeroTree(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,
+    zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,
                    mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
@@ -283,13 +283,11 @@ def benchmark(save_name,epoch,device_num,print_process=False):
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
-def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
-
-    from OfflineInterface import OfflineInterface
-
+def prepare_data_queue(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
+    input("not using")
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
-    zt=[MrZeroTree(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
+    zt=[MrZeroTreeSimple(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
                    mcts_b=train_b,mcts_k=train_k) for i in range(4)]
     interface=OfflineInterface(zt,print_flag=False)
     stats=[]
@@ -302,6 +300,23 @@ def prepare_train_data_complete_info(pv_net,device_num,data_rounds,train_b,train
 
     for i in range(4):
         data_queue.put(zt[i].train_datas,block=False)
+        
+        
+def prepare_data(pv_net,device_num,data_rounds,train_b,train_k):
+    device_train=torch.device("cuda:%d"%(device_num))
+    pv_net.to(device_train)
+    zt=[MrZeroTreeSimple(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
+                   mcts_b=train_b,mcts_k=train_k) for i in range(4)]
+    interface=OfflineInterface(zt,print_flag=False)
+    stats=[]
+    for k in range(data_rounds):
+        cards=interface.shuffle()
+        for i in range(52):
+            interface.step_complete_info()
+        stats.append(interface.clear())
+        interface.prepare_new()
+
+    return zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
 
 if __name__=="__main__":
     pass
