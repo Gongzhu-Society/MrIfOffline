@@ -34,7 +34,10 @@ class MrZeroTree(MrZeroTreeSimple):
             net_para_loc="./Zero-29th-25-11416629-720.pt"
             from MrZ_NETs import PV_NET_2
             self.pv_net=PV_NET_2()
-            self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
+            try:
+                self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
+            except FileNotFoundError:
+                self.pv_net.load_state_dict(torch.load("../"+net_para_loc,map_location=self.device))
             self.pv_net.to(self.device)
         else:
             self.pv_net=pv_net
