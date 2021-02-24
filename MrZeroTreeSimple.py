@@ -85,7 +85,7 @@ class MrZeroTreeSimple(MrRandom):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
                  sample_b=10,sample_k=1,mcts_b=20,mcts_k=2):
         MrRandom.__init__(self,room,place,name)
-        if isinstance(device,str)
+        if isinstance(device,str):
             self.device=torch.device(device)
         else:
             self.device=device
@@ -273,7 +273,7 @@ def benchmark(save_name,epoch,device_num,print_process=False):
     """
     import itertools,numpy
 
-    N1=512;N2=2;log("start benchmark against MrGreed for %dx%d"%(N1,N2))
+    N1=64;N2=2;log("start benchmark against MrGreed for %dx%d"%(N1,N2))
 
     zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=save_name,device="cuda:%d"%(device_num),
                    mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K) for i in [0,2]]

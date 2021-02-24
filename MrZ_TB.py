@@ -10,7 +10,7 @@ import torch.multiprocessing
 
 import copy,itertools,numpy,time
 
-def train(pv_net,dev_train_num=0,dev_bench_num=1):
+def train(pv_net,dev_train_num=0,dev_bench_num=0):
     import torch.optim as optim
     import gc
     data_rounds=64
@@ -33,6 +33,7 @@ def train(pv_net,dev_train_num=0,dev_bench_num=1):
         if epoch%80==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-5:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             #torch.save(pv_net,save_name)
+            torch.save(pv_net.state_dict(),save_name)
             if p_benchmark!=None:
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")
@@ -58,11 +59,11 @@ def train(pv_net,dev_train_num=0,dev_bench_num=1):
             log_p=F.log_softmax(p*batch[3].to(device_main),dim=1)
             loss1_t=F.kl_div(log_p,batch[1].to(device_main),reduction="batchmean")
             loss1_t.backward(retain_graph=True)
-            grad1=pv_net.conv1.weight.grad.abs().mean().item()
+            grad1=pv_net.fc0.weight.grad.abs().mean().item()
             optimizer.zero_grad()
             loss2_t=F.mse_loss(v.view(-1),batch[2].to(device_main),reduction='mean').sqrt()
             loss2_t.backward(retain_graph=True)
-            grad2=pv_net.conv1.weight.grad.abs().mean().item()
+            grad2=pv_net.fc0.weight.grad.abs().mean().item()
             log("dloss at %d: %.4f %.4f %.4f"%(epoch,grad1,grad2,grad1/grad2))
 
         for age in range(age_in_epoch):
@@ -109,12 +110,17 @@ def main():
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
-    from MrZ_NETs import RES_NET_18
+    from MrZ_NETs import PV_NET_2
     dev_train=0
-    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    pv_net=RES_NET_18();log("init pv_net: %s"%(pv_net))
-    #start_from="./ZeroNets/from-zero-29/PV_NET-B-25-11416629-480.pkl"
-    #pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
+    start_from=None # or a path to netpara file
+
+    pv_net=PV_NET_2()
+    log("init pv_net: %s"%(pv_net))
+    if start_from==None:
+        log("start from: zero")
+    else:
+        pv_net.load_state_dict(torch.load(start_from))
+        log("start_from: %s"%(start_from))
     train(pv_net,dev_train_num=dev_train,dev_bench_num=1)
 
 

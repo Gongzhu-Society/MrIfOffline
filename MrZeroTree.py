@@ -26,7 +26,7 @@ class MrZeroTree(MrZeroTreeSimple):
         if device==None:
             devnum=torch.cuda.device_count()
             self.device=torch.device("cuda:%d"%(random.randint(0,devnum-1)))
-        elif isinstance(device,str)
+        elif isinstance(device,str):
             self.device=torch.device(device)
         else:
             self.device=device
@@ -414,7 +414,7 @@ class MrZeroTree(MrZeroTreeSimple):
 
     @staticmethod
     def family_name():
-        return 'MrZeroTree'
+        return 'Mr.ZeroTree'
 
 def example_DJ():
     zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
