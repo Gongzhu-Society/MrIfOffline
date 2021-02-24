@@ -26,19 +26,15 @@ class MrZeroTree(MrZeroTreeSimple):
         if device==None:
             devnum=torch.cuda.device_count()
             self.device=torch.device("cuda:%d"%(random.randint(0,devnum-1)))
-            #self.device=torch.device("cuda:3")
+        elif isinstance(device,str)
+            self.device=torch.device(device)
         else:
             self.device=device
+
         if pv_net==None:
-            #net_para_loc="/home/spinor/youran/MrIfOffline/Zero-29th-25-11416629-720.pt"
-            net_para_loc="./Zero-29th-25-11416629-720.pt"
-            from MrZ_NETs import PV_NET_2
-            self.pv_net=PV_NET_2()
-            try:
-                self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
-            except FileNotFoundError:
-                self.pv_net.load_state_dict(torch.load("../"+net_para_loc,map_location=self.device))
-            self.pv_net.to(self.device)
+            self.load_pv_net(net_para_loc="Zero-29th-25-11416629-720.pt")
+        elif isinstance(pv_net,str):
+            self.load_pv_net(net_para_loc=pv_net)
         else:
             self.pv_net=pv_net
 
@@ -53,7 +49,7 @@ class MrZeroTree(MrZeroTreeSimple):
 
     """def wasserstein(l):
         return (l[0]-l[1]).abs().sum()+(l[1]-l[2]).abs().sum()+(l[0]-l[2]).abs().sum()
-    
+
     def select_interact_cards(self,legal_choice,level=2):
         input("useless")
         oh_score=MrZeroTreeSimple.score_lists_oh(self.scores,self.place)
@@ -87,7 +83,7 @@ class MrZeroTree(MrZeroTreeSimple):
         l_re.sort(key=lambda x:x[1],reverse=True)
         l_re=l_re[0:min(len(l_re),level)]
         return [c for c,v in l_re]"""
-    
+
     def cards_lists_oh_post_rect(cards_lists,place):
         """
             return a 208-length one hot, in raletive order
@@ -108,7 +104,7 @@ class MrZeroTree(MrZeroTreeSimple):
         oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
-    
+
     def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
         with torch.no_grad():
@@ -165,7 +161,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 nece=self.decide_rect_necessity(thisuit,choice)
                 if nece<0:
                     continue
-                
+
                 suit=cards_on_table[1][0] if len(cards_on_table)>1 else "A"
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
@@ -179,7 +175,7 @@ class MrZeroTree(MrZeroTreeSimple):
         if print_level>=3:
             log("final cards possi: %.4e"%(result))
         return result
-    
+
     """def cards_lists_oh_post_rect(cards_lists,void_info,place):
         oh=torch.zeros(52*4)
         for c in cards_lists[place]:
@@ -198,7 +194,7 @@ class MrZeroTree(MrZeroTreeSimple):
         oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
         return torch.cat([oh_card,oh_score,oh_table])
-    
+
     def possi_rectify_pvnet(self,cards_lists,void_info,scores,cards_on_table,pnext,legal_choice,choice):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,void_info,cards_on_table,scores,pnext)
         with torch.no_grad():
@@ -210,7 +206,7 @@ class MrZeroTree(MrZeroTreeSimple):
         p_exp=[(c,math.exp(BETA_POST_RECT/BETA*(v-v_max))) for c,v in p_legal]
         possi_exp=(v for c,v in p_exp if c==choice).__next__()
         return possi_exp
-    
+
     def possi_rectify(self,cards_lists_ori,thisuit,cards_played,scores_stage,void_info_stage):
         cards_lists=copy.deepcopy(cards_lists_ori)
         for i in range(4):
@@ -240,7 +236,7 @@ class MrZeroTree(MrZeroTreeSimple):
                     result*=possi_pvnet
                     if print_level>=4:
                         log("rectify %s(%d): %.4e"%(c,nece,possi_pvnet),end="");input()
-                
+
                 cards_lists[pnext].remove(c)
                 cards_on_table.append(c)
                 pnext=(pnext+1)%4
@@ -248,7 +244,7 @@ class MrZeroTree(MrZeroTreeSimple):
         assert cards_lists==cards_lists_ori
         if print_level>=3:
             log("final result: %.4e"%(result),end="");input()
-        return result"""      
+        return result"""
 
     def public_info(self):
         """
@@ -286,7 +282,7 @@ class MrZeroTree(MrZeroTreeSimple):
         assert 4*len(self.history)+len(self.cards_on_table)-1==num_cards_played
         assert scores==self.scores
         return cards_played,scores_stage,void_info_stage
-                
+
     def pick_a_card(self):
         #确认桌上牌的数量和自己坐的位置相符
         assert (self.cards_on_table[0]+len(self.cards_on_table)-1)%4==self.place
@@ -306,7 +302,7 @@ class MrZeroTree(MrZeroTreeSimple):
 
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         #imp_cards=self.select_interact_cards(legal_choice)
-            
+
         if self.sample_k>=0:
             sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
             assert self.sample_b>=0 and sce_num>0
@@ -427,7 +423,7 @@ def example_DJ():
     zt3.cards_on_table=[1,"DJ","D8"]
     zt3.history=[[0,"H3","H5","H4","H7"],[3,"S6","SJ","HK","S10"],[0,"DQ","DA","D9","D3"]]
     zt3.scores=[["HK"],[],[],["H3","H5","H4","H7"]]
-    
+
     """cards_dict=MrGreed.gen_cards_dict(zt3.cards_list)
     legal_choice=MrGreed.gen_legal_choice("D",cards_dict,zt3.cards_list)
     zt3.select_interact_cards(legal_choice)"""
@@ -449,7 +445,7 @@ def example_SQ():
     zt3.cards_on_table=[1,"S7","SJ"]
     zt3.history=[[1,"C9","C7","C4","H9"],]
     zt3.scores=[[],["H9"],[],[]]
-    
+
     """cards_dict=MrGreed.gen_cards_dict(zt3.cards_list)
     legal_choice=MrGreed.gen_legal_choice("S",cards_dict,zt3.cards_list)
     zt3.select_interact_cards(legal_choice)"""

@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from torch.multiprocessing import Process
 import torch.multiprocessing
 
-import copy,itertools,numpy,gc,time
+import copy,itertools,numpy,time
 
 def train(pv_net,dev_train_num=0,dev_bench_num=1):
     import torch.optim as optim
@@ -32,7 +32,7 @@ def train(pv_net,dev_train_num=0,dev_bench_num=1):
     for epoch in range(2400):
         if epoch%80==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-5:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
-            torch.save(pv_net,save_name)
+            #torch.save(pv_net,save_name)
             if p_benchmark!=None:
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")
@@ -42,7 +42,6 @@ def train(pv_net,dev_train_num=0,dev_bench_num=1):
 
         if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%20==0:
             output_flag=True
-            #log("gc len at %d: %d"%(epoch,len(gc.get_objects())))
         else:
             output_flag=False
 

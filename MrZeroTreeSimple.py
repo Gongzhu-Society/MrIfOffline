@@ -85,8 +85,16 @@ class MrZeroTreeSimple(MrRandom):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
                  sample_b=10,sample_k=1,mcts_b=20,mcts_k=2):
         MrRandom.__init__(self,room,place,name)
-        self.pv_net=pv_net
-        self.device=device
+        if isinstance(device,str)
+            self.device=torch.device(device)
+        else:
+            self.device=device
+
+        if isinstance(pv_net,str):
+            self.load_pv_net(net_para_loc=pv_net)
+        else:
+            self.pv_net=pv_net
+
         self.sample_b=sample_b
         self.sample_k=sample_k
         self.mcts_b=mcts_b
@@ -94,6 +102,15 @@ class MrZeroTreeSimple(MrRandom):
         self.train_mode=train_mode
         if self.train_mode:
             self.train_datas=[]
+
+    def load_pv_net(self,net_para_loc=None):
+        from MrZ_NETs import PV_NET_2
+        self.pv_net=PV_NET_2()
+        try:
+            self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
+        except FileNotFoundError:
+            self.pv_net.load_state_dict(torch.load("../"+net_para_loc,map_location=self.device))
+        self.pv_net.to(self.device)
 
     def cards_lists_oh(cards_lists,place):
         """
@@ -252,16 +269,13 @@ BENCH_SMP_K=0
 def benchmark(save_name,epoch,device_num,print_process=False):
     """
         benchmark raw network against MrGreed
+        will be called by trainer
     """
     import itertools,numpy
 
-    N1=512;N2=2;
-    log("start benchmark against MrGreed for %dx%d"%(N1,N2))
+    N1=512;N2=2;log("start benchmark against MrGreed for %dx%d"%(N1,N2))
 
-    device_bench=torch.device("cuda:%d"%(device_num))
-    pv_net=torch.load(save_name,map_location=device_bench)
-
-    zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_bench,
+    zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=save_name,device="cuda:%d"%(device_num),
                    mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
@@ -300,8 +314,8 @@ def prepare_data_queue(pv_net,device_num,data_rounds,train_b,train_k,data_queue)
 
     for i in range(4):
         data_queue.put(zt[i].train_datas,block=False)
-        
-        
+
+
 def prepare_data(pv_net,device_num,data_rounds,train_b,train_k):
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
