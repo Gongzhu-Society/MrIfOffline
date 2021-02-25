@@ -13,7 +13,7 @@ import copy,itertools,numpy,time
 def train(pv_net,dev_train_num=0,dev_bench_num=0):
     import torch.optim as optim
     import gc
-    data_rounds=64
+    data_rounds=8
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
@@ -22,25 +22,27 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0):
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
 
-    #device_main=device("cuda:%d"%(dev_train_num))
-    #pv_net.to(device_main)
+    device_main=device("cuda:%d"%(dev_train_num))
+    pv_net.to(device_main)
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
     p_benchmark=None
-    for epoch in range(2400):
+    for epoch in range(160):
         if epoch%80==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-5:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             #torch.save(pv_net,save_name)
             torch.save(pv_net.state_dict(),save_name)
-            if p_benchmark!=None:
+            '''if p_benchmark!=None:
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")
                 p_benchmark.join()
             p_benchmark=Process(target=benchmark,args=(save_name,epoch,dev_bench_num))
             p_benchmark.start()
             time.sleep(3600)
+            '''
+            benchmark(save_name,epoch, dev_bench_num)
 
         if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%20==0:
             output_flag=True
@@ -122,7 +124,7 @@ def main():
     else:
         pv_net.load_state_dict(torch.load(start_from))
         log("start_from: %s"%(start_from))
-    train(pv_net,dev_train_num=dev_train,dev_bench_num=-1)
+    train(pv_net,dev_train_num=dev_train,dev_bench_num=0)
 
 
 if __name__=="__main__":
