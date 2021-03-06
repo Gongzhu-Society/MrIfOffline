@@ -13,7 +13,7 @@ import copy,itertools,numpy,time
 def train(pv_net,dev_train_num=0,dev_bench_num=0):
     import torch.optim as optim
     import gc
-    data_rounds=8
+    data_rounds=64
     loss2_weight=0.03
     train_mcts_b=0
     train_mcts_k=2
@@ -29,7 +29,7 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0):
 
     train_datas=[]
     p_benchmark=None
-    for epoch in range(160):
+    for epoch in range(2401):
         if epoch%80==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-5:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             #torch.save(pv_net,save_name)
@@ -42,7 +42,8 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0):
             p_benchmark.start()
             time.sleep(3600)
             '''
-            benchmark(save_name,epoch, dev_bench_num)
+            print("benchmarking")
+            benchmark(save_name,epoch, dev_bench_num, False)
 
         if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%20==0:
             output_flag=True
@@ -62,11 +63,11 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0):
             log_p=F.log_softmax(p*batch[3].to(device_main),dim=1)
             loss1_t=F.kl_div(log_p,batch[1].to(device_main),reduction="batchmean")
             loss1_t.backward(retain_graph=True)
-            grad1=pv_net.fc0.weight.grad.abs().mean().item()
+            grad1=pv_net.fcp.weight.grad.abs().mean().item()
             optimizer.zero_grad()
             loss2_t=F.mse_loss(v.view(-1),batch[2].to(device_main),reduction='mean').sqrt()
             loss2_t.backward(retain_graph=True)
-            grad2=pv_net.fc0.weight.grad.abs().mean().item()
+            grad2=pv_net.fcv.weight.grad.abs().mean().item()
             log("dloss at %d: %.4f %.4f %.4f"%(epoch,grad1,grad2,grad1/grad2))
 
         for age in range(age_in_epoch):
@@ -105,7 +106,8 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0):
             if output_flag:
                 log("        epoch %d age %d: %.3f %.2f"%(epoch,age,running_loss1,running_loss2))
 
-    p_benchmark.join()
+    #p_benchmark.join()
+    log('C\'est fini!')
 
 def main():
     from MrZeroTreeSimple import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
@@ -113,11 +115,11 @@ def main():
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
-    from MrZ_NETs import PV_NET_2
+    from MrZ_NETs import PV_NET_2, RES_NET_18
     dev_train=0
     start_from=None # or a path to netpara file
 
-    pv_net=PV_NET_2()
+    pv_net=RES_NET_18()#PV_NET_2()
     log("init pv_net: %s"%(pv_net))
     if start_from==None:
         log("start from: zero")

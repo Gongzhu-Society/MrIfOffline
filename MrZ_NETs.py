@@ -144,6 +144,57 @@ class PV_NET_2(PV_NET_FATHER):
         v=self.fcv(x)*VALUE_RENORMAL
         return p,v
 
+class PV_NET_3(PV_NET_FATHER):
+    def __init__(self):
+        super(PV_NET_3,self).__init__()
+        self.fc0=nn.Linear(52*4+(54*3+0*4)+16*4,2048)
+        self.fc1=nn.Linear(2048,2048)
+        self.fc2=nn.Linear(2048,512)
+        self.transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=54, nhead=8), num_layers=6)
+        self.tsfc = nn.Linear(54, 512)
+
+        self.sc0a=nn.Linear(512,512)
+        self.sc0b=nn.Linear(512,512)
+        self.sc1a=nn.Linear(512,512)
+        self.sc1b=nn.Linear(512,512)
+        self.sc2a=nn.Linear(512,512)
+        self.sc2b=nn.Linear(512,512)
+        self.sc3a=nn.Linear(512,512)
+        self.sc3b=nn.Linear(512,512)
+        self.sc4a=nn.Linear(512,512)
+        self.sc4b=nn.Linear(512,512)
+        self.sc5a=nn.Linear(512,512)
+        self.sc5b=nn.Linear(512,512)
+        self.sc6a=nn.Linear(512,512)
+        self.sc6b=nn.Linear(512,512)
+        self.sc7a=nn.Linear(512,512)
+        self.sc7b=nn.Linear(512,512)
+        self.sc8a=nn.Linear(512,512)
+        self.sc8b=nn.Linear(512,512)
+        self.sc9a=nn.Linear(512,512)
+        self.sc9b=nn.Linear(512,512)
+
+        self.fcp=nn.Linear(512,52)
+        self.fcv=nn.Linear(512,1)
+
+    def forward(self, x):
+        x=F.relu(self.fc0(x))
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        x=F.relu(self.sc0b(F.relu(self.sc0a(x))))+x
+        x=F.relu(self.sc1b(F.relu(self.sc1a(x))))+x
+        x=F.relu(self.sc2b(F.relu(self.sc2a(x))))+x
+        x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x
+        x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x
+        x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x
+        x=F.relu(self.sc6b(F.relu(self.sc6a(x))))+x
+        x=F.relu(self.sc7b(F.relu(self.sc7a(x))))+x
+        x=F.relu(self.sc8b(F.relu(self.sc8a(x))))+x
+        x=F.relu(self.sc9b(F.relu(self.sc9a(x))))+x
+        p=self.fcp(x)
+        v=self.fcv(x)*VALUE_RENORMAL
+        return p,v
+
 class BasicBlock(nn.Module):
     expansion=1 #?
 
@@ -175,15 +226,15 @@ class RES_NET_18(PV_NET_FATHER):
         self.in_planes=64
 
         #self.fc0=nn.Linear(52*4+54*3+16*4,3*32*32)
-        self.conv1=nn.Conv2d(3,64,kernel_size=5,stride=1,padding=1,bias=False)
+        self.conv1=nn.Conv2d(1,64,kernel_size=3,stride=1,padding=1,bias=False)
         self.bn1=nn.BatchNorm2d(64)
 
         self.layer1 = self._make_layer(block,64,num_blocks[0],stride=1)
         self.layer2 = self._make_layer(block,128,num_blocks[1],stride=2)
         self.layer3 = self._make_layer(block,256,num_blocks[2],stride=2)
         self.layer4 = self._make_layer(block,512,num_blocks[3],stride=2)
-        self.fcp=nn.Linear(512*block.expansion,52)
-        self.fcv=nn.Linear(512*block.expansion,1)
+        self.fcp=nn.Linear(1024*block.expansion,52)
+        self.fcv=nn.Linear(1024*block.expansion,1)
 
     def _make_layer(self,block,planes,num_blocks,stride):
         strides=[stride]+[1]*(num_blocks-1)
@@ -195,18 +246,28 @@ class RES_NET_18(PV_NET_FATHER):
 
     def forward(self, x):
         #out=F.relu(self.fc0(x)).view(-1,3,32,32)
+        '''
         out=torch.cat((F.pad(x.repeat(1,2),(0,156)).view(-1,1,32,32),
             F.pad(x.repeat(1,2),(78,78)).view(-1,1,32,32),
             F.pad(x.repeat(1,2),(156,0)).view(-1,1,32,32)),1)
-        out=F.relu(self.bn1(self.conv1(out)))
+        '''
+        out=F.relu(self.bn1(self.conv1(x)))
         out=self.layer1(out)
         out=self.layer2(out)
         out=self.layer3(out)
         out=self.layer4(out)
         out=F.avg_pool2d(out,4)
-        out=out.view(-1,512)
+        #print("out shape")
+        #print(out.shape)
+        out=out.view(-1,1024)
+        #print("out shape")
+        #print(out.shape)
         p=self.fcp(out)
         v=self.fcv(out)*VALUE_RENORMAL
+        #print("p")
+        #print(p)
+        #print("v")
+        #print(v)
         return p,v
 
     def __str__(self):

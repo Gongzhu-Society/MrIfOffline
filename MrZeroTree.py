@@ -89,21 +89,24 @@ class MrZeroTree(MrZeroTreeSimple):
             return a 208-length one hot, in raletive order
             the order is [me,me+1,me+2,me+3]
         """
-        oh=torch.zeros(52*4)
+        oh=torch.zeros((4,52))
         for c in cards_lists[place]:
             oh[ORDER_DICT[c]]=1
         for i in range(1,4):
             for c in cards_lists[(place+i)%4]:
-                oh[52*1+ORDER_DICT[c]]=1/3
-                oh[52*2+ORDER_DICT[c]]=1/3
-                oh[52*3+ORDER_DICT[c]]=1/3
+                oh[1,ORDER_DICT[c]]=1/3
+                oh[2,ORDER_DICT[c]]=1/3
+                oh[3,ORDER_DICT[c]]=1/3
         return oh
 
     def prepare_ohs_post_rect(cards_lists,cards_on_table,score_lists,place):
         oh_card=MrZeroTree.cards_lists_oh_post_rect(cards_lists,place)
         oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
-        return torch.cat([oh_card,oh_score,oh_table])
+        oh_history = MrZeroTreeSimple.history_oh(history, place)
+        a12 = torch.cat((oh_card, oh_score, oh_table), 0)
+        a1 = torch.cat((torch.zeros(11, 4), a12), 1)
+        return torch.cat((a1, oh_history), 0).unsqueeze(0)
 
     def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
         netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
