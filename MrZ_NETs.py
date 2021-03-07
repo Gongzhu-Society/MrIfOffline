@@ -98,6 +98,7 @@ class PV_NET_1(PV_NET_FATHER):
 class PV_NET_2(PV_NET_FATHER):
     def __init__(self):
         super(PV_NET_2,self).__init__()
+        self.name = "mlp"
         self.fc0=nn.Linear(52*4+(54*3+0*4)+16*4,2048)
         self.fc1=nn.Linear(2048,2048)
         self.fc2=nn.Linear(2048,512)
@@ -147,11 +148,13 @@ class PV_NET_2(PV_NET_FATHER):
 class PV_NET_3(PV_NET_FATHER):
     def __init__(self):
         super(PV_NET_3,self).__init__()
-        self.fc0=nn.Linear(52*4+(54*3+0*4)+16*4,2048)
+        self.name="transformer+mlp"
+        self.fc0=nn.Linear(52*4+(52*3+0*4)+52*4,2048)
         self.fc1=nn.Linear(2048,2048)
         self.fc2=nn.Linear(2048,512)
-        self.transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=54, nhead=8), num_layers=6)
-        self.tsfc = nn.Linear(54, 512)
+        self.embedding=nn.Linear(56,512)
+        self.transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=512, nhead=8), num_layers=6)
+        self.tsfc = nn.Linear(512, 512)
 
         self.sc0a=nn.Linear(512,512)
         self.sc0b=nn.Linear(512,512)
@@ -177,20 +180,36 @@ class PV_NET_3(PV_NET_FATHER):
         self.fcp=nn.Linear(512,52)
         self.fcv=nn.Linear(512,1)
 
-    def forward(self, x):
+    def forward(self, input):
+        #print("inputshape",input.shape)
+        x = input[:,0,:11,4:]
+        x=x.reshape(len(input),-1)
+        his = input[:,0,11:].transpose(1,0)
+        #print("xshape", x.shape)
+        #print("hisshape",his.shape)
+
+        embed = self.embedding(his)
+        feature = self.transformer(embed).mean(dim=0)
+        #print("xshape", x.shape)
+        #print("fc0", self.fc0)
         x=F.relu(self.fc0(x))
         x=F.relu(self.fc1(x))
         x=F.relu(self.fc2(x))
-        x=F.relu(self.sc0b(F.relu(self.sc0a(x))))+x
-        x=F.relu(self.sc1b(F.relu(self.sc1a(x))))+x
-        x=F.relu(self.sc2b(F.relu(self.sc2a(x))))+x
-        x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x
-        x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x
-        x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x
-        x=F.relu(self.sc6b(F.relu(self.sc6a(x))))+x
-        x=F.relu(self.sc7b(F.relu(self.sc7a(x))))+x
-        x=F.relu(self.sc8b(F.relu(self.sc8a(x))))+x
-        x=F.relu(self.sc9b(F.relu(self.sc9a(x))))+x
+        #print("featureshape", feature.shape)
+        #print("xshape", x.shape)
+        x=F.relu(self.sc0b(F.relu(self.sc0a(x))))+x+feature
+        #print("featureshape", feature.shape)
+        #print("xshape", x.shape)
+        #return
+        x=F.relu(self.sc1b(F.relu(self.sc1a(x))))+x+feature
+        x=F.relu(self.sc2b(F.relu(self.sc2a(x))))+x+feature
+        x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x+feature
+        x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x+feature
+        x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x+feature
+        x=F.relu(self.sc6b(F.relu(self.sc6a(x))))+x+feature
+        x=F.relu(self.sc7b(F.relu(self.sc7a(x))))+x+feature
+        x=F.relu(self.sc8b(F.relu(self.sc8a(x))))+x+feature
+        x=F.relu(self.sc9b(F.relu(self.sc9a(x))))+x+feature
         p=self.fcp(x)
         v=self.fcv(x)*VALUE_RENORMAL
         return p,v
@@ -223,8 +242,8 @@ class BasicBlock(nn.Module):
 class RES_NET_18(PV_NET_FATHER):
     def __init__(self,block=BasicBlock,num_blocks=[2,2,2,2]):#,num_classes=52):
         super(RES_NET_18,self).__init__()
+        self.name = "resnet18"
         self.in_planes=64
-
         #self.fc0=nn.Linear(52*4+54*3+16*4,3*32*32)
         self.conv1=nn.Conv2d(1,64,kernel_size=3,stride=1,padding=1,bias=False)
         self.bn1=nn.BatchNorm2d(64)

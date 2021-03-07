@@ -24,7 +24,12 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0):
 
     device_main=device("cuda:%d"%(dev_train_num))
     pv_net.to(device_main)
-    optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
+    names = pv_net.__str__().split()
+    if names[0] in {"PV_NET_3"}:
+        optimizer = optim.Adam(pv_net.parameters(), lr=0.0001, eps=1e-07, weight_decay=1e-4,
+                               amsgrad=False)
+    else:
+        optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
     train_datas=[]
@@ -115,11 +120,11 @@ def main():
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
-    from MrZ_NETs import PV_NET_2, RES_NET_18
+    from MrZ_NETs import PV_NET_2, PV_NET_3, RES_NET_18
     dev_train=0
     start_from=None # or a path to netpara file
 
-    pv_net=RES_NET_18()#PV_NET_2()
+    pv_net=PV_NET_3()#RES_NET_18()#PV_NET_2()
     log("init pv_net: %s"%(pv_net))
     if start_from==None:
         log("start from: zero")

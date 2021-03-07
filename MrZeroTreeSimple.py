@@ -113,8 +113,8 @@ class MrZeroTreeSimple(MrRandom):
             self.train_datas=[]
 
     def load_pv_net(self,net_para_loc=None):
-        from MrZ_NETs import PV_NET_2, RES_NET_18
-        self.pv_net=RES_NET_18()#PV_NET_2()
+        from MrZ_NETs import PV_NET_2, PV_NET_3, RES_NET_18
+        self.pv_net=PV_NET_3()#RES_NET_18()#PV_NET_2()
         try:
             self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
         except FileNotFoundError:
