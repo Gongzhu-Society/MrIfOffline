@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import math
 
 VALUE_RENORMAL=10
 
@@ -213,6 +214,98 @@ class PV_NET_3(PV_NET_FATHER):
         p=self.fcp(x)
         v=self.fcv(x)*VALUE_RENORMAL
         return p,v
+
+class PV_NET_4(PV_NET_FATHER):
+    def __init__(self):
+        super(PV_NET_4,self).__init__()
+        self.name="transformer+mlp"
+        self.fc0=nn.Linear(52*4+(52*3+0*4)+52*4,2048)
+        self.fc1=nn.Linear(2048,2048)
+        self.fc2=nn.Linear(2048,512)
+        self.embedding=nn.Linear(56,512)
+        self.pos_encoder = PositionalEncoding(512)
+        self.transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=512, nhead=8), num_layers=6)
+        self.tsfc = nn.Linear(512, 512)
+        self.ln = nn.LayerNorm(512)
+
+        self.sc0a=nn.Linear(512,512)
+        self.sc0b=nn.Linear(512,512)
+        self.sc1a=nn.Linear(512,512)
+        self.sc1b=nn.Linear(512,512)
+        self.sc2a=nn.Linear(512,512)
+        self.sc2b=nn.Linear(512,512)
+        self.sc3a=nn.Linear(512,512)
+        self.sc3b=nn.Linear(512,512)
+        self.sc4a=nn.Linear(512,512)
+        self.sc4b=nn.Linear(512,512)
+        self.sc5a=nn.Linear(512,512)
+        self.sc5b=nn.Linear(512,512)
+        #self.sc6a=nn.Linear(512,512)
+        #self.sc6b=nn.Linear(512,512)
+        #self.sc7a=nn.Linear(512,512)
+        #self.sc7b=nn.Linear(512,512)
+        #self.sc8a=nn.Linear(512,512)
+        #self.sc8b=nn.Linear(512,512)
+        #self.sc9a=nn.Linear(512,512)
+        #self.sc9b=nn.Linear(512,512)
+
+        self.fcp=nn.Linear(512,52)
+        self.fcv=nn.Linear(512,1)
+
+    def forward(self, input):
+        #print("inputshape",input.shape)
+        x = input[:,0,:11,4:]
+        x=x.reshape(len(input),-1)
+        his = input[:,0,11:].transpose(1,0)
+        #print("xshape", x.shape)
+        #print("hisshape",his.shape)
+
+        embed = self.embedding(his)
+        embed = self.pos_encoder(embed)
+        feature = self.transformer(embed).mean(dim=0)
+        #feature = self.ln(feature)
+        #print("xshape", x.shape)
+        #print("fc0", self.fc0)
+        x=F.relu(self.fc0(x))
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        #print("featureshape", feature.shape)
+        #print("xshape", x.shape)
+        x=F.relu(self.sc0b(F.relu(self.sc0a(x))))+x+feature
+        #print("featureshape", feature.shape)
+        #print("xshape", x.shape)
+        #return
+        x=F.relu(self.sc1b(F.relu(self.sc1a(x))))+x+feature
+        x=F.relu(self.sc2b(F.relu(self.sc2a(x))))+x+feature
+        x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x+feature
+        x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x+feature
+        x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x+feature
+        #x=F.relu(self.sc6b(F.relu(self.sc6a(x))))+x+feature
+        #x=F.relu(self.sc7b(F.relu(self.sc7a(x))))+x+feature
+        #x=F.relu(self.sc8b(F.relu(self.sc8a(x))))+x+feature
+        #x=F.relu(self.sc9b(F.relu(self.sc9a(x))))+x+feature
+        p=self.fcp(x)
+        v=self.fcv(x)*VALUE_RENORMAL
+        return p,v
+
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model, dropout=0.1, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        x = x + self.pe[:x.size(0), :]
+        return self.dropout(x)
+
 
 class BasicBlock(nn.Module):
     expansion=1 #?
