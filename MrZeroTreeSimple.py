@@ -92,7 +92,7 @@ MCTS_EXPL=30
 
 class MrZeroTreeSimple(MrRandom):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
-                 sample_b=10,sample_k=1,mcts_b=20,mcts_k=2):
+                 sample_b=10,sample_k=1,mcts_b=20,mcts_k=2,args={}):
         MrRandom.__init__(self,room,place,name)
         if isinstance(device,str):
             self.device=torch.device(device)
@@ -100,7 +100,7 @@ class MrZeroTreeSimple(MrRandom):
             self.device=device
 
         if isinstance(pv_net,str):
-            self.load_pv_net(net_para_loc=pv_net)
+            self.load_pv_net(net_para_loc=pv_net,args=args)
         else:
             self.pv_net=pv_net
 
@@ -112,9 +112,12 @@ class MrZeroTreeSimple(MrRandom):
         if self.train_mode:
             self.train_datas=[]
 
-    def load_pv_net(self,net_para_loc=None):
-        from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, RES_NET_18
-        self.pv_net=PV_NET_4()#RES_NET_18()#PV_NET_2()
+    def load_pv_net(self,net_para_loc=None,args={}):
+        from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, Guessing_net_1, RES_NET_18
+        if args['pv_net'] in {'PV_NET_4'}:
+            self.pv_net=PV_NET_4()#RES_NET_18()#PV_NET_2()
+        else:
+            self.pv_net = PV_NET_3()
         try:
             self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
         except FileNotFoundError:
@@ -292,21 +295,21 @@ class MrZeroTreeSimple(MrRandom):
 BENCH_SMP_B=5
 BENCH_SMP_K=0
 
-def benchmark(save_name,epoch,device_num, print_process=False):
+def benchmark(save_name,epoch,device_num, print_process=False,args={}):
     """
         benchmark raw network against MrGreed
         will be called by trainer
     """
     import itertools,numpy
 
-    N1=512;N2=2;log("start benchmark against MrGreed for %dx%d"%(N1,N2))
+    N1=args['benchmark_N1'];N2=2;log("start benchmark against MrGreed for %dx%d"%(N1,N2))
     if device_num < 0:
         zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=save_name,device="cpu",
-                   mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K) for i in [0,2]]
+                   mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
         log('Using CPU!')
     else:
         zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=save_name,device="cuda:%d"%(device_num),
-                   mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K) for i in [0,2]]
+                   mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
 
@@ -327,12 +330,12 @@ def benchmark(save_name,epoch,device_num, print_process=False):
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
 
-def prepare_data_queue(pv_net,device_num,data_rounds,train_b,train_k,data_queue):
+def prepare_data_queue(pv_net,device_num,data_rounds,train_b,train_k,data_queue,args={}):
     input("not using")
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTreeSimple(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
-                   mcts_b=train_b,mcts_k=train_k) for i in range(4)]
+                   mcts_b=train_b,mcts_k=train_k,args=args) for i in range(4)]
     interface=OfflineInterface(zt,print_flag=False)
     stats=[]
     for k in range(data_rounds):
@@ -346,11 +349,11 @@ def prepare_data_queue(pv_net,device_num,data_rounds,train_b,train_k,data_queue)
         data_queue.put(zt[i].train_datas,block=False)
 
 
-def prepare_data(pv_net,device_num,data_rounds,train_b,train_k):
+def prepare_data(pv_net,device_num,data_rounds,train_b,train_k,args={}):
     device_train=torch.device("cuda:%d"%(device_num))
     pv_net.to(device_train)
     zt=[MrZeroTreeSimple(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
-                   mcts_b=train_b,mcts_k=train_k) for i in range(4)]
+                   mcts_b=train_b,mcts_k=train_k,args=args) for i in range(4)]
     interface=OfflineInterface(zt,print_flag=False)
     stats=[]
     for k in range(data_rounds):
@@ -359,8 +362,35 @@ def prepare_data(pv_net,device_num,data_rounds,train_b,train_k):
             interface.step_complete_info()
         stats.append(interface.clear())
         interface.prepare_new()
-
     return zt[0].train_datas+zt[1].train_datas+zt[2].train_datas+zt[3].train_datas
+
+def prepare_inference_data(pv_net,device_num, data_rounds,print_process=False,args={}):
+    """
+        play against MrGreed
+        train guesser
+    """
+    import itertools,numpy
+
+    recordings = []
+    if device_num < 0:
+        zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device="cpu",
+                   mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
+        log('Using CPU!')
+    else:
+        zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=pv_net,device="cuda:%d"%(device_num),
+                   mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
+    g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
+    interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False,record_history=True)
+
+    stats=[]
+    for k in range(data_rounds):
+        cards=interface.shuffle()
+        for i in range(52):
+            interface.step()
+        stats.append(interface.clear())
+        recordings += [s for s in interface.recording if s[0] in [0,2]]
+        interface.prepare_new()
+    return recordings
 
 if __name__=="__main__":
     pass

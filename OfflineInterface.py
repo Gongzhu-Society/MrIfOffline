@@ -2,13 +2,13 @@
 # -*- coding: UTF-8 -*-
 
 from Util import log,calc_score,cards_order
-from Util import ORDER_DICT2,SCORE_DICT
+from Util import ORDER_DICT2,SCORE_DICT,ORDER_DICT
 
-import random,itertools,numpy,copy,time
+import random,itertools,numpy,copy,time,torch
 
 class OfflineInterface():
     """ONLY for 4 players"""
-    def __init__(self,players,print_flag=True):
+    def __init__(self,players,print_flag=True,record_history=False):
         """
             players: list of robots or humans, each of them is a instace of MrRandom, Human, MrIf, etc.
         """
@@ -20,6 +20,9 @@ class OfflineInterface():
         self.cards_on_table=[self.pnext,] #see MrRandom.cards_on_table
         self.history=[]                   #see MrRandom.history
         self.scores=[[],[],[],[]]
+        self.record_history = record_history
+        if record_history:
+            self.recording = []
         #self.cards_remain should be initialized by self.shuffle
         #self.cards_remain=[[],[],[],[]]
 
@@ -82,6 +85,11 @@ class OfflineInterface():
         self.cards_on_table.append(choice)
         if self.print_flag:
             log("%s played %s, %s"%(self.players[self.pnext].name,choice,self.cards_on_table,))
+
+        if self.record_history:
+            cr=copy.deepcopy(self.cards_remain)
+            self.recording.append([self.pnext,cr,copy.copy(self.history),copy.copy(self.cards_on_table)])
+
         #如果一墩结束
         if len(self.cards_on_table)==5:
             #判断赢家
@@ -110,6 +118,7 @@ class OfflineInterface():
                 log("trick end. winner is %s, %s"%(self.pnext,self.scores))
         else:
             self.pnext=(self.pnext+1)%4
+
         return 0
 
     def step_complete_info(self):
@@ -167,6 +176,7 @@ class OfflineInterface():
             log("clear score: %s, %s"%(self.scores,self.scores_num))"""
         if self.print_flag:
             log("game end: %s, %s"%(self.scores_num,self.scores))
+
         return self.scores_num
 
     def prepare_new(self):
@@ -175,6 +185,8 @@ class OfflineInterface():
         self.cards_on_table=[self.pnext,]
         self.scores=[[],[],[],[]]
         self.history=[]
+        if self.record_history:
+            self.recording = []
         del self.scores_num
         del self.cards_remain
 
@@ -256,7 +268,9 @@ def select_hands_A(fromfile,tofile):
             log("No.%04d: %s"%(k,hand),logfile=tofile)
             time.sleep(1)
             #input()
-    
+
+def stringhis2numberhis(his):
+    return [his[0]]+[ORDER_DICT[his[i]] for i in range(1,len(his))]
 
 if __name__=="__main__":
     #gen_shuffle(1024,"random")

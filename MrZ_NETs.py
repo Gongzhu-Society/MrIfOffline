@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-import torch
+from Util import log
+from MrZeroTreeSimple import benchmark,prepare_data
+
+from torch import device
 import torch.nn as nn
 import torch.nn.functional as F
-import math
+from torch.multiprocessing import Process
+import torch.multiprocessing
+
+import copy,itertools,numpy,time, math
 
 VALUE_RENORMAL=10
 
@@ -287,6 +293,46 @@ class PV_NET_4(PV_NET_FATHER):
         p=self.fcp(x)
         v=self.fcv(x)*VALUE_RENORMAL
         return p,v
+
+class Guessing_net_1(PV_NET_FATHER):
+    def __init__(self):
+        super(Guessing_net_1, self).__init__()
+        self.fc0 = nn.Linear(52 * 56, 2048)
+        self.fc1 = nn.Linear(2048, 2048)
+        self.fc2 = nn.Linear(2048, 512)
+        self.sc0a = nn.Linear(512, 512)
+        self.sc0b = nn.Linear(512, 512)
+        self.sc1a = nn.Linear(512, 512)
+        self.sc1b = nn.Linear(512, 512)
+        self.sc2a = nn.Linear(512, 512)
+        self.sc2b = nn.Linear(512, 512)
+        self.sc3a = nn.Linear(512, 512)
+        self.sc3b = nn.Linear(512, 512)
+        self.sc4a = nn.Linear(512, 512)
+        self.sc4b = nn.Linear(512, 512)
+        self.sc5a = nn.Linear(512, 512)
+        self.sc5b = nn.Linear(512, 512)
+
+        self.fcfinal = nn.Linear(512, 52*3)
+    def forward(self, input):
+        x = input.view(len(input),-1)
+        #print("x shape",x.size())
+        x=F.relu(self.fc0(x))
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        x=F.relu(self.sc0b(F.relu(self.sc0a(x))))+x
+        x=F.relu(self.sc1b(F.relu(self.sc1a(x))))+x
+        x=F.relu(self.sc2b(F.relu(self.sc2a(x))))+x
+        x=F.relu(self.sc3b(F.relu(self.sc3a(x))))+x
+        x=F.relu(self.sc4b(F.relu(self.sc4a(x))))+x
+        x=F.relu(self.sc5b(F.relu(self.sc5a(x))))+x
+        #x=F.relu(self.sc6b(F.relu(self.sc6a(x))))+x+feature
+        #x=F.relu(self.sc7b(F.relu(self.sc7a(x))))+x+feature
+        #x=F.relu(self.sc8b(F.relu(self.sc8a(x))))+x+feature
+        #x=F.relu(self.sc9b(F.relu(self.sc9a(x))))+x+feature
+        p=self.fcfinal(x)
+        return p
+
 
 class PositionalEncoding(nn.Module):
 

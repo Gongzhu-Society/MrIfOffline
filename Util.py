@@ -65,3 +65,7 @@ def calc_score(l):
             assert s==0
             s=50
     return s
+
+
+if __name__=="__main__":
+    print(stringhis2numberhis([2,'SA','SK','SQ','HA']))
