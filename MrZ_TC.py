@@ -255,5 +255,5 @@ if __name__=="__main__":
     f = open("setting.txt", 'r')
     args = eval(f.read())
     f.close()
-    main_for_guesser(args)
-    #main(args)
+    #main_for_guesser(args)
+    main(args)
