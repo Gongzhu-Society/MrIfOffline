@@ -301,7 +301,7 @@ class PV_NET_5(PV_NET_FATHER):
         self.fc0=nn.Linear(52*4+(52*3+0*4)+52*4,2048)
         self.fc1=nn.Linear(2048,2048)
         self.fc2=nn.Linear(2048,512)
-        self.hisfc0 = nn.Linear(56*4,2048)
+        self.hisfc0 = nn.Linear(56*52,2048)
         self.hisfc1 = nn.Linear(2048, 2048)
         self.hisfc2 = nn.Linear(2048, 512)
 

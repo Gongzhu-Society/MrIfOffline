@@ -13,11 +13,11 @@ import copy,itertools,numpy,time
 def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
     import torch.optim as optim
     import gc
-    data_rounds=4
+    data_rounds=args['data_rounds']
     loss2_weight=0.03
-    train_mcts_b=0
-    train_mcts_k=2
-    review_number=3
+    train_mcts_b=5
+    train_mcts_k=4
+    review_number=args['review_number']
     age_in_epoch=3
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
@@ -205,11 +205,13 @@ def main(args):
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
-    from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, RES_NET_18
+    from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, RES_NET_18
     dev_train=0
     start_from=args['start_from'] # or a path to netpara file
     if args['pv_net'] in {'PV_NET_4'}:
         pv_net=PV_NET_4()#RES_NET_18()#PV_NET_2()
+    elif args['pv_net'] in {'PV_NET_5'}:
+        pv_net=PV_NET_5()
     else:
         pv_net = PV_NET_3()
     log("init pv_net: %s"%(pv_net))
