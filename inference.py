@@ -44,8 +44,9 @@ class Loss0(nn.Module):
         mask = 3*torch.mean(label,dim=1)
         mask = torch.stack([mask,mask,mask],dim=1)
         p_cardinplayer = F.softmax(omat*mask,dim=1)
-        p_playerhascard = F.softmax(omat*mask, dim=2)
-        loss = -torch.sum(label*(torch.log(p_playerhascard+1e-10)+torch.log(p_cardinplayer+1e-10)))
+        #p_playerhascard = F.softmax(omat*mask, dim=2)
+        loss = -torch.sum(label * (torch.log(p_cardinplayer + 1e-10)))
+        #loss = -torch.sum(label*(torch.log(p_playerhascard+1e-10)+torch.log(p_cardinplayer+1e-10)))
         return loss/len(output_feature)
 
 class Buffer(torch.utils.data.Dataset):
