@@ -61,11 +61,34 @@ def calc_score(l):
         if has_score_flag:
             s*=2
         else:
-            assert h_num==0
-            assert s==0
+            # assert h_num==0
+            # assert s==0
             s=50
     return s
 
+def calc_score_midway(l,score_cards_played):
+    s=0 # gross score
+    h_num=0 # number of hearts
+    has_score_flag=False;c10_flag=False
+    for i in l:
+        if i=="C10":
+            c10_flag=True
+        else:
+            has_score_flag=True
+            s+=SCORE_DICT[i]
+            if i[0]=="H":
+                h_num+=1
+    if h_num==13:
+        s+=400
+
+    if c10_flag==True:
+        if has_score_flag:
+            s*=2
+        elif score_cards_played==16:
+            s=50
+        else:
+            s=0
+    return s
 
 if __name__=="__main__":
     print(stringhis2numberhis([2,'SA','SK','SQ','HA']))
