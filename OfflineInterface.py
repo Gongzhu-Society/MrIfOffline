@@ -30,14 +30,14 @@ class OfflineInterface():
         players="(%s+%s) v.s. (%s+%s)"%(self.players[0].name,self.players[2].name,
                                         self.players[1].name,self.players[3].name)
         return players
-    
+
     def reset(self,pstart=0):
         self.pstart=pstart
         self.pnext=self.pstart
         self.cards_on_table=[self.pnext,]
         self.history=[]
         self.scores=[[],[],[],[]]
-    
+
     def shuffle(self,cards=None):
         if cards==None:
             cards=['S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'SJ', 'SQ', 'SK', 'SA',
@@ -200,7 +200,7 @@ def gen_shuffle(num,perfix):
     for i in range(num):
         random.shuffle(cards)
         log("No.%04d: %s"%(i,cards),logfile=logfile,fileonly=True)
-        
+
 def read_std_hands(filename):
     import re
     from ast import literal_eval
@@ -220,7 +220,7 @@ def read_std_hands(filename):
     log("parsed %d hands from %s, start with: %s"%(len(stdhands),filename,stdhands[0][1][0:4]))
     return stdhands
 
-def play_a_test(interface,cards,n2,bias=0):
+def play_a_test(interface,cards,n2,bias=0,step_int=False):
     """
         n2  : the round of games to play
         bias: will shift the hands bias time, also set the first player to the bias-th player
@@ -237,6 +237,8 @@ def play_a_test(interface,cards,n2,bias=0):
             log("%s: %s"%(interface.players[p_index].name,interface.players[p_index].cards_list[0:4]))"""
         for i,j in itertools.product(range(13),range(4)):
             interface.step()
+            if step_int:
+                input()
         r_temp=interface.clear()
         interface.prepare_new()
         results.append(r_temp[0]+r_temp[2]-r_temp[1]-r_temp[3])
@@ -248,14 +250,14 @@ def select_hands_A(fromfile,tofile):
     from MrRandom import MrRandom
     from MrIf import MrIf
     from MrGreed import MrGreed
-    
+
     rs=[MrRandom(room=255,place=i,name='R%d'%(i)) for i in range(4)]
     ifs=[MrIf(room=255,place=i,name='I%d'%(i)) for i in range(4)]
     gs=[MrGreed(room=255,place=i,name='G%d'%(i)) for i in range(4)]
     I_GI=OfflineInterface([gs[0],ifs[1],gs[2],ifs[3]],print_flag=False)
     I_GR=OfflineInterface([gs[0],rs[1],gs[2],rs[3]],print_flag=False)
     I_IR=OfflineInterface([ifs[0],rs[1],ifs[2],rs[3]],print_flag=False)
-    
+
     hands=read_std_hands(fromfile)
     N3=4
     for k,hand in hands:
