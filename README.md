@@ -18,6 +18,7 @@ Offline(testing) version of several AIs.
 * create new branch `git branch branchname`
 * switch to branch  `git checkout branchname`
 * create new branch b2 on github based on local branch b1 `git push --set-upstream origin b1:b2`, b1 and b2 can have the same name
+* pull new branch `git pull origin alphabeta:alphabeta`
 
 ### MrZeroTree
 
