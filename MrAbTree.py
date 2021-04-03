@@ -13,7 +13,7 @@ import time,copy,numpy
 # 1:
 # 2: gross search result
 # 3: into each search cases
-print_level=1
+print_level=0
 
 class MrAbTree(MrRandom):
     BURDEN_DICT={'SA':11,'SK':9,'SQ':8,'SJ':7,'S10':6,'S9':5,'S8':4,'S7':3,'S6':2,'S5':1,'S4':1,
@@ -127,8 +127,9 @@ def benchmark(handsfile):
     g=[MrGreed(room=0,place=i,name='g%d'%(i)) for i in range(4)]
     abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=5) for i in range(4)]
     #interface=OfflineInterface([abt[0],g[1],abt[2],g[3]],print_flag=True)
-    interface=OfflineInterface([g[0],abt[1],g[2],abt[3]],print_flag=True)
-    N1=4;N2=2
+    interface=OfflineInterface([g[0],g[1],g[2],g[3]],print_flag=False)
+    N1=256;N2=2
+    log(interface)
 
     hands=read_std_hands(handsfile)
 
