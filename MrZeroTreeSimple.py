@@ -47,9 +47,6 @@ class GameState():
         neo_state.remain_card_num-=1
         neo_state.cards_on_table.append(action)
 
-
-        #log(neo_state.cards_on_table)
-        #input()
         assert len(neo_state.cards_on_table)<=5
         if len(neo_state.cards_on_table)<5:
             neo_state.pnext=(neo_state.pnext+1)%4
@@ -88,7 +85,7 @@ class GameState():
         return scores[0]+scores[2]-scores[1]-scores[3]
 
     def getReward_midway(self, mode=1):
-        if mode == 0:            
+        if mode == 0:
             scores=[calc_score(self.score_lists[(self.play_for+i)%4]) for i in range(4)]
             return scores[0]+scores[2]-scores[1]-scores[3]
         log("warning: not using!",l=2)
@@ -142,7 +139,7 @@ class MrZeroTreeSimple(MrRandom):
 
     def load_pv_net(self,net_para_loc=None,args={}):
         from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, Guessing_net_1, RES_NET_18
-        
+
         if args['pv_net'] in {'PV_NET_4'}:
             self.pv_net=PV_NET_4()#RES_NET_18()#PV_NET_2()
         elif args['pv_net'] in {'PV_NET_5'}:
@@ -151,7 +148,7 @@ class MrZeroTreeSimple(MrRandom):
             self.pv_net=PV_NET_2()
         else:
             self.pv_net = PV_NET_3()
-        
+
         try:
             self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
             log("load data from %s"%(net_para_loc))
@@ -194,13 +191,13 @@ class MrZeroTreeSimple(MrRandom):
             l_index = ORDER_DICT[c]
             u_index = ORDER_DICT[c]+3
             oh[i,l_index:u_index]=1
-            
+
         '''
         oh=torch.zeros((3,52))
-        for i,c in enumerate(cards_on_table[:0:-1]):           
+        for i,c in enumerate(cards_on_table[:0:-1]):
             oh[i,ORDER_DICT[c]]=1
         return oh
-        
+
 
     """def four_cards_oh(cards_on_table,place):
         assert (cards_on_table[0]+len(cards_on_table)-1)%4==place
@@ -229,7 +226,7 @@ class MrZeroTreeSimple(MrRandom):
             oh[index-1:index+2]=1
         oh[54*3+20*len(cards_on_table)-13:54*3+20*len(cards_on_table)]=1"""
         return oh
-    
+
     def history_oh(history, place):
         oh = torch.zeros((52, 56))  # ,dtype=torch.uint8)
         ct = 0
@@ -326,7 +323,7 @@ class MrZeroTreeSimple(MrRandom):
                 searcher.search(initialState=gamestate)
                 for action,val in searcher.children.items():
                     d_legal[action]+=val
-        
+
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
@@ -347,7 +344,7 @@ class MrZeroTreeSimple(MrRandom):
             searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
                             explorationConstant=MCTS_EXPL)
             searcher.search(initialState=gamestate)
-        else:        
+        else:
             searcher=abpruning(deep=self.tree_deep,n_killer=2,rolloutPolicy=self.pv_policy)
             searcher.search(initialState=gamestate)
         if self.searcher in {'mcts'}:

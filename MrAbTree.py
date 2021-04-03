@@ -8,6 +8,11 @@ from ScenarioGenerator.ScenarioGen import ScenarioGen
 from MCTS.mcts import abpruning,mcts
 import time,copy,numpy
 
+# print_level meaning
+# 0: nothing
+# 1:
+# 2: gross search result
+# 3: into each search cases
 print_level=0
 
 class MrAbTree(MrRandom):
@@ -25,12 +30,12 @@ class MrAbTree(MrRandom):
         self.sample_b=sample_b
         self.trick_deep=trick_deep
 
-    def calc_burden(cards_lists,play_for,score_remain,score_lists):
+    def calc_burden(cards_lists,play_for,score_remain_avg,score_lists):
         cards_list=cards_lists[play_for]
         burden=sum([MrAbTree.BURDEN_DICT.get(i,0) for i in cards_list])
 
-        cards_remain=set(cards_lists[(play_for+1)%4])
-        for i in range(2,4):
+        cards_remain=set()
+        for i in range(1,4):
             cards_remain.update(cards_lists[(play_for+i)%4])
 
         if 'SQ' in cards_remain:
@@ -38,9 +43,9 @@ class MrAbTree(MrRandom):
         if 'DJ' in cards_remain:
             burden+=sum([MrAbTree.BURDEN_DICT_D.get(i,0) for i in cards_list])
         if 'C10' in cards_remain:
-            burden-=sum([MrAbTree.BURDEN_DICT_C.get(i,0)*score_remain for i in cards_list])
+            burden-=sum([MrAbTree.BURDEN_DICT_C.get(i,0)*score_remain_avg for i in cards_list])
         elif 'C10' in score_lists[play_for]:
-            burden-=score_remain/4
+            burden-=score_remain_avg
         return burden
 
     def ab_policy(self,state):
@@ -53,11 +58,15 @@ class MrAbTree(MrRandom):
             scores=[calc_score_midway(state.score_lists[(state.play_for+i)%4],scards_played) for i in range(4)]
             scores=scores[0]+scores[2]-scores[1]-scores[3]
 
-            score_remain=sum([SCORE_DICT.get(i,0)  for j in range(4) for i in state.score_lists[j]])
-            burdens=[MrAbTree.calc_burden(state.cards_lists,(state.play_for+i)%4,score_remain,state.score_lists) for i in range(4)]
+            score_remain_avg=sum([SCORE_DICT.get(i,0)  for j in range(4) for i in state.score_lists[j]])/4
+            burdens=[MrAbTree.calc_burden(state.cards_lists,(state.play_for+i)%4,score_remain_avg,state.score_lists) for i in range(4)]
             burdens=burdens[0]+burdens[2]-burdens[1]-burdens[3]
+            #burden_0=MrAbTree.calc_burden(state.cards_lists,state.play_for,score_remain,state.score_lists)
+            #burden_2=MrAbTree.calc_burden(state.cards_lists,(state.play_for+2)%4,score_remain,state.score_lists)
+            #burdens=burden_0+burden_2
+            #burdens=burden_0
 
-            return scores-burdens*len(state.score_lists[state.play_for])/12
+            return scores-burdens*len(state.cards_lists[state.play_for])/12
 
 
     def pick_a_card(self):
@@ -75,9 +84,6 @@ class MrAbTree(MrRandom):
             if print_level>=1:
                 log("There is only one card left.")
             return self.cards_list[0]
-        # Give some output
-        if print_level>=1:
-            log("my turn: %s, %s, %s"%(self.cards_on_table,self.cards_list,self.scores))
 
         #生成Scenario
         sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=self.sample_b)
@@ -92,13 +98,16 @@ class MrAbTree(MrRandom):
         #对Scenario平均
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
+        if print_level>=1:
+            log("my turn: %s, %s, %s"%(self.cards_on_table,legal_choice,self.scores))
         tree_deep=self.trick_deep*4-len(self.cards_on_table)+1
         searcher=abpruning(deep=tree_deep,rolloutPolicy=self.ab_policy)
         if print_level>=2:
             log("tree_deep: %d"%(tree_deep))
 
         for i,cards_lists in enumerate(cards_lists_list):
-            #initialize gamestate
+            if print_level>=3:
+                log("considering case %d: %s"%(i,cards_lists));input()
             gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place)
             searcher.search(initialState=gamestate)
             for action,val in searcher.children.items():
@@ -108,7 +117,7 @@ class MrAbTree(MrRandom):
 
         #best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         best_choice=max(d_legal.items(),key=lambda x:x[1])[0]
-        if print_level>=2:
+        if print_level>=1:
             log("%s: %s"%(best_choice,{k:"%.1f"%(v/self.sample_b) for k,v in d_legal.items()}),end="");input()
         return best_choice
 
@@ -116,10 +125,11 @@ def benchmark(handsfile):
     from OfflineInterface import OfflineInterface,read_std_hands,play_a_test
 
     g=[MrGreed(room=0,place=i,name='g%d'%(i)) for i in range(4)]
-    abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=2) for i in range(4)]
-    interface=OfflineInterface([abt[0],g[1],abt[2],g[3]],print_flag=False)
+    abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=5) for i in range(4)]
+    #interface=OfflineInterface([abt[0],g[1],abt[2],g[3]],print_flag=True)
+    interface=OfflineInterface([g[0],g[1],g[2],g[3]],print_flag=False)
     N1=256;N2=2
-    log("trick_deep: %d"%(interface.players[0].trick_deep,))
+    log(interface)
 
     hands=read_std_hands(handsfile)
 
