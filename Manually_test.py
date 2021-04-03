@@ -79,6 +79,31 @@ def benchmark_B(handsfile):
         print("")
     log("benchmark result: %.2f %.2f"%(numpy.mean(stats),numpy.sqrt(numpy.var(stats)/(len(stats)-1))))
 
+def benchmark_Liyunwei(handsfile,args):
+    from MrIf import MrIf
+    from MrGreed import MrGreed
+    from MrZeroTree import MrZeroTree
+    from OfflineInterface import OfflineInterface,read_std_hands,play_a_test
+    from Liyunwei import Liyunwei
+
+    ifs=[MrIf(room=255,place=i,name='I%d'%(i)) for i in range(4)]
+    gs=[MrGreed(room=255,place=i,name='G%d'%(i)) for i in range(4)]
+    zs=[Liyunwei(room=255,place=i,name='Z%d'%(i),mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2,args=args) for i in [0,2]]
+    I_GI=OfflineInterface([gs[0],ifs[1],gs[2],ifs[3]],print_flag=False)
+    I_ZG=OfflineInterface([zs[0],gs[1],zs[1],gs[3]],print_flag=False)
+
+    hands=read_std_hands(handsfile)
+    stats=[]
+    for k,hand in hands:
+        stats.append(play_a_test(I_ZG,hand,2))
+        print("%4d"%(stats[-1],),end=" ",flush=True)
+    else:
+        print("")
+    log("benchmark result: %.2f %.2f"%(numpy.mean(stats),numpy.sqrt(numpy.var(stats)/(len(stats)-1))))
+
 if __name__ == '__main__':
-    benchmark("StdHands/random_0_1024.hands")
+    f = open("setting.txt", 'r')
+    args = eval(f.read())
+    f.close()
+    benchmark_Liyunwei("StdHands/random_0_1024.hands",args)
     #benchmark_B("StdHands/selectA_0_322.hands")

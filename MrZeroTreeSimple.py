@@ -126,6 +126,20 @@ class MrZeroTreeSimple(MrRandom):
         if self.train_mode:
             self.train_datas=[]
 
+    def load_gs_net(self, net_para_loc=None, args={}):
+        from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, Guessing_net_1, RES_NET_18
+
+        if True:
+            self.gs_net = Guessing_net_1()
+
+        try:
+            self.gs_net.load_state_dict(torch.load(net_para_loc, map_location=self.device))
+            log("load data from %s" % (net_para_loc))
+        except FileNotFoundError:
+            self.gs_net.load_state_dict(torch.load("../" + net_para_loc, map_location=self.device))
+            log("load data from %s" % (net_para_loc))
+        self.gs_net.to(self.device)
+
     def load_pv_net(self,net_para_loc=None,args={}):
         from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, Guessing_net_1, RES_NET_18
         
