@@ -194,14 +194,17 @@ class MrGreed(MrRandom):
             pick best choice from d_legal
             will be called by pick_a_card only once
         """
-        best_score=float("-inf")
+        """best_score=float("-inf")
         for k,v in d_legal.items():
             if v>best_score:
                 best_score=v
                 best_choices=[k]
             elif v==best_score:
                 best_choices.append(k)
-        return random.choice(best_choices)
+        return random.choice(best_choices)"""
+        best_choice=max(d_legal.items(),key=lambda x:x[1])[0]
+        return best_choice
+
 
     def pick_a_card(self,need_details=False):
         #确认桌上牌的数量和自己坐的位置相符
@@ -301,6 +304,7 @@ class MrGreed(MrRandom):
                 d_legal[c]+=d_suit_extra[c[0]]
 
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
+        #log("%s: %s"%(best_choice,{k:"%.1f"%(v) for k,v in d_legal.items()}),end="")
 
         if need_details:
             #scores_had=[MrGreed.clear_fmt_score(fmt_score_list[(self.place+i)%4]) for i in range(4)]
@@ -332,16 +336,6 @@ class MrGreed(MrRandom):
     @staticmethod
     def family_name():
         return 'MrGreed'
-
-def bug_shi():
-    g=MrGreed(room=0,place=1,name='shi')
-    g.cards_on_table=[0,'C4']
-    g.history=[[0, 'C10', 'C5', 'CA', 'C9'], [2, 'DK', 'D10', 'D7', 'D8'], [2, 'DJ', 'DQ', 'D5', 'DA'],
-               [1, 'H5', 'H6', 'H4', 'H10'], [0, 'H8', 'H3', 'HJ', 'H9'], [2, 'CK', 'HA', 'CJ', 'CQ'],
-               [2, 'S9', 'S3', 'S10', 'SJ'], [1, 'C2', 'C7', 'HK', 'C8'], [0, 'S6', 'S4', 'S5', 'H7']]
-    g.scores=[['H5', 'H6', 'H4', 'H10', 'HK', 'H7'], ['DJ'], ['C10', 'H8', 'H3', 'HJ', 'H9', 'HA'], []]
-    g.cards_list=['D4', 'D6', 'D9', 'HQ']
-    print(g.pick_a_card())
 
 if __name__=="__main__":
     #optimize_para()
