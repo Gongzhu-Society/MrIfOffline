@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-from Util import log,calc_score
+from Util import log,calc_score, calc_score_midway
 from Util import ORDER_DICT,ORDER_DICT2,ORDER_DICT5,SCORE_DICT,INIT_CARDS
 from MrRandom import MrRandom
 from MrGreed import MrGreed
 from ScenarioGenerator.ScenarioGen import ScenarioGen
 #from MCTS.mcts import mcts #abort mcts
-from MCTS.mcts import abpruning
+from MCTS.mcts import abpruning, mcts
 from OfflineInterface import OfflineInterface
 
 import torch
@@ -87,9 +87,13 @@ class GameState():
         scores=[calc_score(self.score_lists[(self.play_for+i)%4]) for i in range(4)]
         return scores[0]+scores[2]-scores[1]-scores[3]
 
-    def getReward_midway(self):
+    def getReward_midway(self, mode=1):
+        if mode == 0:            
+            scores=[calc_score(self.score_lists[(self.play_for+i)%4]) for i in range(4)]
+            return scores[0]+scores[2]-scores[1]-scores[3]
+        log("warning: not using!",l=2)
         scards_played=sum([len(i) for i in self.score_lists])
-        scores=[calc_score(self.score_lists[(self.play_for+i)%4],scards_played) for i in range(4)]
+        scores=[calc_score_midway(self.score_lists[(self.play_for+i)%4],scards_played) for i in range(4)]
         return scores[0]+scores[2]-scores[1]-scores[3]
 
 
@@ -99,7 +103,7 @@ MCTS_EXPL=30
 
 class MrZeroTreeSimple(MrRandom):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
-                 sample_b=10,sample_k=1,mcts_b=None,mcts_k=None,tree_deep=3,args={}):
+                 sample_b=10,sample_k=1,mcts_b=20,mcts_k=2,tree_deep=3,searcher='mcts',args={}):
         MrRandom.__init__(self,room,place,name)
         if isinstance(device,str):
             self.device=torch.device(device)
@@ -113,27 +117,33 @@ class MrZeroTreeSimple(MrRandom):
 
         self.sample_b=sample_b
         self.sample_k=sample_k
-        #self.mcts_b=mcts_b
-        #self.mcts_k=mcts_k
+        self.mcts_b=mcts_b
+        self.mcts_k=mcts_k
         self.tree_deep=tree_deep
         self.train_mode=train_mode
+        self.args=args
+        self.searcher = args['searcher']
         if self.train_mode:
             self.train_datas=[]
 
     def load_pv_net(self,net_para_loc=None,args={}):
-        """from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, Guessing_net_1, RES_NET_18
+        from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, Guessing_net_1, RES_NET_18
+        
         if args['pv_net'] in {'PV_NET_4'}:
             self.pv_net=PV_NET_4()#RES_NET_18()#PV_NET_2()
         elif args['pv_net'] in {'PV_NET_5'}:
             self.pv_net=PV_NET_5()
+        elif net_para_loc.starts_with('PV_NET_2'):
+            self.pv_net=PV_NET_2()
         else:
-            self.pv_net = PV_NET_3()"""
-        from MrZ_NETs import PV_NET_2
-        self.pv_net = PV_NET_2()
+            self.pv_net = PV_NET_3()
+        
         try:
             self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))
+            log("load data from %s"%(net_para_loc))
         except FileNotFoundError:
             self.pv_net.load_state_dict(torch.load("../"+net_para_loc,map_location=self.device))
+            log("load data from %s"%(net_para_loc))
         self.pv_net.to(self.device)
 
     def cards_lists_oh(cards_lists,place):
@@ -158,18 +168,25 @@ class MrZeroTreeSimple(MrRandom):
                 oh[i,ORDER_DICT[c]]=1
         return oh
 
-    def four_cards_oh(cards_on_table,place):
+    def four_cards_oh_perhaps_problematic(cards_on_table,place):
         """
             return a 156-legth oh, in anti-relative order
             the order is [me-1,me-2,me-3]
         """
+        '''
         #assert (cards_on_table[0]+len(cards_on_table)-1)%4==place
         oh=torch.zeros((3,54)) # 这应该是54，因为大牌往往是重要的，您不能diffuse了小牌但是忽略Ace
         for i,c in enumerate(cards_on_table[:0:-1]):
             l_index = ORDER_DICT[c]
             u_index = ORDER_DICT[c]+3
             oh[i,l_index:u_index]=1
+            
+        '''
+        oh=torch.zeros((3,52))
+        for i,c in enumerate(cards_on_table[:0:-1]):           
+            oh[i,ORDER_DICT[c]]=1
         return oh
+        
 
     """def four_cards_oh(cards_on_table,place):
         assert (cards_on_table[0]+len(cards_on_table)-1)%4==place
@@ -178,7 +195,27 @@ class MrZeroTreeSimple(MrRandom):
             index=54*i+ORDER_DICT[c]#TODO +1 !!!
             oh[index-1:index+2]=1
         return oh"""
-
+    def four_cards_oh(cards_on_table,place):
+        """
+            return a 156-legth oh, in anti-relative order
+            the order is [me-1,me-2,me-3]
+        """
+        assert (cards_on_table[0]+len(cards_on_table)-1)%4==place
+        """oh=torch.zeros(52*3)
+        for i,c in enumerate(cards_on_table[:0:-1]):
+            oh[52*i+ORDER_DICT[c]]=1"""
+        oh=torch.zeros((3,52))
+        for i,c in enumerate(cards_on_table[:0:-1]):
+            l_index=max(ORDER_DICT[c]-1,0)#TODO +1 !!!
+            u_index = min(ORDER_DICT[c]+2,52)
+            oh[i,l_index:u_index]=1
+        """oh=torch.zeros(54*3+20*4)#,dtype=torch.uint8)
+        for i,c in enumerate(cards_on_table[:0:-1]):
+            index=54*i+ORDER_DICT[c]
+            oh[index-1:index+2]=1
+        oh[54*3+20*len(cards_on_table)-13:54*3+20*len(cards_on_table)]=1"""
+        return oh
+    
     def history_oh(history, place):
         oh = torch.zeros((52, 56))  # ,dtype=torch.uint8)
         ct = 0
@@ -212,7 +249,7 @@ class MrZeroTreeSimple(MrRandom):
                 #_,v=self.pv_net(netin.to(self.device))
                 _,v=self.pv_net(netin.to(self.device).unsqueeze(0))
 
-            return v[0].item()*state.getCurrentPlayer()+state.getReward_midway()
+            return v[0].item()*state.getCurrentPlayer()+state.getReward_midway(mode=self.args['calc_score_mode'])
 
     def pick_a_card(self):
         #input("in pick a card")
@@ -246,33 +283,36 @@ class MrZeroTreeSimple(MrRandom):
         #MCTS并对Scenario平均
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
         d_legal={c:0 for c in legal_choice}
-        #searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
+        searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         for i,cards_lists in enumerate(cards_lists_list):
             #initialize gamestate
             gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place)
             #mcts
-            """if self.mcts_k>=0:
-                searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
-                              explorationConstant=MCTS_EXPL)
-                searcher.search(initialState=gamestate)
-                for action,node in searcher.root.children.items():
-                    d_legal[action]+=(node.totalReward/node.numVisits)/len(cards_lists_list)
-            elif self.mcts_k==-1:
-                input("not using this mode")
-                netin=MrZeroTreeSimple.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.history,self.place)
-                with torch.no_grad():
-                    p,_=self.pv_net(netin.to(self.device).unsqueeze(0))[0]
-                p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
-                p_legal.sort(key=lambda x:x[1],reverse=True)
-                d_legal[p_legal[0][0]]+=1
+            if self.searcher in {'mcts'}:
+                if self.mcts_k>=0:
+                    searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
+                                  explorationConstant=MCTS_EXPL)
+                    searcher.search(initialState=gamestate)
+                    for action,node in searcher.root.children.items():
+                        d_legal[action]+=(node.totalReward/node.numVisits)/len(cards_lists_list)
+                elif self.mcts_k==-1:
+                    input("not using this mode")
+                    netin=MrZeroTreeSimple.prepare_ohs(cards_lists,self.cards_on_table,self.scores,self.history,self.place)
+                    with torch.no_grad():
+                        p,_=self.pv_net(netin.to(self.device).unsqueeze(0))[0]
+                    p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice]
+                    p_legal.sort(key=lambda x:x[1],reverse=True)
+                    d_legal[p_legal[0][0]]+=1
+                else:
+                    raise Exception("reserved")
+                #挑选出最好的并返回
+                #d_legal={k:v\ for k,v in d_legal.items()}
             else:
-                raise Exception("reserved")"""
-            searcher=abpruning(deep=3,n_killer=2,rolloutPolicy=self.pv_policy)
-            searcher.search(initialState=gamestate)
-            for action,val in searcher.children.items():
-                d_legal[action]+=val
-        #挑选出最好的并返回
-        #d_legal={k:v/ for k,v in d_legal.items()}
+                searcher=abpruning(deep=self.tree_deep,n_killer=2,rolloutPolicy=self.pv_policy)
+                searcher.search(initialState=gamestate)
+                for action,val in searcher.children.items():
+                    d_legal[action]+=val
+        
         best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         return best_choice
 
@@ -288,11 +328,18 @@ class MrZeroTreeSimple(MrRandom):
         suit=self.decide_suit()
         cards_dict=MrGreed.gen_cards_dict(self.cards_list)
         legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,self.cards_list)
-        searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
-        searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
-                        explorationConstant=MCTS_EXPL)
-        searcher.search(initialState=gamestate)
-        d_legal_temp={action: node.totalReward/node.numVisits for action,node in searcher.root.children.items()}
+        if self.searcher in {'mcts'}:
+            searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
+            searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
+                            explorationConstant=MCTS_EXPL)
+            searcher.search(initialState=gamestate)
+        else:        
+            searcher=abpruning(deep=self.tree_deep,n_killer=2,rolloutPolicy=self.pv_policy)
+            searcher.search(initialState=gamestate)
+        if self.searcher in {'mcts'}:
+            d_legal_temp={action: node.totalReward/node.numVisits for action,node in searcher.root.children.items()}
+        else:
+            d_legal_temp={action: val for action,val in searcher.children.items()}
         #save data for train
         if self.train_mode:
             value_max=max(d_legal_temp.values())
@@ -302,7 +349,11 @@ class MrZeroTreeSimple(MrRandom):
                 target_p[ORDER_DICT[k]]=math.exp(BETA*(v-value_max))
                 legal_mask[ORDER_DICT[k]]=1
             target_p/=target_p.sum()
-            target_v=torch.tensor(value_max-gamestate.getReward())
+            if gamestate.isTerminal():
+                target_v=torch.tensor(value_max-gamestate.getReward_final())
+            else:
+                target_v=torch.tensor(value_max-gamestate.getReward_midway(mode=self.args['calc_score_mode']))
+
             netin=MrZeroTreeSimple.prepare_ohs(self.cards_remain,self.cards_on_table,self.scores,self.history,self.place)
             self.train_datas.append((netin,target_p,target_v,legal_mask))
         best_choice=MrGreed.pick_best_from_dlegal(d_legal_temp)
@@ -343,6 +394,7 @@ def benchmark(save_name,epoch,device_num, print_process=False,args={}):
         for i,j in itertools.product(range(13),range(4)):
             interface.step()
         stats.append(interface.clear())
+        # print("%4d"%(stats[-1],),end=" ",flush=True)
         interface.prepare_new()
         if print_process and l==N2-1:
             print("%4d"%(sum([j[0]+j[2]-j[1]-j[3] for j in stats[-N2:]])/N2),end=" ",flush=True)

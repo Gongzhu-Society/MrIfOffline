@@ -368,7 +368,7 @@ class PV_NET_5(PV_NET_FATHER):
 class Guessing_net_1(PV_NET_FATHER):
     def __init__(self):
         super(Guessing_net_1, self).__init__()
-        self.fc0 = nn.Linear(52 * 56, 2048)
+        self.fc0 = nn.Linear(53 * 56, 2048)
         self.fc1 = nn.Linear(2048, 2048)
         self.fc2 = nn.Linear(2048, 512)
         self.sc0a = nn.Linear(512, 512)

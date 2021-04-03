@@ -17,14 +17,17 @@ from MrZeroTreeSimple import MrZeroTreeSimple
 class SimpleGuesser():
     def __init__(self):
         1+1
-    def prepare_ohs(cards_on_table, history, place):
+    def prepare_ohs(cards_on_table, history, place, cards_remain_in_my_hand):
         oh_history = MrZeroTreeSimple.history_oh(history, place)
         offset = 4*len(history)
         for i in range(1,len(cards_on_table)):
             oh_history[offset, (cards_on_table[0]+i-1-place)%4]=1
             oh_history[offset, 4+ORDER_DICT[cards_on_table[i]]]=1
             offset+=1
-        return oh_history#.unsqueeze(0)
+        my_card = torch.zeros((1,56))
+        for card in cards_remain_in_my_hand:
+            my_card[0,4+ORDER_DICT[card]] = 1
+        return torch.cat((oh_history,my_card),dim=0)#.unsqueeze(0)
     def prepare_target_ohs(cards_remain,place):
         oh = torch.zeros((3,52))
         for i in range(3):
@@ -46,7 +49,7 @@ class Loss0(nn.Module):
         p_cardinplayer = F.softmax(omat*mask,dim=1)
         #p_playerhascard = F.softmax(omat*mask, dim=2)
         loss = -torch.sum(label * (torch.log(p_cardinplayer + 1e-10)))
-        #loss = -torch.sum(label*(torch.log(p_playerhascard+1e-10)+torch.log(p_cardinplayer+1e-10)))
+        #loss = -torch.sum(label*(0.1*torch.log(p_playerhascard+1e-10)+torch.log(p_cardinplayer+1e-10)))
         return loss/len(output_feature)
 
 class Buffer(torch.utils.data.Dataset):

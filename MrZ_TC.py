@@ -229,6 +229,7 @@ def main(args):
     else:
         pv_net.load_state_dict(torch.load(start_from))
         log("start_from: %s"%(start_from))
+    log("searcher: "+args['searcher'])
     train(pv_net,dev_train_num=dev_train,dev_bench_num=0,args=args)
 
 def main_for_guesser(args):
@@ -261,6 +262,7 @@ def main_for_guesser(args):
     else:
         gs_net.load_state_dict(torch.load(gs_start_from))
         log("start_from: %s"%(start_from))
+    log("searcher: "+args['searcher'])
     train_guesser(pv_net, gs_net, dev_train_num=dev_train, dev_bench_num=0, args=args)
 
 if __name__=="__main__":
@@ -269,5 +271,5 @@ if __name__=="__main__":
     f = open("setting.txt", 'r')
     args = eval(f.read())
     f.close()
-    main_for_guesser(args)
-    #main(args)
+    #main_for_guesser(args)
+    main(args)
