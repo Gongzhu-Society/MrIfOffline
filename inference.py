@@ -38,23 +38,6 @@ class SimpleGuesser():
     def guessing_score(gs_net, possible_hands, cards_on_table, history, place, device):
         cards_remain = copy.deepcopy(possible_hands)
         #print(cards_remain)
-        '''
-        for his in history:
-            for i in range(len(his) - 1):
-                print("his, i=", i)
-                print(his[(his[0] + i) % 4])
-                print(his[1 + i])
-                cards_remain[(his[0] + i) % 4].remove(his[1 + i])
-        for i in range(len(cards_on_table) - 1):
-            print("cot, i=",i)
-            print(cards_on_table)
-            print(cards_remain)
-            print(possible_hands)
-            print(cards_remain[(cards_on_table[0] + i) % 4])
-            print(cards_on_table[1 + i])
-            cards_remain[(cards_on_table[0] + i) % 4].remove(cards_on_table[1 + i])
-
-        '''
         oh = SimpleGuesser.prepare_ohs(cards_on_table, history, place, cards_remain[place])
         output = gs_net(oh.unsqueeze(0).to(device))
         output = output.view(1,3,-1)

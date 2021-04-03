@@ -91,7 +91,7 @@ class MrZeroTree(MrZeroTreeSimple):
         """
         oh=torch.zeros((4,52))
         for c in cards_lists[place]:
-            oh[ORDER_DICT[c]]=1
+            oh[0,ORDER_DICT[c]]=1
         for i in range(1,4):
             for c in cards_lists[(place+i)%4]:
                 oh[1,ORDER_DICT[c]]=1/3
@@ -99,7 +99,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 oh[3,ORDER_DICT[c]]=1/3
         return oh
 
-    def prepare_ohs_post_rect(cards_lists,cards_on_table,score_lists,place):
+    def prepare_ohs_post_rect(cards_lists,cards_on_table,score_lists,place,history):
         oh_card=MrZeroTree.cards_lists_oh_post_rect(cards_lists,place)
         oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
@@ -419,7 +419,7 @@ class MrZeroTree(MrZeroTreeSimple):
     def family_name():
         return 'Mr.ZeroTree'
 
-def example_DJ():
+def example_DJ(args):
     zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
 
     zt3.cards_list=["HQ","HJ","H8","SA","S5","S4","S3","CQ","CJ","C4"]
@@ -472,7 +472,11 @@ def example_SQ2():
 
 
 if __name__=="__main__":
-    example_DJ()
+    f = open("setting.txt", 'r')
+    args = eval(f.read())
+    f.close()
+    example_DJ(args)
+    #example_DJ()
     #example_SQ()
     #example_SQ2()
     #burdens()

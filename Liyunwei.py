@@ -10,6 +10,7 @@ from ScenarioGenerator.ImpScenarioGen import ImpScenarioGen
 from OfflineInterface import OfflineInterface
 from MCTS.mcts import mcts
 from inference import SimpleGuesser
+from MrZeroTree import MrZeroTree
 
 import torch
 import torch.nn.functional as F
@@ -102,7 +103,7 @@ class Liyunwei(MrZeroTreeSimple):
         """
         oh=torch.zeros((4,52))
         for c in cards_lists[place]:
-            oh[ORDER_DICT[c]]=1
+            oh[0,ORDER_DICT[c]]=1
         for i in range(1,4):
             for c in cards_lists[(place+i)%4]:
                 oh[1,ORDER_DICT[c]]=1/3
@@ -119,10 +120,12 @@ class Liyunwei(MrZeroTreeSimple):
         a1 = torch.cat((torch.zeros(11, 4), a12), 1)
         return torch.cat((a1, oh_history), 0).unsqueeze(0)
 
-    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
-        netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
+    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,history):
+        netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext,history)
         with torch.no_grad():
-            p,_=self.pv_net(netin.to(self.device))
+            #out=self.pv_net(netin.to(self.device).unsqueeze(0))
+            p,_=self.pv_net(netin.to(self.device).unsqueeze(0))#[0]
+            p=p[0]
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]!="C"] #G on Feb 9th
         p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice] #Before Jan 19th
@@ -160,7 +163,7 @@ class Liyunwei(MrZeroTreeSimple):
         scores=copy.deepcopy(self.scores)
         result=1.0
 
-        for history in [self.cards_on_table,]+self.history[::-1]:
+        for hisidx,history in enumerate([self.cards_on_table,]+self.history[::-1]):
             if len(history)==5:
                 for c in history[1:]:
                     if c in SCORE_DICT:
@@ -183,7 +186,7 @@ class Liyunwei(MrZeroTreeSimple):
                 suit=cards_on_table[1][0] if len(cards_on_table)>1 else "A"
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
-                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
+                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice,history=self.history[:hisidx])
                 if print_level>=4:
                     log("rectify %s(%d): %.4e"%(choice,nece,possi_pvnet),end="");input()
                 result*=possi_pvnet
@@ -430,12 +433,15 @@ class Liyunwei(MrZeroTreeSimple):
 
         return best_choice
 
+    def visualize(self,visdom):
+        pass
+    
     @staticmethod
     def family_name():
-        return 'Mr.ZeroTree'
+        return 'General.LiYunwei'
 
-def example_DJ():
-    zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
+def example_DJ(args):
+    zt3=Liyunwei(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2,args=args)
 
     zt3.cards_list=["HQ","HJ","H8","SA","S5","S4","S3","CQ","CJ","C4"]
     zt3.cards_on_table=[1,"DJ","D8"]
@@ -453,11 +459,12 @@ def example_DJ():
     #log(zt3.pick_a_card())
     #return
     l=[zt3.pick_a_card() for i in range(50)]
+    print(l)
     log("%d %d %d"%(len([i[0] for i in l if i[0]=="H"]),len([i[0] for i in l if i[0]=="C"]),len([i[0] for i in l if i[0]=="S"])))
 
 
-def example_SQ():
-    zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
+def example_SQ(args):
+    zt3=Liyunwei(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2,args=args)
 
     zt3.cards_list=["HQ","HJ","H8","H7","SA","S6","S5","S4","S3","CQ","CJ","D3"]
     zt3.cards_on_table=[1,"S7","SJ"]
@@ -487,7 +494,10 @@ def example_SQ2():
 
 
 if __name__=="__main__":
-    example_DJ()
+    f = open("setting.txt", 'r')
+    args = eval(f.read())
+    f.close()
+    example_DJ(args)
     #example_SQ()
     #example_SQ2()
     #burdens()
