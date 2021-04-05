@@ -21,9 +21,10 @@ class MrAbTree(MrRandom):
                  'CA':11,'CK':9,'CQ':8,'CJ':7,'C10':6,'C9':5,'C8':4,'C7':3,'C6':2,'C5':1,'C4':1,
                  'DA':11,'DK':9,'DQ':8,'DJ':7,'D10':6,'D9':5,'D8':4,'D7':3,'D6':2,'D5':1,'D4':1,
                  'H10':6,'H9':5,'H8':4,'H7':3,'H6':2,'H5':1,'H4':1}
-    BURDEN_DICT_S={'SA':50,'SK':30}
-    BURDEN_DICT_D={'DA':-30,'DK':-20,'DQ':-10}
+    BURDEN_DICT_S={'SA':30,'SK':20}
+    BURDEN_DICT_D={'DA':-25,'DK':-20,'DQ':-10}
     BURDEN_DICT_C={'CA':0.4,'CK':0.3,'CQ':0.2,'CJ':0.1} #ratio of burden, see calc_relief
+    BURDEN_C10=0.8
     #SHORT_PREFE=0.1
     SHORT_PREFE=30
     SHORT_POSSI=(None,
@@ -55,7 +56,7 @@ class MrAbTree(MrRandom):
             burden-=sum([MrAbTree.BURDEN_DICT_C.get(i,0)*score_remain_avg for i in cards_list])
         elif 'C10' in score_lists[play_for]:
             #burden-=score_remain_avg
-            burden_c10=score_remain_avg
+            burden_c10=score_remain_avg*MrAbTree.BURDEN_C10
 
         if short_flag:
             short_factor=0
@@ -82,7 +83,7 @@ class MrAbTree(MrRandom):
             score_remain_avg=sum([SCORE_DICT.get(c,0) for c in cards_remain])/4
             suits_remain_tot={s:sum([1 for c in cards_remain if c[0]==s]) for s in "SHDC"}
 
-            burdens=[MrAbTree.calc_burden(state.cards_lists,(state.play_for+i)%4,score_remain_avg,state.score_lists,suits_remain_tot,short_flag=(i==0)) for i in range(4)]
+            burdens=[MrAbTree.calc_burden(state.cards_lists,(state.play_for+i)%4,score_remain_avg,state.score_lists,suits_remain_tot,short_flag=False) for i in range(4)]
             burdens=burdens[0]+burdens[2]-burdens[1]-burdens[3]
             #burden_0=MrAbTree.calc_burden(state.cards_lists,state.play_for,score_remain,state.score_lists)
             #burden_2=MrAbTree.calc_burden(state.cards_lists,(state.play_for+2)%4,score_remain,state.score_lists)
@@ -165,9 +166,9 @@ def benchmark(handsfile):
     from OfflineInterface import OfflineInterface,read_std_hands,play_a_test
 
     g=[MrGreed(room=0,place=i,name='g%d'%(i)) for i in range(4)]
-    #abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=2,sample_b=5,multi_proc=True) for i in range(4)]
+    abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=2,sample_b=5,multi_proc=True) for i in range(4)]
     #abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=1,multi_proc=False) for i in range(4)]
-    abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=5,multi_proc=True) for i in range(4)]
+    #abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=5,multi_proc=True) for i in range(4)]
     interface=OfflineInterface([abt[0],g[1],abt[2],g[3]],print_flag=False)
     #interface=OfflineInterface([g[0],g[1],g[2],g[3]],print_flag=False)
     N1=128;N2=2
