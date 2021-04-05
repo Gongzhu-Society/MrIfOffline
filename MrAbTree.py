@@ -7,6 +7,7 @@ from MrZeroTreeSimple import GameState
 from ScenarioGenerator.ScenarioGen import ScenarioGen
 from MCTS.mcts import abpruning,mcts
 import time,copy,numpy
+from multiprocessing import Process,Queue
 
 # print_level meaning
 # 0: nothing
@@ -23,30 +24,49 @@ class MrAbTree(MrRandom):
     BURDEN_DICT_S={'SA':50,'SK':30}
     BURDEN_DICT_D={'DA':-30,'DK':-20,'DQ':-10}
     BURDEN_DICT_C={'CA':0.4,'CK':0.3,'CQ':0.2,'CJ':0.1} #ratio of burden, see calc_relief
-    SHORT_PREFERENCE=30 #will multiply (average suit count)-(my suit count), if play first
+    #SHORT_PREFE=0.1
+    SHORT_PREFE=30
+    SHORT_POSSI=(None,
+                (0.0000,),(0.0000,),(0.2229,),(0.4439,),
+                (0.6164,0.0000),(0.7381,0.0000),(0.8162,0.1245),(0.8847,0.2847),
+                (0.9198,0.4495,0.0000),(0.9456,0.5764,0.0000),(0.9628,0.6959,0.0852),(0.9722,0.7730,0.2161),
+                (0.9853,0.8374,0.3561,0.0000))
 
-    def __init__(self,room=0,place=0,name="MrAbTree",sample_b=5,trick_deep=2):
+    def __init__(self,room=0,place=0,name="MrAbTree",sample_b=5,trick_deep=2,multi_proc=True):
         MrRandom.__init__(self,room,place,name)
         self.sample_b=sample_b
         self.trick_deep=trick_deep
+        self.multi_proc=multi_proc
 
-    def calc_burden(cards_lists,play_for,score_remain_avg,score_lists):
+    def calc_burden(cards_lists,play_for,score_remain_avg,score_lists,suits_remain_tot,short_flag=False):
         cards_list=cards_lists[play_for]
         burden=sum([MrAbTree.BURDEN_DICT.get(i,0) for i in cards_list])
 
-        cards_remain=set()
-        for i in range(1,4):
-            cards_remain.update(cards_lists[(play_for+i)%4])
+        cards_remain_others=set([c for j in range(1,4) for c in cards_lists[(play_for+j)%4]])
 
-        if 'SQ' in cards_remain:
+        if 'SQ' in cards_remain_others:
             burden+=sum([MrAbTree.BURDEN_DICT_S.get(i,0) for i in cards_list])
-        if 'DJ' in cards_remain:
-            burden+=sum([MrAbTree.BURDEN_DICT_D.get(i,0) for i in cards_list])
-        if 'C10' in cards_remain:
+        burden_j=0
+        if 'DJ' in cards_remain_others:
+            #burden+=sum([MrAbTree.BURDEN_DICT_D.get(i,0) for i in cards_list])
+            burden_j=sum([MrAbTree.BURDEN_DICT_D.get(i,0) for i in cards_list])
+        burden_c10=0
+        if 'C10' in cards_remain_others:
             burden-=sum([MrAbTree.BURDEN_DICT_C.get(i,0)*score_remain_avg for i in cards_list])
         elif 'C10' in score_lists[play_for]:
-            burden-=score_remain_avg
-        return burden
+            #burden-=score_remain_avg
+            burden_c10=score_remain_avg
+
+        if short_flag:
+            short_factor=0
+            for s in "SHDC":
+                s_num=sum([1 for c in cards_list if c[0]==s])
+                s_num_oppo=(sum([1 for c in cards_lists[(play_for+1)%4] if c[0]==s])+sum([1 for c in cards_lists[(play_for+3)%4] if c[0]==s]))/2
+                if s_num<suits_remain_tot[s]/4 and s_num<s_num_oppo:
+                    short_factor+=MrAbTree.SHORT_POSSI[suits_remain_tot[s]][s_num]
+            burden-=short_factor*MrAbTree.SHORT_PREFE*len(cards_list)/13
+
+        return burden+burden_j-burden_c10
 
     def ab_policy(self,state):
         assert len(state.cards_on_table)==1
@@ -58,8 +78,11 @@ class MrAbTree(MrRandom):
             scores=[calc_score_midway(state.score_lists[(state.play_for+i)%4],scards_played) for i in range(4)]
             scores=scores[0]+scores[2]-scores[1]-scores[3]
 
-            score_remain_avg=sum([SCORE_DICT.get(i,0)  for j in range(4) for i in state.score_lists[j]])/4
-            burdens=[MrAbTree.calc_burden(state.cards_lists,(state.play_for+i)%4,score_remain_avg,state.score_lists) for i in range(4)]
+            cards_remain=set([i for j in range(4) for i in state.score_lists[j]])
+            score_remain_avg=sum([SCORE_DICT.get(c,0) for c in cards_remain])/4
+            suits_remain_tot={s:sum([1 for c in cards_remain if c[0]==s]) for s in "SHDC"}
+
+            burdens=[MrAbTree.calc_burden(state.cards_lists,(state.play_for+i)%4,score_remain_avg,state.score_lists,suits_remain_tot,short_flag=(i==0)) for i in range(4)]
             burdens=burdens[0]+burdens[2]-burdens[1]-burdens[3]
             #burden_0=MrAbTree.calc_burden(state.cards_lists,state.play_for,score_remain,state.score_lists)
             #burden_2=MrAbTree.calc_burden(state.cards_lists,(state.play_for+2)%4,score_remain,state.score_lists)
@@ -68,6 +91,10 @@ class MrAbTree(MrRandom):
 
             return scores-burdens*len(state.cards_lists[state.play_for])/12
 
+    def search_a_case(self,cards_lists,searcher,data_q):
+        gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place)
+        searcher.search(initialState=gamestate)
+        data_q.put(searcher.children)
 
     def pick_a_card(self):
         #utility datas
@@ -105,15 +132,28 @@ class MrAbTree(MrRandom):
         if print_level>=2:
             log("tree_deep: %d"%(tree_deep))
 
-        for i,cards_lists in enumerate(cards_lists_list):
-            if print_level>=3:
-                log("considering case %d: %s"%(i,cards_lists));input()
-            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place)
-            searcher.search(initialState=gamestate)
-            for action,val in searcher.children.items():
-                d_legal[action]+=val
-        if print_level>=2:
-            log("searched %.1f cases"%(searcher.counter/self.sample_b))
+        if self.multi_proc and len(cards_lists_list)>2 and tree_deep>=7 and len(self.cards_list)>2:
+            plist=[]
+            data_q=Queue()
+            for i,cards_lists in enumerate(cards_lists_list):
+                plist.append(Process(target=self.search_a_case,args=(cards_lists,searcher,data_q)))
+                plist[-1].start()
+            for p in plist:
+                p.join()
+            for i in range(len(plist)):
+                d_case=data_q.get(True)
+                for action,val in d_case.items():
+                    d_legal[action]+=val
+        else:
+            for i,cards_lists in enumerate(cards_lists_list):
+                if print_level>=3:
+                    log("considering case %d: %s"%(i,cards_lists));input()
+                gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place)
+                searcher.search(initialState=gamestate)
+                for action,val in searcher.children.items():
+                    d_legal[action]+=val
+            if print_level>=2:
+                log("searched %.1f cases"%(searcher.counter/self.sample_b))
 
         #best_choice=MrGreed.pick_best_from_dlegal(d_legal)
         best_choice=max(d_legal.items(),key=lambda x:x[1])[0]
@@ -125,10 +165,12 @@ def benchmark(handsfile):
     from OfflineInterface import OfflineInterface,read_std_hands,play_a_test
 
     g=[MrGreed(room=0,place=i,name='g%d'%(i)) for i in range(4)]
-    abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=5) for i in range(4)]
-    #interface=OfflineInterface([abt[0],g[1],abt[2],g[3]],print_flag=True)
-    interface=OfflineInterface([g[0],g[1],g[2],g[3]],print_flag=False)
-    N1=256;N2=2
+    #abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=2,sample_b=5,multi_proc=True) for i in range(4)]
+    #abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=1,multi_proc=False) for i in range(4)]
+    abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=5,multi_proc=True) for i in range(4)]
+    interface=OfflineInterface([abt[0],g[1],abt[2],g[3]],print_flag=False)
+    #interface=OfflineInterface([g[0],g[1],g[2],g[3]],print_flag=False)
+    N1=128;N2=2
     log(interface)
 
     hands=read_std_hands(handsfile)
