@@ -9,6 +9,8 @@ from ScenarioGenerator.ScenarioGen import ScenarioGen
 from ScenarioGenerator.ImpScenarioGen import ImpScenarioGen
 from OfflineInterface import OfflineInterface
 from MCTS.mcts import mcts
+from inference import SimpleGuesser
+from MrZeroTree import MrZeroTree
 
 import torch
 import torch.nn.functional as F
@@ -18,9 +20,9 @@ print_level=0
 BETA_POST_RECT=0.015
 log("BETA_POST_RECT: %.3f, BETA: %.2f"%(BETA_POST_RECT,BETA))
 
-class MrZeroTree(MrZeroTreeSimple):
+class Liyunwei(MrZeroTreeSimple):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
-                 sample_b=-3,sample_k=-3,mcts_b=50,mcts_k=2):
+                 sample_b=-3,sample_k=-3,mcts_b=50,mcts_k=2,gs_net=None,args={}):
         MrRandom.__init__(self,room,place,name)
 
         if device==None:
@@ -32,11 +34,19 @@ class MrZeroTree(MrZeroTreeSimple):
             self.device=device
 
         if pv_net==None:
-            self.load_pv_net(net_para_loc="Zero-29th-25-11416629-720.pt")
+            #self.load_pv_net(net_para_loc="Zero-29th-25-11416629-720.pt")
+            self.load_pv_net(net_para_loc="PV_NET_5-sota1.pkl",args=args)
         elif isinstance(pv_net,str):
             self.load_pv_net(net_para_loc=pv_net)
         else:
             self.pv_net=pv_net
+
+        if gs_net==None:
+            self.load_gs_net(net_para_loc="guesser-net-1-sota1.pkl")
+        elif isinstance(gs_net,str):
+            self.load_gs_net(net_para_loc=pv_net)
+        else:
+            self.gs_net=gs_net
 
         self.sample_b=sample_b
         self.sample_k=sample_k
@@ -45,6 +55,8 @@ class MrZeroTree(MrZeroTreeSimple):
         self.train_mode=train_mode
         if self.train_mode:
             self.train_datas=[]
+
+        self.args=args
         #self.int_method_printed_flag=False
 
     """def wasserstein(l):
@@ -99,7 +111,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 oh[3,ORDER_DICT[c]]=1/3
         return oh
 
-    def prepare_ohs_post_rect(cards_lists,cards_on_table,score_lists,place,history):
+    def prepare_ohs_post_rect(cards_lists,cards_on_table,score_lists,place):
         oh_card=MrZeroTree.cards_lists_oh_post_rect(cards_lists,place)
         oh_score=MrZeroTreeSimple.score_lists_oh(score_lists,place)
         oh_table=MrZeroTreeSimple.four_cards_oh(cards_on_table,place)
@@ -108,10 +120,12 @@ class MrZeroTree(MrZeroTreeSimple):
         a1 = torch.cat((torch.zeros(11, 4), a12), 1)
         return torch.cat((a1, oh_history), 0).unsqueeze(0)
 
-    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice):
-        netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext)
+    def possi_rectify_pvnet(self,cards_lists,scores,cards_on_table,pnext,legal_choice,choice,history):
+        netin=MrZeroTree.prepare_ohs_post_rect(cards_lists,cards_on_table,scores,pnext,history)
         with torch.no_grad():
-            p,_=self.pv_net(netin.to(self.device))
+            #out=self.pv_net(netin.to(self.device).unsqueeze(0))
+            p,_=self.pv_net(netin.to(self.device).unsqueeze(0))#[0]
+            p=p[0]
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]!="C"] #G on Feb 9th
         p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice if c[0]==choice[0]] #Important!
         #p_legal=[(c,p[ORDER_DICT[c]]) for c in legal_choice] #Before Jan 19th
@@ -142,10 +156,14 @@ class MrZeroTree(MrZeroTreeSimple):
             posterior probability rectify
             cards_lists is in absolute order
         """
+        score = SimpleGuesser.guessing_score(self.gs_net, cards_lists, self.cards_on_table, self.history, self.place, self.device)
+        return score
+
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
         result=1.0
-        for history in [self.cards_on_table,]+self.history[::-1]:
+
+        for hisidx,history in enumerate([self.cards_on_table,]+self.history[::-1]):
             if len(history)==5:
                 for c in history[1:]:
                     if c in SCORE_DICT:
@@ -168,7 +186,7 @@ class MrZeroTree(MrZeroTreeSimple):
                 suit=cards_on_table[1][0] if len(cards_on_table)>1 else "A"
                 cards_dict=MrGreed.gen_cards_dict(cards_lists[pnext])
                 legal_choice=MrGreed.gen_legal_choice(suit,cards_dict,cards_lists[pnext])
-                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice)
+                possi_pvnet=self.possi_rectify_pvnet(cards_lists,scores,cards_on_table,pnext,legal_choice,choice,history=self.history[:hisidx])
                 if print_level>=4:
                     log("rectify %s(%d): %.4e"%(choice,nece,possi_pvnet),end="");input()
                 result*=possi_pvnet
@@ -350,7 +368,7 @@ class MrZeroTree(MrZeroTreeSimple):
         searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         for i,cards_lists in enumerate(cards_lists_list):
             #initialize gamestate
-            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.place)
+            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place)
             #mcts
             if self.mcts_k>=0:
                 searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
@@ -415,12 +433,15 @@ class MrZeroTree(MrZeroTreeSimple):
 
         return best_choice
 
+    def visualize(self,visdom):
+        pass
+    
     @staticmethod
     def family_name():
-        return 'Mr.ZeroTree'
+        return 'General.LiYunwei'
 
 def example_DJ(args):
-    zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
+    zt3=Liyunwei(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2,args=args)
 
     zt3.cards_list=["HQ","HJ","H8","SA","S5","S4","S3","CQ","CJ","C4"]
     zt3.cards_on_table=[1,"DJ","D8"]
@@ -438,11 +459,12 @@ def example_DJ(args):
     #log(zt3.pick_a_card())
     #return
     l=[zt3.pick_a_card() for i in range(50)]
+    print(l)
     log("%d %d %d"%(len([i[0] for i in l if i[0]=="H"]),len([i[0] for i in l if i[0]=="C"]),len([i[0] for i in l if i[0]=="S"])))
 
 
-def example_SQ():
-    zt3=MrZeroTree(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
+def example_SQ(args):
+    zt3=Liyunwei(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2,args=args)
 
     zt3.cards_list=["HQ","HJ","H8","H7","SA","S6","S5","S4","S3","CQ","CJ","D3"]
     zt3.cards_on_table=[1,"S7","SJ"]
@@ -476,7 +498,6 @@ if __name__=="__main__":
     args = eval(f.read())
     f.close()
     example_DJ(args)
-    #example_DJ()
     #example_SQ()
     #example_SQ2()
     #burdens()

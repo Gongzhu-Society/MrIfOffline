@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log
-from MrZeroTree import benchmark,prepare_data
-from MrZ_NETs import RES_NET_18
+from MrZeroTreeSimple import benchmark,prepare_data
 
 from torch import device
 import torch.nn.functional as F
 from torch.multiprocessing import Process
 import torch.multiprocessing
 
-import copy,itertools,numpy,gc,time
+import copy,itertools,numpy,time
 
-def train(pv_net,dev_train_num,dev_bench_num):
+def train(pv_net,dev_train_num=0,dev_bench_num=0):
     import torch.optim as optim
     import gc
     data_rounds=64
@@ -23,8 +22,8 @@ def train(pv_net,dev_train_num,dev_bench_num):
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
 
-    device_main=device("cuda:%d"%(dev_train_num))
-    pv_net.to(device_main)
+    #device_main=device("cuda:%d"%(dev_train_num))
+    #pv_net.to(device_main)
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
 
@@ -33,17 +32,18 @@ def train(pv_net,dev_train_num,dev_bench_num):
     for epoch in range(2400):
         if epoch%80==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-5:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
-            torch.save(pv_net,save_name)
+            #torch.save(pv_net,save_name)
+            torch.save(pv_net.state_dict(),save_name)
             if p_benchmark!=None:
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")
                 p_benchmark.join()
             p_benchmark=Process(target=benchmark,args=(save_name,epoch,dev_bench_num))
             p_benchmark.start()
+            time.sleep(3600)
 
         if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%20==0:
             output_flag=True
-            #log("gc len at %d: %d"%(epoch,len(gc.get_objects())))
         else:
             output_flag=False
 
@@ -60,11 +60,11 @@ def train(pv_net,dev_train_num,dev_bench_num):
             log_p=F.log_softmax(p*batch[3].to(device_main),dim=1)
             loss1_t=F.kl_div(log_p,batch[1].to(device_main),reduction="batchmean")
             loss1_t.backward(retain_graph=True)
-            grad1=pv_net.conv1.weight.grad.abs().mean().item()
+            grad1=pv_net.fc0.weight.grad.abs().mean().item()
             optimizer.zero_grad()
             loss2_t=F.mse_loss(v.view(-1),batch[2].to(device_main),reduction='mean').sqrt()
             loss2_t.backward(retain_graph=True)
-            grad2=pv_net.conv1.weight.grad.abs().mean().item()
+            grad2=pv_net.fc0.weight.grad.abs().mean().item()
             log("dloss at %d: %.4f %.4f %.4f"%(epoch,grad1,grad2,grad1/grad2))
 
         for age in range(age_in_epoch):
@@ -106,17 +106,23 @@ def train(pv_net,dev_train_num,dev_bench_num):
     p_benchmark.join()
 
 def main():
-    from MrZeroTree import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
+    from MrZeroTreeSimple import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
     from MrZ_NETs import VALUE_RENORMAL
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
-    dev_train_num=2
-    #pv_net=PV_NET();log("init pv_net: %s"%(pv_net))
-    pv_net=RES_NET_18();log("init pv_net: %s"%(pv_net))
-    #start_from="./ZeroNets/from-zero-29/PV_NET-B-25-11416629-480.pkl"
-    #pv_net=torch.load(start_from,map_location=device("cuda:%d"%(dev_train_num)));log("start from: %s"%(start_from))
-    train(pv_net,dev_train_num,3)
+    from MrZ_NETs import PV_NET_2
+    dev_train=0
+    start_from=None # or a path to netpara file
+
+    pv_net=PV_NET_2()
+    log("init pv_net: %s"%(pv_net))
+    if start_from==None:
+        log("start from: zero")
+    else:
+        pv_net.load_state_dict(torch.load(start_from))
+        log("start_from: %s"%(start_from))
+    train(pv_net,dev_train_num=dev_train,dev_bench_num=-1)
 
 
 if __name__=="__main__":

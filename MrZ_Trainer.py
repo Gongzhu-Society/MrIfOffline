@@ -38,7 +38,8 @@ def train(pv_net,dev_train_nums=[0,],dev_bench_num=1):
     for epoch in range(4000):
         if epoch%90==0:
             save_name='%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,pv_net.num_layers(),pv_net.num_paras(),epoch)
-            torch.save(pv_net,save_name)
+            #torch.save(pv_net,save_name)
+            torch.save(pv_net.state_dict(),save_name)
             if p_benchmark!=None:
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")

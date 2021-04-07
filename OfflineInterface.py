@@ -2,13 +2,13 @@
 # -*- coding: UTF-8 -*-
 
 from Util import log,calc_score,cards_order
-from Util import ORDER_DICT2,SCORE_DICT
+from Util import ORDER_DICT2,SCORE_DICT,ORDER_DICT
 
-import random,itertools,numpy,copy,time
+import random,itertools,numpy,copy,time,torch
 
 class OfflineInterface():
     """ONLY for 4 players"""
-    def __init__(self,players,print_flag=True):
+    def __init__(self,players,print_flag=True,record_history=False):
         """
             players: list of robots or humans, each of them is a instace of MrRandom, Human, MrIf, etc.
         """
@@ -20,6 +20,9 @@ class OfflineInterface():
         self.cards_on_table=[self.pnext,] #see MrRandom.cards_on_table
         self.history=[]                   #see MrRandom.history
         self.scores=[[],[],[],[]]
+        self.record_history = record_history
+        if record_history:
+            self.recording = []
         #self.cards_remain should be initialized by self.shuffle
         #self.cards_remain=[[],[],[],[]]
 
@@ -27,14 +30,14 @@ class OfflineInterface():
         players="(%s+%s) v.s. (%s+%s)"%(self.players[0].name,self.players[2].name,
                                         self.players[1].name,self.players[3].name)
         return players
-    
+
     def reset(self,pstart=0):
         self.pstart=pstart
         self.pnext=self.pstart
         self.cards_on_table=[self.pnext,]
         self.history=[]
         self.scores=[[],[],[],[]]
-    
+
     def shuffle(self,cards=None):
         if cards==None:
             cards=['S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'SJ', 'SQ', 'SK', 'SA',
@@ -82,6 +85,11 @@ class OfflineInterface():
         self.cards_on_table.append(choice)
         if self.print_flag:
             log("%s played %s, %s"%(self.players[self.pnext].name,choice,self.cards_on_table,))
+
+        if self.record_history:
+            cr=copy.deepcopy(self.cards_remain)
+            self.recording.append([self.pnext,cr,copy.copy(self.history),copy.copy(self.cards_on_table)])
+
         #如果一墩结束
         if len(self.cards_on_table)==5:
             #判断赢家
@@ -110,6 +118,7 @@ class OfflineInterface():
                 log("trick end. winner is %s, %s"%(self.pnext,self.scores))
         else:
             self.pnext=(self.pnext+1)%4
+
         return 0
 
     def step_complete_info(self):
@@ -167,6 +176,7 @@ class OfflineInterface():
             log("clear score: %s, %s"%(self.scores,self.scores_num))"""
         if self.print_flag:
             log("game end: %s, %s"%(self.scores_num,self.scores))
+
         return self.scores_num
 
     def prepare_new(self):
@@ -175,6 +185,8 @@ class OfflineInterface():
         self.cards_on_table=[self.pnext,]
         self.scores=[[],[],[],[]]
         self.history=[]
+        if self.record_history:
+            self.recording = []
         del self.scores_num
         del self.cards_remain
 
@@ -188,7 +200,7 @@ def gen_shuffle(num,perfix):
     for i in range(num):
         random.shuffle(cards)
         log("No.%04d: %s"%(i,cards),logfile=logfile,fileonly=True)
-        
+
 def read_std_hands(filename):
     import re
     from ast import literal_eval
@@ -208,7 +220,7 @@ def read_std_hands(filename):
     log("parsed %d hands from %s, start with: %s"%(len(stdhands),filename,stdhands[0][1][0:4]))
     return stdhands
 
-def play_a_test(interface,cards,n2,bias=0):
+def play_a_test(interface,cards,n2,bias=0,step_int=False):
     """
         n2  : the round of games to play
         bias: will shift the hands bias time, also set the first player to the bias-th player
@@ -225,6 +237,8 @@ def play_a_test(interface,cards,n2,bias=0):
             log("%s: %s"%(interface.players[p_index].name,interface.players[p_index].cards_list[0:4]))"""
         for i,j in itertools.product(range(13),range(4)):
             interface.step()
+            if step_int:
+                input()
         r_temp=interface.clear()
         interface.prepare_new()
         results.append(r_temp[0]+r_temp[2]-r_temp[1]-r_temp[3])
@@ -236,14 +250,14 @@ def select_hands_A(fromfile,tofile):
     from MrRandom import MrRandom
     from MrIf import MrIf
     from MrGreed import MrGreed
-    
+
     rs=[MrRandom(room=255,place=i,name='R%d'%(i)) for i in range(4)]
     ifs=[MrIf(room=255,place=i,name='I%d'%(i)) for i in range(4)]
     gs=[MrGreed(room=255,place=i,name='G%d'%(i)) for i in range(4)]
     I_GI=OfflineInterface([gs[0],ifs[1],gs[2],ifs[3]],print_flag=False)
     I_GR=OfflineInterface([gs[0],rs[1],gs[2],rs[3]],print_flag=False)
     I_IR=OfflineInterface([ifs[0],rs[1],ifs[2],rs[3]],print_flag=False)
-    
+
     hands=read_std_hands(fromfile)
     N3=4
     for k,hand in hands:
@@ -256,7 +270,9 @@ def select_hands_A(fromfile,tofile):
             log("No.%04d: %s"%(k,hand),logfile=tofile)
             time.sleep(1)
             #input()
-    
+
+def stringhis2numberhis(his):
+    return [his[0]]+[ORDER_DICT[his[i]] for i in range(1,len(his))]
 
 if __name__=="__main__":
     #gen_shuffle(1024,"random")
