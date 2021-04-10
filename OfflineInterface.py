@@ -245,6 +245,19 @@ def play_a_test(interface,cards,n2,bias=0,step_int=False):
     assert len(results)==n2
     return sum(results)/n2
 
+def bench_stat(stats,comments=None,flags=[]):
+    if comments!=None:
+        log(comments)
+    log("benchmark result: %.2f %.2f"%(numpy.mean(stats),numpy.sqrt(numpy.var(stats)/(len(stats)-1))))
+    if "success-rate" in flags:
+        suc_ct=len([1 for i in stats if i>0])
+        draw_ct=len([1 for i in stats if i==0])
+        log("success rate: (%d+%d)/%d"%(suc_ct,draw_ct,len(stats)))
+    if "highlow-ct" in flags:
+        low_ct=len([1 for i in s_temp if i<-250])
+        high_ct=len([1 for i in s_temp if i>400])
+        log("low(<-250),high(>400): (%d,%d)/%d"%(low_ct,high_ct,len(s_temp)))
+
 def select_hands_A(fromfile,tofile):
     """select hands which Mr. Greed wins over Mr. If over 40 pts twice"""
     from MrRandom import MrRandom

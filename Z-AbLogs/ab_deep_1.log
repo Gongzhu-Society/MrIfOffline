@@ -1,0 +1,94 @@
+21/04/10 21:33:10 382 [INFO,main:107] BETA: 0.20, VALUE_RENORMAL: 10, MCTS_EXPL: 30, BENCH_SMP_B: 5, BENCH_SMP_K: 0.0
+21/04/10 21:33:10 448 [INFO,main:119] start_from: PV_NET_6-17-9315381-Rand.pkl
+21/04/10 21:33:10 448 [INFO,train:22] loss2_weight: 0.03, data_rounds: 64, review_number: 3, age_in_epoch: 3
+21/04/10 21:33:10 448 [INFO,train:23] optimizer: {'lr': 0.0001, 'betas': (0.3, 0.999), 'eps': 1e-07, 'weight_decay': 0.0001, 'amsgrad': False}
+21/04/10 21:33:10 448 [INFO,train:24] {'searcher': 'ab-tree', 'tree_deep': 1, 'calc_score_mode': 1, 'benchmark_N1': 512}
+21/04/10 21:33:15 827 [INFO,benchmark:379] start benchmark against MrGreed for 512x2
+21/04/10 21:33:15 877 [INFO,read_std_hands:220] parsed 1024 hands from StdHands/random_0_1024.hands, start with: ['H4', 'DJ', 'C3', 'C6']
+21/04/10 21:33:29 406 [INFO,train:64] dloss at 0: 0.0000 0.0003 0.0913
+21/04/10 21:33:29 753 [INFO,train:93] 0: 0.739 31.32 3328 52
+21/04/10 21:33:29 753 [INFO,train:100]         epoch 0 age 0: 0.739 31.32
+21/04/10 21:33:30 099 [INFO,train:100]         epoch 0 age 1: 0.092 30.12
+21/04/10 21:33:30 439 [INFO,train:100]         epoch 0 age 2: 0.085 29.80
+21/04/10 21:33:46 949 [INFO,train:64] dloss at 1: 0.0000 0.0031 0.0063
+21/04/10 21:33:47 640 [INFO,train:93] 1: 0.107 31.65 6656 104
+21/04/10 21:33:47 641 [INFO,train:100]         epoch 1 age 0: 0.096 30.72
+21/04/10 21:33:48 329 [INFO,train:100]         epoch 1 age 1: 0.082 27.56
+21/04/10 21:33:49 002 [INFO,train:100]         epoch 1 age 2: 0.072 24.85
+21/04/10 21:34:06 034 [INFO,train:64] dloss at 2: 0.0001 0.0091 0.0072
+21/04/10 21:34:07 061 [INFO,train:93] 2: 0.097 30.47 9984 156
+21/04/10 21:34:07 061 [INFO,train:100]         epoch 2 age 0: 0.080 26.72
+21/04/10 21:34:08 094 [INFO,train:100]         epoch 2 age 1: 0.073 24.80
+21/04/10 21:34:09 131 [INFO,train:100]         epoch 2 age 2: 0.067 22.80
+21/04/10 21:34:25 742 [INFO,train:64] dloss at 3: 0.0001 0.0115 0.0082
+21/04/10 21:34:26 784 [INFO,train:93] 3: 0.151 30.84 9984 156
+21/04/10 21:34:26 784 [INFO,train:100]         epoch 3 age 0: 0.095 25.48
+21/04/10 21:34:27 815 [INFO,train:100]         epoch 3 age 1: 0.087 21.52
+21/04/10 21:34:28 846 [INFO,train:100]         epoch 3 age 2: 0.081 18.26
+21/04/10 21:34:45 185 [INFO,train:64] dloss at 4: 0.0001 0.0315 0.0025
+21/04/10 21:34:46 227 [INFO,train:93] 4: 0.170 35.70 9984 156
+21/04/10 21:34:46 227 [INFO,train:100]         epoch 4 age 0: 0.111 24.07
+21/04/10 21:34:47 246 [INFO,train:100]         epoch 4 age 1: 0.103 19.42
+21/04/10 21:34:48 279 [INFO,train:100]         epoch 4 age 2: 0.096 16.50
+21/04/10 21:35:04 864 [INFO,train:64] dloss at 5: 0.0002 0.0259 0.0068
+21/04/10 21:35:05 910 [INFO,train:93] 5: 0.192 39.43 9984 156
+21/04/10 21:35:05 910 [INFO,train:100]         epoch 5 age 0: 0.128 24.15
+21/04/10 21:35:06 951 [INFO,train:100]         epoch 5 age 1: 0.115 19.93
+21/04/10 21:35:07 991 [INFO,train:100]         epoch 5 age 2: 0.103 16.77
+21/04/10 21:36:45 816 [INFO,train:64] dloss at 10: 0.0002 0.0309 0.0073
+21/04/10 21:36:46 880 [INFO,train:93] 10: 0.269 45.77 9984 156
+21/04/10 21:36:46 880 [INFO,train:100]         epoch 10 age 0: 0.172 25.30
+21/04/10 21:36:47 927 [INFO,train:100]         epoch 10 age 1: 0.149 19.57
+21/04/10 21:36:48 963 [INFO,train:100]         epoch 10 age 2: 0.134 15.97
+21/04/10 21:38:24 493 [INFO,train:64] dloss at 15: 0.0004 0.0421 0.0107
+21/04/10 21:38:25 560 [INFO,train:93] 15: 0.284 41.09 9984 156
+21/04/10 21:38:25 560 [INFO,train:100]         epoch 15 age 0: 0.187 23.15
+21/04/10 21:38:26 617 [INFO,train:100]         epoch 15 age 1: 0.156 16.62
+21/04/10 21:38:27 674 [INFO,train:100]         epoch 15 age 2: 0.143 13.44
+21/04/10 21:39:48 076 [INFO,train:36] waiting benchmark threading to join
+21/04/10 21:44:17 471 [INFO,bench_stat:250] benchmark result: -258.15 7.24
+21/04/10 21:44:17 471 [INFO,bench_stat:253] success rate: (32+3)/512
+21/04/10 21:44:17 471 [INFO,bench_stat:258] epoch: 0
+21/04/10 21:44:20 644 [INFO,benchmark:379] start benchmark against MrGreed for 512x2
+21/04/10 21:44:20 694 [INFO,read_std_hands:220] parsed 1024 hands from StdHands/random_0_1024.hands, start with: ['H4', 'DJ', 'C3', 'C6']
+21/04/10 21:44:33 295 [INFO,train:64] dloss at 20: 0.0008 0.0513 0.0151
+21/04/10 21:44:34 346 [INFO,train:93] 20: 0.341 45.05 9984 156
+21/04/10 21:44:34 346 [INFO,train:100]         epoch 20 age 0: 0.227 24.26
+21/04/10 21:44:35 399 [INFO,train:100]         epoch 20 age 1: 0.186 16.84
+21/04/10 21:44:36 441 [INFO,train:100]         epoch 20 age 2: 0.172 13.00
+21/04/10 21:50:56 879 [INFO,train:36] waiting benchmark threading to join
+21/04/10 21:55:16 961 [INFO,bench_stat:250] benchmark result: -125.13 7.37
+21/04/10 21:55:16 961 [INFO,bench_stat:253] success rate: (101+9)/512
+21/04/10 21:55:16 961 [INFO,bench_stat:258] epoch: 20
+21/04/10 21:55:20 135 [INFO,benchmark:379] start benchmark against MrGreed for 512x2
+21/04/10 21:55:20 185 [INFO,read_std_hands:220] parsed 1024 hands from StdHands/random_0_1024.hands, start with: ['H4', 'DJ', 'C3', 'C6']
+21/04/10 21:55:33 633 [INFO,train:64] dloss at 40: 0.0009 0.0403 0.0234
+21/04/10 21:55:34 705 [INFO,train:93] 40: 0.399 47.25 9984 156
+21/04/10 21:55:34 705 [INFO,train:100]         epoch 40 age 0: 0.227 22.70
+21/04/10 21:55:35 754 [INFO,train:100]         epoch 40 age 1: 0.165 14.32
+21/04/10 21:55:36 794 [INFO,train:100]         epoch 40 age 2: 0.141 11.13
+21/04/10 22:01:52 469 [INFO,train:36] waiting benchmark threading to join
+21/04/10 22:06:08 003 [INFO,bench_stat:250] benchmark result: -93.31 7.60
+21/04/10 22:06:08 004 [INFO,bench_stat:253] success rate: (139+7)/512
+21/04/10 22:06:08 004 [INFO,bench_stat:258] epoch: 40
+21/04/10 22:06:12 261 [INFO,benchmark:379] start benchmark against MrGreed for 512x2
+21/04/10 22:06:12 312 [INFO,read_std_hands:220] parsed 1024 hands from StdHands/random_0_1024.hands, start with: ['H4', 'DJ', 'C3', 'C6']
+21/04/10 22:06:25 281 [INFO,train:64] dloss at 60: 0.0006 0.0472 0.0118
+21/04/10 22:06:26 327 [INFO,train:93] 60: 0.415 38.94 9984 156
+21/04/10 22:06:26 327 [INFO,train:100]         epoch 60 age 0: 0.222 19.04
+21/04/10 22:06:27 368 [INFO,train:100]         epoch 60 age 1: 0.151 11.52
+21/04/10 22:06:28 420 [INFO,train:100]         epoch 60 age 2: 0.125 8.91
+21/04/10 22:12:48 095 [INFO,train:36] waiting benchmark threading to join
+21/04/10 22:17:12 653 [INFO,bench_stat:250] benchmark result: -85.00 6.53
+21/04/10 22:17:12 653 [INFO,bench_stat:253] success rate: (129+10)/512
+21/04/10 22:17:12 653 [INFO,bench_stat:258] epoch: 60
+21/04/10 22:17:15 826 [INFO,benchmark:379] start benchmark against MrGreed for 512x2
+21/04/10 22:17:15 875 [INFO,read_std_hands:220] parsed 1024 hands from StdHands/random_0_1024.hands, start with: ['H4', 'DJ', 'C3', 'C6']
+21/04/10 22:17:29 295 [INFO,train:64] dloss at 80: 0.0008 0.0468 0.0161
+21/04/10 22:17:30 338 [INFO,train:93] 80: 0.413 38.04 9984 156
+21/04/10 22:17:30 339 [INFO,train:100]         epoch 80 age 0: 0.222 18.46
+21/04/10 22:17:31 384 [INFO,train:100]         epoch 80 age 1: 0.153 11.17
+21/04/10 22:17:32 441 [INFO,train:100]         epoch 80 age 2: 0.126 8.57
+21/04/10 22:26:39 025 [INFO,bench_stat:250] benchmark result: -65.80 7.06
+21/04/10 22:26:39 026 [INFO,bench_stat:253] success rate: (161+11)/512
+21/04/10 22:26:39 026 [INFO,bench_stat:258] epoch: 80

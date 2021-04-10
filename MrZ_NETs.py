@@ -369,9 +369,8 @@ class PV_NET_5(PV_NET_FATHER):
 class PV_NET_6(PV_NET_FATHER):
     """Used by sun for toy testing"""
     def __init__(self):
-        super(PV_NET_2,self).__init__()
-        self.name = "mlp"
-        self.fc0=nn.Linear(52*4+(54*3+0*4)+16*4,2048)
+        super(PV_NET_6,self).__init__()
+        self.fc0=nn.Linear(52*4+54*3+16*4,2048)
         self.fc1=nn.Linear(2048,2048)
         self.fc2=nn.Linear(2048,512)
 
