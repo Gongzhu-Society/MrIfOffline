@@ -117,7 +117,7 @@ def main():
     else:
         pv_net.load_state_dict(torch.load(start_from))
         log("start_from: %s"%(start_from))
-    args={'searcher':'ab-tree','tree_deep':2,'calc_score_mode':1,'benchmark_N1':512}
+    args={'searcher':'ab-tree','tree_deep':4,'calc_score_mode':1,'benchmark_N1':512}
     train(pv_net,args,dev_train_num=0,dev_bench_num=0)
 
 if __name__=="__main__":
