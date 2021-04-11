@@ -27,7 +27,7 @@ def train(pv_net,args,dev_train_num=0,dev_bench_num=0):
     p_benchmark=None
     device_main=device("cuda:%d"%(dev_train_num))
     pv_net.to(device_main)
-    for epoch in range(0,80+1):
+    for epoch in range(0,40+1):
         if epoch%20==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-6:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net.state_dict(),save_name)
@@ -117,7 +117,7 @@ def main():
     else:
         pv_net.load_state_dict(torch.load(start_from))
         log("start_from: %s"%(start_from))
-    args={'searcher':'ab-tree','tree_deep':3,'calc_score_mode':1,'benchmark_N1':512}
+    args={'searcher':'ab-tree','tree_deep':5,'calc_score_mode':1,'benchmark_N1':512}
     train(pv_net,args,dev_train_num=0,dev_bench_num=0)
 
 if __name__=="__main__":
