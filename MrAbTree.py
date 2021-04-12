@@ -3,11 +3,17 @@
 from Util import log,SCORE_DICT,calc_score,calc_score_midway
 from MrRandom import MrRandom # Father class of all AIs
 from MrGreed import MrGreed # For its Util funcs
-from MrZeroTreeSimple import GameState
+from MrZeroTreeSimple import GameState,BETA
 from ScenarioGenerator.ScenarioGen import ScenarioGen
-from MCTS.mcts import abpruning,mcts
-import time,copy,numpy
+from MCTS.mcts import abpruning
+import time,copy,numpy,torch,math
 from multiprocessing import Process,Queue
+
+# for prepare_data_abtree
+from OfflineInterface import OfflineInterface,read_std_hands,play_a_test,bench_stat
+import math
+from Util import ORDER_DICT
+from MrZeroTreeSimple import MrZeroTreeSimple
 
 # print_level meaning
 # 0: nothing
@@ -33,11 +39,14 @@ class MrAbTree(MrRandom):
                 (0.9198,0.4495,0.0000),(0.9456,0.5764,0.0000),(0.9628,0.6959,0.0852),(0.9722,0.7730,0.2161),
                 (0.9853,0.8374,0.3561,0.0000))
 
-    def __init__(self,room=0,place=0,name="MrAbTree",sample_b=5,trick_deep=2,multi_proc=True):
+    def __init__(self,room=0,place=0,name="MrAbTree",sample_b=5,trick_deep=2,multi_proc=True,train_mode=False):
         MrRandom.__init__(self,room,place,name)
         self.sample_b=sample_b
         self.trick_deep=trick_deep
         self.multi_proc=multi_proc
+        self.train_mode=train_mode
+        if self.train_mode:
+            self.train_datas=[]
 
     def calc_burden(cards_lists,play_for,score_remain_avg,score_lists,suits_remain_tot,short_flag=False):
         cards_list=cards_lists[play_for]
@@ -58,14 +67,14 @@ class MrAbTree(MrRandom):
             #burden-=score_remain_avg
             burden_c10=score_remain_avg*MrAbTree.BURDEN_C10
 
-        if short_flag:
+        """if short_flag:
             short_factor=0
             for s in "SHDC":
                 s_num=sum([1 for c in cards_list if c[0]==s])
                 s_num_oppo=(sum([1 for c in cards_lists[(play_for+1)%4] if c[0]==s])+sum([1 for c in cards_lists[(play_for+3)%4] if c[0]==s]))/2
                 if s_num<suits_remain_tot[s]/4 and s_num<s_num_oppo:
                     short_factor+=MrAbTree.SHORT_POSSI[suits_remain_tot[s]][s_num]
-            burden-=short_factor*MrAbTree.SHORT_PREFE*len(cards_list)/13
+            burden-=short_factor*MrAbTree.SHORT_PREFE*len(cards_list)/13"""
 
         return burden+burden_j-burden_c10
 
@@ -83,12 +92,8 @@ class MrAbTree(MrRandom):
             score_remain_avg=sum([SCORE_DICT.get(c,0) for c in cards_remain])/4
             suits_remain_tot={s:sum([1 for c in cards_remain if c[0]==s]) for s in "SHDC"}
 
-            burdens=[MrAbTree.calc_burden(state.cards_lists,(state.play_for+i)%4,score_remain_avg,state.score_lists,suits_remain_tot,short_flag=False) for i in range(4)]
+            burdens=[MrAbTree.calc_burden(state.cards_lists,(state.play_for+i)%4,score_remain_avg,state.score_lists,suits_remain_tot) for i in range(4)]
             burdens=burdens[0]+burdens[2]-burdens[1]-burdens[3]
-            #burden_0=MrAbTree.calc_burden(state.cards_lists,state.play_for,score_remain,state.score_lists)
-            #burden_2=MrAbTree.calc_burden(state.cards_lists,(state.play_for+2)%4,score_remain,state.score_lists)
-            #burdens=burden_0+burden_2
-            #burdens=burden_0
 
             return scores-burdens*len(state.cards_lists[state.play_for])/12
 
@@ -162,18 +167,43 @@ class MrAbTree(MrRandom):
             log("%s: %s"%(best_choice,{k:"%.1f"%(v/self.sample_b) for k,v in d_legal.items()}),end="");input()
         return best_choice
 
-def benchmark(handsfile):
-    from OfflineInterface import OfflineInterface,read_std_hands,play_a_test
+    def pick_a_card_complete_info(self):
+
+        tree_deep=self.trick_deep*4-len(self.cards_on_table)+1
+        searcher=abpruning(deep=tree_deep,rolloutPolicy=self.ab_policy)
+        gamestate=GameState(self.cards_remain,self.scores,self.cards_on_table,self.history,self.place)
+        assert not gamestate.isTerminal()
+        searcher.search(initialState=gamestate)
+        d_legal_temp={action:val for action,val in searcher.children.items()}
+
+        #save data for train
+        if self.train_mode:
+            value_max=max(d_legal_temp.values())
+            target_p=torch.zeros(52)
+            legal_mask=torch.zeros(52)
+            for k,v in d_legal_temp.items():
+                target_p[ORDER_DICT[k]]=math.exp(BETA*(v-value_max))
+                legal_mask[ORDER_DICT[k]]=1
+            target_p/=target_p.sum()
+            target_v=torch.tensor(value_max-gamestate.getReward_midway())
+
+            netin=MrZeroTreeSimple.prepare_ohs(self.cards_remain,self.cards_on_table,self.scores,self.history,self.place)
+            self.train_datas.append((netin,target_p,target_v,legal_mask))
+
+        best_choice=MrGreed.pick_best_from_dlegal(d_legal_temp)
+        return best_choice
+
+def benchmark_abtree(handsfile):
+    from OfflineInterface import OfflineInterface,read_std_hands,play_a_test,bench_stat
 
     g=[MrGreed(room=0,place=i,name='g%d'%(i)) for i in range(4)]
-    abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=2,sample_b=5,multi_proc=True) for i in range(4)]
+    abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=5,multi_proc=True) for i in range(4)]
     #abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=1,multi_proc=False) for i in range(4)]
     #abt=[MrAbTree(room=0,place=i,name='abt%d'%(i),trick_deep=1,sample_b=5,multi_proc=True) for i in range(4)]
     interface=OfflineInterface([abt[0],g[1],abt[2],g[3]],print_flag=False)
     #interface=OfflineInterface([g[0],g[1],g[2],g[3]],print_flag=False)
-    N1=128;N2=2
+    N1=1024;N2=2
     log(interface)
-
     hands=read_std_hands(handsfile)
 
     tik=time.time()
@@ -182,20 +212,33 @@ def benchmark(handsfile):
         stats.append(play_a_test(interface,hand,N2,step_int=False))
         print("%4d"%(stats[-1],),end=" ",flush=True)
         if (k+1)%(N1//4)==0:
+            print("")
             bench_stat(stats)
     tok=time.time()
     log("time consume: %ds"%(tok-tik))
-
     bench_stat(stats)
 
-def bench_stat(stats,comments=None):
-    print("")
-    log("benchmark result: %.2f %.2f"%(numpy.mean(stats),numpy.sqrt(numpy.var(stats)/(len(stats)-1))))
-    suc_ct=len([1 for i in stats if i>0])
-    draw_ct=len([1 for i in stats if i==0])
-    log("success rate: (%d+%d)/%d"%(suc_ct,draw_ct,len(stats)))
-    if comments!=None:
-        log(comments)
+def prepare_data_abtree(data_rounds,trick_deep=1,output_flag=False):
+    abt=[MrAbTree(room=0,place=i,name="abt%d"%(i),sample_b=None,trick_deep=trick_deep,train_mode=True) for i in [0,2]]
+    g=[MrGreed(room=0,place=i,name='g%d'%(i)) for i in [1,3]]
+    data_rounds*=2
+    interface=OfflineInterface([abt[0],g[0],abt[1],g[1]],print_flag=False)
+
+    stats=[]
+    for k in range(data_rounds):
+        cards=interface.shuffle()
+        for i in range(52):
+            if interface.players[interface.pnext].place%2==0:
+                interface.step_complete_info()
+            else:
+                interface.step()
+        stats.append(interface.clear())
+        interface.prepare_new()
+    if output_flag:
+        log("%d: %.2f"%(k,numpy.mean([i[0]+i[2]-i[1]-i[3] for i in stats])))
+
+    #return abt[0].train_datas+abt[1].train_datas+abt[2].train_datas+abt[3].train_datas
+    return abt[0].train_datas+abt[1].train_datas
 
 if __name__=="__main__":
-    benchmark("StdHands/random_0_1024.hands")
+    benchmark_abtree("StdHands/random_0_1024.hands")

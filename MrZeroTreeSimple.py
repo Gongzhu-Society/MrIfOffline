@@ -339,7 +339,7 @@ class MrZeroTreeSimple(MrRandom):
 BENCH_SMP_B=5
 BENCH_SMP_K=0
 
-def benchmark(save_name,epoch,device_num,args,print_process=False):
+def benchmark(save_name,epoch,device_num,args,print_process=False,N1=512):
     """
         benchmark raw network against MrGreed
         will be called by trainer
@@ -378,7 +378,7 @@ def benchmark(save_name,epoch,device_num,args,print_process=False):
 
     hands=read_std_hands("StdHands/random_0_1024.hands")
     log("bench args: %s"%(args_bench))
-    N1=args['benchmark_N1'];N2=2;
+    N2=2;
     log("start benchmark against MrGreed for %dx%d"%(N1,N2))
 
     stats=[]

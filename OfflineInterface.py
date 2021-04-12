@@ -76,59 +76,18 @@ class OfflineInterface():
         self.players[self.pnext].scores=copy.deepcopy(self.scores)
         #get this player's choice
         choice=self.players[self.pnext].pick_a_card()
-        if not self.judge_legal(choice):
-            log("choice %s, %s illegal"%(choice,self.cards_on_table),l=2)
-            input()
-            return 1
-        self.cards_remain[self.pnext].remove(choice)
-        self.players[self.pnext].cards_list.remove(choice)
-        self.cards_on_table.append(choice)
-        if self.print_flag:
-            log("%s played %s, %s"%(self.players[self.pnext].name,choice,self.cards_on_table,))
-
-        if self.record_history:
-            cr=copy.deepcopy(self.cards_remain)
-            self.recording.append([self.pnext,cr,copy.copy(self.history),copy.copy(self.cards_on_table)])
-
-        #如果一墩结束
-        if len(self.cards_on_table)==5:
-            #判断赢家
-            winner=1
-            score_temp=ORDER_DICT2[self.cards_on_table[1][1]]
-            if self.cards_on_table[2][0]==self.cards_on_table[1][0]\
-            and ORDER_DICT2[self.cards_on_table[2][1]]>score_temp:
-                winner=2
-                score_temp=ORDER_DICT2[self.cards_on_table[2][1]]
-            if self.cards_on_table[3][0]==self.cards_on_table[1][0]\
-            and ORDER_DICT2[self.cards_on_table[3][1]]>score_temp:
-                winner=3
-                score_temp=ORDER_DICT2[self.cards_on_table[3][1]]
-            if self.cards_on_table[4][0]==self.cards_on_table[1][0]\
-            and ORDER_DICT2[self.cards_on_table[4][1]]>score_temp:
-                winner=4
-            self.pnext=(winner+self.pnext)%4
-            #结算有分的牌
-            for i in self.cards_on_table[1:]:
-                if i in SCORE_DICT:
-                    self.scores[self.pnext].append(i)
-            #更新数据结构
-            self.history.append(copy.copy(self.cards_on_table))
-            self.cards_on_table=[self.pnext,]
-            if self.print_flag:
-                log("trick end. winner is %s, %s"%(self.pnext,self.scores))
-        else:
-            self.pnext=(self.pnext+1)%4
-
-        return 0
+        self._sub_step(choice)
 
     def step_complete_info(self):
-        #初始化玩家
         self.players[self.pnext].cards_on_table=copy.copy(self.cards_on_table)
         self.players[self.pnext].history=copy.deepcopy(self.history)
         self.players[self.pnext].scores=copy.deepcopy(self.scores)
         self.players[self.pnext].cards_remain=copy.deepcopy(self.cards_remain)
-        #get this player's choice
         choice=self.players[self.pnext].pick_a_card_complete_info()
+        self._sub_step(choice)
+
+    def _sub_step(self,choice):
+        #get this player's choice
         if not self.judge_legal(choice):
             raise Exception("What's wrong with your agency?")
         self.cards_remain[self.pnext].remove(choice)
@@ -164,19 +123,8 @@ class OfflineInterface():
 
     def clear(self):
         self.scores_num=[calc_score(i) for i in self.scores]
-        """scores_temp=copy.copy(self.scores_num)
-        c10=(i for i in range(4) if 'C10' in self.scores[i]).__next__()
-        if len(self.scores[c10])==1:
-            scores_temp[c10]=0
-        else:
-            scores_temp[c10]/=2
-        try:
-            assert sum(scores_temp)==-200
-        except:
-            log("clear score: %s, %s"%(self.scores,self.scores_num))"""
         if self.print_flag:
             log("game end: %s, %s"%(self.scores_num,self.scores))
-
         return self.scores_num
 
     def prepare_new(self):
@@ -258,8 +206,8 @@ def bench_stat(stats,comments=None,flags=[]):
         high_ct=len([1 for i in s_temp if i>400])
         log("low(<-250),high(>400): (%d,%d)/%d"%(low_ct,high_ct,len(s_temp)))
 
-def select_hands_A(fromfile,tofile):
-    """select hands which Mr. Greed wins over Mr. If over 40 pts twice"""
+"""def select_hands_A(fromfile,tofile):
+    #select hands which Mr. Greed wins over Mr. If over 40 pts twice
     from MrRandom import MrRandom
     from MrIf import MrIf
     from MrGreed import MrGreed
@@ -285,9 +233,10 @@ def select_hands_A(fromfile,tofile):
             #input()
 
 def stringhis2numberhis(his):
-    return [his[0]]+[ORDER_DICT[his[i]] for i in range(1,len(his))]
+    return [his[0]]+[ORDER_DICT[his[i]] for i in range(1,len(his))]"""
 
 if __name__=="__main__":
     #gen_shuffle(1024,"random")
     #read_std_hands("StdHands/random_0_1024.hands")
-    select_hands_A("StdHands/random_0_1024.hands","StdHands/selectA_0.hands")
+    #select_hands_A("StdHands/random_0_1024.hands","StdHands/selectA_0.hands")
+    pass

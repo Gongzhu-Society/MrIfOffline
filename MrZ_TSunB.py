@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from Util import log
-from MrZeroTreeSimple import benchmark,prepare_data
+from MrZeroTreeSimple import benchmark#,prepare_data
+from MrAbTree import prepare_data_abtree
 
 from torch import device
 import torch.nn.functional as F
@@ -15,7 +16,7 @@ def train(pv_net,args,dev_train_num=0,dev_bench_num=0):
 
     data_rounds=64
     loss2_weight=0.03
-    review_number=3
+    review_number=16 #CHANGED!!!!
     age_in_epoch=3
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
 
@@ -28,8 +29,8 @@ def train(pv_net,args,dev_train_num=0,dev_bench_num=0):
     device_main=device("cuda:%d"%(dev_train_num))
     pv_net.to(device_main)
     for epoch in range(0,2400+1):
-        if epoch%80==0:
-            save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-6:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
+        if (epoch<80 and epoch%20==0) or epoch%80==0:
+            save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-7:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net.state_dict(),save_name)
             if p_benchmark!=None:
                 if p_benchmark.is_alive():
@@ -45,7 +46,8 @@ def train(pv_net,args,dev_train_num=0,dev_bench_num=0):
 
         if epoch>=review_number:
             train_datas=train_datas[len(train_datas)//review_number:]
-        train_datas+=prepare_data(copy.deepcopy(pv_net),data_rounds,args)
+        #train_datas+=prepare_data(copy.deepcopy(pv_net),data_rounds,args)
+        train_datas+=prepare_data_abtree(data_rounds,output_flag=output_flag)
         trainloader=torch.utils.data.DataLoader(train_datas,batch_size=64,drop_last=True,shuffle=True)
 
         if output_flag:
@@ -108,7 +110,7 @@ def main():
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
     from MrZ_NETs import PV_NET_6
-    start_from="PV_NET_6-17-9315381-Rand.pkl" # or a path to netpara file
+    start_from="PV_NET_6-17-9315381-Rand.pkl" # None or a path to netpara file
 
     pv_net=PV_NET_6()
     #log("init pv_net: %s"%(pv_net))
@@ -117,7 +119,7 @@ def main():
     else:
         pv_net.load_state_dict(torch.load(start_from))
         log("start_from: %s"%(start_from))
-    args={'searcher':'ab-tree','tree_deep':1,'calc_score_mode':1}
+    args={'searcher':'','tree_deep':None,'calc_score_mode':1}
     train(pv_net,args,dev_train_num=1,dev_bench_num=1)
 
 if __name__=="__main__":
