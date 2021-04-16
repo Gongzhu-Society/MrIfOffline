@@ -214,13 +214,15 @@ def main(args):
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
-    from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, RES_NET_18
+    from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, PV_NET_TRANSFORMER_1, RES_NET_18
     dev_train=0
     start_from=args['start_from'] # or a path to netpara file
     if args['pv_net'] in {'PV_NET_4'}:
-        pv_net=PV_NET_4()#RES_NET_18()#PV_NET_2()
+        pv_net=PV_NET_4()
     elif args['pv_net'] in {'PV_NET_5'}:
         pv_net=PV_NET_5()
+    elif args['pv_net'] in {'PV_NET_TRANSFORMER_1'}:
+        pv_net=PV_NET_TRANSFORMER_1()
     else:
         pv_net = PV_NET_3()
     log("init pv_net: %s"%(pv_net))

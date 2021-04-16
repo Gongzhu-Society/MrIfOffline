@@ -405,6 +405,34 @@ class PV_NET_6(PV_NET_FATHER):
         v=self.fcv(x)*VALUE_RENORMAL
         return p,v
 
+class PV_NET_TRANSFORMER_1(PV_NET_FATHER):
+    def __init__(self):
+        super(PV_NET_TRANSFORMER_1,self).__init__()
+        self.name="transformer+mlp"
+        #self.fc0=nn.Linear(52*4+(52*3+0*4)+52*4,2048)
+        #self.fc1=nn.Linear(2048,2048)
+        #self.fc2=nn.Linear(2048,512)
+        self.embedding=nn.Linear(56,512)
+        self.pos_encoder = PositionalEncoding(512)
+        self.transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=512, nhead=8), num_layers=8)
+        #self.tsfc = nn.Linear(512, 512)
+        self.ln = nn.LayerNorm(512)
+        self.fcp=nn.Linear(512,52)
+        self.fcv=nn.Linear(512,1)
+
+    def forward(self, input):
+        #print("inputshape",input.shape)
+        #x = input[:,0,:11,4:]
+        #x=x.reshape(len(input),-1)
+        #his = input[:,0,11:].transpose(1,0)
+        ti = input[:,0,:].transpose(1,0)
+        embed = self.embedding(ti)
+        embed = self.pos_encoder(embed)
+        feature = self.transformer(embed).mean(dim=0)
+        p=self.fcp(feature)
+        v=self.fcv(feature)*VALUE_RENORMAL
+        return p,v
+
 class Guessing_net_1(PV_NET_FATHER):
     def __init__(self):
         super(Guessing_net_1, self).__init__()

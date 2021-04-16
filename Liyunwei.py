@@ -441,7 +441,7 @@ class Liyunwei(MrZeroTreeSimple):
 
     def visualize(self,visdom):
         pass
-    
+
     @staticmethod
     def family_name():
         return 'General.LiYunwei'
