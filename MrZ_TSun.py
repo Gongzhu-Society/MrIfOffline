@@ -10,8 +10,15 @@ import torch.multiprocessing
 
 import copy,itertools,numpy,time
 
-def train(pv_net,args,dev_train_num=0,dev_bench_num=0):
+def train(pv_net,args,start_from=None,dev_train_num=0,dev_bench_num=0):
     import torch.optim as optim
+    device_main=device("cuda:%d"%(dev_train_num))
+    pv_net.to(device_main)
+    if start_from==None:
+        log("start from: zero")
+    else:
+        pv_net.load_state_dict(torch.load(start_from,map_location=device_main))
+        log("start_from: %s"%(start_from))
 
     data_rounds=64
     loss2_weight=0.03
@@ -25,10 +32,9 @@ def train(pv_net,args,dev_train_num=0,dev_bench_num=0):
 
     train_datas=[]
     p_benchmark=None
-    device_main=device("cuda:%d"%(dev_train_num))
-    pv_net.to(device_main)
-    for epoch in range(0,2400+1):
-        if epoch%80==0:
+
+    for epoch in range(0,60+1):
+        if epoch%20==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-6:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net.state_dict(),save_name)
             if p_benchmark!=None:
@@ -101,25 +107,24 @@ def train(pv_net,args,dev_train_num=0,dev_bench_num=0):
 
     p_benchmark.join()
 
-def main():
+def main(deep):
     from MrZeroTreeSimple import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
     from MrZ_NETs import VALUE_RENORMAL
+    from MrZ_NETs import PV_NET_6
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
-    from MrZ_NETs import PV_NET_6
-    start_from="PV_NET_6-17-9315381-Rand.pkl" # or a path to netpara file
-
+    #start_from="PV_NET_6-17-9315381-Rand.pkl" # or a path to netpara file
+    start_from="PV_NET_6-17-9315381-m65.pkl"
     pv_net=PV_NET_6()
-    #log("init pv_net: %s"%(pv_net))
-    if start_from==None:
-        log("start from: zero")
-    else:
-        pv_net.load_state_dict(torch.load(start_from))
-        log("start_from: %s"%(start_from))
-    args={'searcher':'ab-tree','tree_deep':1,'calc_score_mode':1}
-    train(pv_net,args,dev_train_num=1,dev_bench_num=1)
+    args={'searcher':'ab-tree','tree_deep':deep,'calc_score_mode':1}
+    train(pv_net,args,start_from=start_from,dev_train_num=0,dev_bench_num=0)
 
 if __name__=="__main__":
     torch.multiprocessing.set_start_method('spawn')
-    main()
+    log("sleeping...")
+    time.sleep(60*60*2)
+    log("wake up!")
+    for deep in range(4,6):
+        log("doing deep=%d"%(deep))
+        main(deep)
