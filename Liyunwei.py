@@ -32,17 +32,24 @@ class Liyunwei(MrZeroTreeSimple):
             self.device=torch.device(device)
         else:
             self.device=device
-
+            
+        if args=={}:
+            f = open("/home/forshi/academic/gongzhu/MrIfOffline/setting.txt", 'r')
+            self.args = eval(f.read())
+            f.close()
+        else:
+            self.args=args
+            
         if pv_net==None:
             #self.load_pv_net(net_para_loc="Zero-29th-25-11416629-720.pt")
-            self.load_pv_net(net_para_loc="PV_NET_5-sota1.pkl",args=args)
+            self.load_pv_net(net_para_loc="/home/forshi/academic/gongzhu/MrIfOffline/PV_NET_5-sota1.pkl",args=self.args)
         elif isinstance(pv_net,str):
             self.load_pv_net(net_para_loc=pv_net)
         else:
             self.pv_net=pv_net
 
         if gs_net==None:
-            self.load_gs_net(net_para_loc="guesser-net-1-sota1.pkl")
+            self.load_gs_net(net_para_loc="/home/forshi/academic/gongzhu/MrIfOffline/guesser-net-1-sota1.pkl")
         elif isinstance(gs_net,str):
             self.load_gs_net(net_para_loc=pv_net)
         else:
@@ -55,8 +62,7 @@ class Liyunwei(MrZeroTreeSimple):
         self.train_mode=train_mode
         if self.train_mode:
             self.train_datas=[]
-
-        self.args=args
+        
         #self.int_method_printed_flag=False
 
     """def wasserstein(l):
@@ -156,8 +162,8 @@ class Liyunwei(MrZeroTreeSimple):
             posterior probability rectify
             cards_lists is in absolute order
         """
-        score = SimpleGuesser.guessing_score(self.gs_net, cards_lists, self.cards_on_table, self.history, self.place, self.device)
-        return score
+        #score = SimpleGuesser.guessing_score(self.gs_net, cards_lists, self.cards_on_table, self.history, self.place, self.device)
+        return 1#score
 
         cards_lists=copy.deepcopy(cards_lists)
         scores=copy.deepcopy(self.scores)
@@ -440,8 +446,8 @@ class Liyunwei(MrZeroTreeSimple):
     def family_name():
         return 'General.LiYunwei'
 
-def example_DJ(args):
-    zt3=Liyunwei(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2,args=args)
+def example_DJ():
+    zt3=Liyunwei(room=255,place=3,name='zerotree3',mcts_b=10,mcts_k=2,sample_b=-1,sample_k=-2)
 
     zt3.cards_list=["HQ","HJ","H8","SA","S5","S4","S3","CQ","CJ","C4"]
     zt3.cards_on_table=[1,"DJ","D8"]
@@ -494,10 +500,10 @@ def example_SQ2():
 
 
 if __name__=="__main__":
-    f = open("setting.txt", 'r')
-    args = eval(f.read())
-    f.close()
-    example_DJ(args)
+    #f = open("setting.txt", 'r')
+    #args = eval(f.read())
+    #f.close()
+    example_DJ()
     #example_SQ()
     #example_SQ2()
     #burdens()
