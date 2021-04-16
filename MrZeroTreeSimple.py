@@ -138,12 +138,14 @@ class MrZeroTreeSimple(MrRandom):
         self.gs_net.to(self.device)
 
     def load_pv_net(self,net_para_loc=None,args={}):
-        from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, Guessing_net_1, RES_NET_18
+        from MrZ_NETs import PV_NET_2, PV_NET_3, PV_NET_4, PV_NET_5, PV_NET_TRANSFORMER_1, Guessing_net_1, RES_NET_18
 
         if args['pv_net'] in {'PV_NET_4'}:
             self.pv_net=PV_NET_4()#RES_NET_18()#PV_NET_2()
         elif args['pv_net'] in {'PV_NET_5'}:
-            self.pv_net=PV_NET_5()
+            self.pv_net = PV_NET_5()
+        elif args['pv_net'] in {'PV_NET_TRANSFORMER_1'}:
+            self.pv_net=PV_NET_TRANSFORMER_1()
         elif net_para_loc.starts_with('PV_NET_2'):
             self.pv_net=PV_NET_2()
         else:
