@@ -20,9 +20,9 @@ def train(pv_net,args,start_from=None,dev_train_num=0,dev_bench_num=0):
         pv_net.load_state_dict(torch.load(start_from,map_location=device_main))
         log("start_from: %s"%(start_from))
 
-    data_rounds=64
+    data_rounds=64*4
     loss2_weight=0.03
-    review_number=3
+    review_number=1
     age_in_epoch=3
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
 
@@ -33,18 +33,20 @@ def train(pv_net,args,start_from=None,dev_train_num=0,dev_bench_num=0):
     train_datas=[]
     p_benchmark=None
 
-    for epoch in range(0,60+1):
-        if epoch%20==0:
+    for epoch in range(0,600+1):
+        if epoch%100==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-6:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net.state_dict(),save_name)
-            if p_benchmark!=None:
+            """if p_benchmark!=None:
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")
                 p_benchmark.join()
             p_benchmark=Process(target=benchmark,args=(save_name,epoch,dev_bench_num,args))
-            p_benchmark.start()
+            p_benchmark.start()"""
+            benchmark(save_name,epoch,dev_bench_num,args)
 
-        if (epoch<=5) or (epoch<20 and epoch%5==0) or epoch%20==0:
+        #if (epoch<=5) or (epoch<20 and epoch%5==0) or epoch%20==0:
+        if (epoch<=5) or epoch%20==0:
             output_flag=True
         else:
             output_flag=False
@@ -115,16 +117,18 @@ def main(deep):
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
     #start_from="PV_NET_6-17-9315381-Rand.pkl" # or a path to netpara file
-    start_from="PV_NET_6-17-9315381-m65.pkl"
+    #start_from="PV_NET_6-17-9315381-m65.pkl"
+    start_from="PV_NET_6-Sun-17-9315381-480-p23.pkl"
     pv_net=PV_NET_6()
     args={'searcher':'ab-tree','tree_deep':deep,'calc_score_mode':1}
-    train(pv_net,args,start_from=start_from,dev_train_num=0,dev_bench_num=0)
+    train(pv_net,args,start_from=start_from,dev_train_num=1,dev_bench_num=1)
 
 if __name__=="__main__":
     torch.multiprocessing.set_start_method('spawn')
-    log("sleeping...")
-    time.sleep(60*60*2)
-    log("wake up!")
-    for deep in range(4,6):
-        log("doing deep=%d"%(deep))
-        main(deep)
+    main(1)
+    #log("sleeping...")
+    #time.sleep(60*60*2)
+    #log("wake up!")
+    #for deep in range(1,5):
+    #    log("doing deep=%d"%(deep))
+    #    main(deep)
