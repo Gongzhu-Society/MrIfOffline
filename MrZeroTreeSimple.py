@@ -138,8 +138,11 @@ class MrZeroTreeSimple(MrRandom):
         self.gs_net.to(self.device)
 
     def load_pv_net(self,net_para_loc=None,args={}):
-        from MrZ_NETs import PV_NET_6
-        self.pv_net=PV_NET_6()
+        from MrZ_NETs import PV_NET_6,PV_NET_2
+        if net_para_loc.startswith("PV_NET_6"):
+            self.pv_net=PV_NET_6()
+        elif net_para_loc.startswith("PV_NET_2"):
+            self.pv_net=PV_NET_2()
 
         try:
             self.pv_net.load_state_dict(torch.load(net_para_loc,map_location=self.device))

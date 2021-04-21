@@ -20,9 +20,9 @@ def train(pv_net,args,start_from=None,dev_train_num=0,dev_bench_num=0):
         pv_net.load_state_dict(torch.load(start_from,map_location=device_main))
         log("start_from: %s"%(start_from))
 
-    data_rounds=64*4
+    data_rounds=64
     loss2_weight=0.03
-    review_number=1
+    review_number=3
     age_in_epoch=3
     optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
 
@@ -33,17 +33,18 @@ def train(pv_net,args,start_from=None,dev_train_num=0,dev_bench_num=0):
     train_datas=[]
     p_benchmark=None
 
-    for epoch in range(0,600+1):
+    for epoch in range(0,1800+1):
         if epoch%100==0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-6:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             torch.save(pv_net.state_dict(),save_name)
-            """if p_benchmark!=None:
+            #benchmark(save_name,epoch,dev_bench_num,args,N1=512)
+            if p_benchmark!=None:
                 if p_benchmark.is_alive():
                     log("waiting benchmark threading to join")
                 p_benchmark.join()
             p_benchmark=Process(target=benchmark,args=(save_name,epoch,dev_bench_num,args))
-            p_benchmark.start()"""
-            benchmark(save_name,epoch,dev_bench_num,args)
+            p_benchmark.start()
+
 
         #if (epoch<=5) or (epoch<20 and epoch%5==0) or epoch%20==0:
         if (epoch<=5) or epoch%20==0:
@@ -107,19 +108,26 @@ def train(pv_net,args,start_from=None,dev_train_num=0,dev_bench_num=0):
             if output_flag:
                 log("        epoch %d age %d: %.3f %.2f"%(epoch,age,running_loss1,running_loss2))
 
+        if epoch%600==0 and epoch!=0:
+            review_number-=1
+            data_rounds*=2
+            log("update train phase, loss2_weight: %.2f, data_rounds: %d, review_number: %d, age_in_epoch: %d"%(loss2_weight,data_rounds,review_number,age_in_epoch))
+
     p_benchmark.join()
 
 def main(deep):
     from MrZeroTreeSimple import BETA,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K
     from MrZ_NETs import VALUE_RENORMAL
-    from MrZ_NETs import PV_NET_6
+    from MrZ_NETs import PV_NET_6,PV_NET_2
     log("BETA: %.2f, VALUE_RENORMAL: %d, MCTS_EXPL: %d, BENCH_SMP_B: %d, BENCH_SMP_K: %.1f"\
         %(BETA,VALUE_RENORMAL,MCTS_EXPL,BENCH_SMP_B,BENCH_SMP_K))
 
+    start_from=None
     #start_from="PV_NET_6-17-9315381-Rand.pkl" # or a path to netpara file
     #start_from="PV_NET_6-17-9315381-m65.pkl"
-    start_from="PV_NET_6-Sun-17-9315381-480-p23.pkl"
-    pv_net=PV_NET_6()
+    #start_from="PV_NET_6-Sun-17-9315381-480-p23.pkl"
+    #pv_net=PV_NET_6()
+    pv_net=PV_NET_2()
     args={'searcher':'ab-tree','tree_deep':deep,'calc_score_mode':1}
     train(pv_net,args,start_from=start_from,dev_train_num=1,dev_bench_num=1)
 
