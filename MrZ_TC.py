@@ -14,11 +14,11 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
     import torch.optim as optim
     import gc
     data_rounds=args['data_rounds']
-    loss2_weight=0.03
-    train_mcts_b=5
+    loss2_weight=0.3
+    train_mcts_b=4
     train_mcts_k=4
     review_number=args['review_number']
-    age_in_epoch=3
+    age_in_epoch=args['age_in_epoch']
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
         %(loss2_weight,data_rounds,train_mcts_b,train_mcts_k,review_number,age_in_epoch))
 
@@ -28,6 +28,8 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
     if names[0] in {"PV_NET_3","PV_NET_4"}:
         optimizer = optim.Adam(pv_net.parameters(), lr=0.0001, eps=1e-07, weight_decay=1e-4,
                                amsgrad=False)
+    if names[0] in {"PV_NET_TRANSFORMER_1"}:
+        optimizer=optim.Adam(pv_net.parameters(),lr=1e-4,betas=(0.9,0.98),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     else:
         optimizer=optim.Adam(pv_net.parameters(),lr=0.0001,betas=(0.3,0.999),eps=1e-07,weight_decay=1e-4,amsgrad=False)
     log("optimizer: %s"%(optimizer.__dict__['defaults'],))
@@ -89,6 +91,7 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
                 optimizer.step()
                 running_loss1.append(loss1.item())
                 running_loss2.append(loss2.item())
+            print(v)
             batchnum=len(running_loss1)
             running_loss1=numpy.mean(running_loss1)
             running_loss2=numpy.mean(running_loss2)
