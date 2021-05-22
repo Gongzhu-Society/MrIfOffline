@@ -14,15 +14,17 @@ import torch.nn.functional as F
 import copy,math
 
 class GameState():
-    def __init__(self,cards_lists,score_lists,cards_on_table,history,play_for):
+    def __init__(self,cards_lists,score_lists,cards_on_table,history,play_for,mode=0):
         self.cards_lists=cards_lists
         self.cards_on_table=cards_on_table
         self.history = history
         self.score_lists=score_lists
         self.play_for=play_for
-
+        self.mode = mode # 0 for original version, 1 for information set monte carlo tree search
         #decide cards_dicts, suit and pnext
         self.cards_dicts=[MrGreed.gen_cards_dict(i) for i in self.cards_lists]
+        #print(cards_lists)
+        #print(self.cards_dicts)
         if len(self.cards_on_table)==1:
             self.suit="A"
         else:
@@ -42,8 +44,25 @@ class GameState():
     def takeAction(self,action):
         #log(action)
         neo_state=copy.deepcopy(self)
-        neo_state.cards_lists[neo_state.pnext].remove(action)
-        neo_state.cards_dicts[neo_state.pnext][action[0]].remove(action)
+        if self.mode == 0:
+            neo_state.cards_lists[neo_state.pnext].remove(action)
+            neo_state.cards_dicts[neo_state.pnext][action[0]].remove(action)
+        elif self.mode == 1:
+            sce_gen = ScenarioGen(self.pnext, self.history, self.cards_on_table, self.cards_lists[self.play_for], number=1)
+            cards_lists_list = []
+            for cll in sce_gen:
+                cards_lists = [None, None, None, None]
+                cards_lists[self.pnext] = copy.copy(self.cards_lists[self.pnext])
+                for i in range(3):
+                    cards_lists[(self.pnext + i + 1) % 4] = cll[i]
+                cards_lists_list.append(cards_lists)
+            #print(cards_lists_list)
+            neo_state.cards_lists = cards_lists_list[0]
+            neo_state.cards_dicts = [MrGreed.gen_cards_dict(i) for i in neo_state.cards_lists]
+            neo_state.cards_lists[neo_state.pnext].remove(action)
+            neo_state.cards_dicts[neo_state.pnext][action[0]].remove(action)
+        else:
+            raise Exception("Error: mode {} of game state does not exist!".format(self.mode))
         neo_state.remain_card_num-=1
         neo_state.cards_on_table.append(action)
 
@@ -299,7 +318,7 @@ class MrZeroTreeSimple(MrRandom):
         searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         for i,cards_lists in enumerate(cards_lists_list):
             #initialize gamestate
-            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place)
+            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place,mode=1)
             #mcts
             if self.searcher in {'mcts'}:
                 if self.mcts_k>=0:

@@ -350,7 +350,7 @@ class MrZeroTree(MrZeroTreeSimple):
         searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         for i,cards_lists in enumerate(cards_lists_list):
             #initialize gamestate
-            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.place)
+            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.place,mode=1)
             #mcts
             if self.mcts_k>=0:
                 searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,

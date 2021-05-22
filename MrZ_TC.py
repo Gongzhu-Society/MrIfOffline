@@ -91,7 +91,7 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
                 optimizer.step()
                 running_loss1.append(loss1.item())
                 running_loss2.append(loss2.item())
-            print(v)
+            #print(v)
             batchnum=len(running_loss1)
             running_loss1=numpy.mean(running_loss1)
             running_loss2=numpy.mean(running_loss2)
