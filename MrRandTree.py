@@ -6,15 +6,16 @@ from Util import ORDER_DICT2,SCORE_DICT
 from MrRandom import MrRandom
 from MrGreed import MrGreed
 from ScenarioGenerator.ScenarioGen import ScenarioGen
-from MCTS.mcts import mcts
+from MCTS.mcts import mcts, ismcts
 import copy,itertools,numpy,time
 
 print_level=0
 
 class GameState():
-    def __init__(self,cards_lists,fmt_scores,cards_on_table,play_for):
+    def __init__(self,cards_lists,fmt_scores,cards_on_table,history, play_for):
         self.cards_lists=cards_lists
         self.cards_on_table=cards_on_table
+        self.history = history
         self.fmt_scores=fmt_scores
         self.play_for=play_for
 
@@ -98,6 +99,28 @@ class GameState():
         #return scores[0]-(scores[1]+scores[2]+scores[3])/3
         return scores[0]+scores[2]-scores[1]-scores[3]
 
+    def resample(self):
+        sce_gen = ScenarioGen(self.pnext, self.history, self.cards_on_table, self.cards_lists[self.play_for], number=1)
+        cards_lists_list = []
+        for cll in sce_gen:
+            cards_lists = [None, None, None, None]
+            cards_lists[self.pnext] = copy.copy(self.cards_lists[self.pnext])
+            for i in range(3):
+                cards_lists[(self.pnext + i + 1) % 4] = cll[i]
+            cards_lists_list.append(cards_lists)
+        # print(cards_lists_list)
+        self.cards_lists = cards_lists_list[0]
+        self.cards_dicts = [MrGreed.gen_cards_dict(i) for i in self.cards_lists]
+
+    def renew_hidden_information(self, hidden_info):
+        self.cards_lists = copy.deepcopy(hidden_info)
+        self.cards_dicts = [MrGreed.gen_cards_dict(i) for i in self.cards_lists]
+
+    def next_hidden_information(self, action):
+        cl = copy.deepcopy(self.cards_lists)
+        cl[self.pnext].remove(action)
+        return self.cards_lists
+
 class MrRandTree(MrRandom):
 
     N_SAMPLE=5
@@ -145,8 +168,8 @@ class MrRandTree(MrRandom):
             if print_level>=1:
                 log("get scenario: %s"%(cards_lists))
             cards_on_table_copy=copy.copy(self.cards_on_table)
-            gamestate=GameState(cards_lists,fmt_scores,cards_on_table_copy,self.place)
-            searcher=mcts(iterationLimit=200,explorationConstant=100)
+            gamestate=GameState(cards_lists,fmt_scores,cards_on_table_copy,self.history,self.place)
+            searcher=ismcts(iterationLimit=200,explorationConstant=100)
             searcher.search(initialState=gamestate)
             for action,node in searcher.root.children.items():
                 if print_level>=1:
@@ -171,7 +194,7 @@ def benchmark():
     r=[MrRandom(room=0,place=i,name="random%d"%(i)) for i in range(4)]
     rt=[MrRandTree(room=0,place=i,name='randtree%d'%(i)) for i in range(4)]
 
-    offlineinterface=OfflineInterface([f[0],g[1],f[2],g[3]],print_flag=False)
+    offlineinterface=OfflineInterface([rt[0],g[1],rt[2],g[3]],print_flag=False)
     N1=1024;N2=2;stats=[]
     log("%s vs. %s for %dx%d"%(offlineinterface.players[0].family_name(),offlineinterface.players[1].family_name(),N1,N2))
     tik=time.time()
