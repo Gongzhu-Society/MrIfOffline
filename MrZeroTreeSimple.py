@@ -339,7 +339,7 @@ class MrZeroTreeSimple(MrRandom):
         searchnum=self.mcts_b+self.mcts_k*len(legal_choice)
         for i,cards_lists in enumerate(cards_lists_list):
             #initialize gamestate
-            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place,mode=1)
+            gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.history,self.place,mode=0)
             # ismcts, mcts, and abprune
             if self.searcher in {'ismcts'} and self.mcts_k>=0:
                 searcher = ismcts(iterationLimit=searchnum, rolloutPolicy=self.pv_policy,
