@@ -67,6 +67,11 @@ class GameState():
         neo_state.cards_on_table.append(action)
 
         assert len(neo_state.cards_on_table)<=5
+        if len(neo_state.history)>0 and len(neo_state.history[-1])<5:
+            neo_state.history[-1].append(action)
+        else:
+            neo_state.history.append([self.pnext,action])
+
         if len(neo_state.cards_on_table)<5:
             neo_state.pnext=(neo_state.pnext+1)%4
 
@@ -85,20 +90,23 @@ class GameState():
             #clean table
             neo_state.cards_on_table=[neo_state.pnext,]
             neo_state.suit='A'
-
-        if len(neo_state.history)>0 and len(neo_state.history[-1])<5:
-            neo_state.history[-1].append(action)
-        else:
-            neo_state.history.append([self.play_for,action])
         return neo_state
 
     def isTerminal(self):
+        #remain_card_num = sum([len(i) for i in self.cards_lists])
         if self.remain_card_num==0:
             return True
         else:
             return False
 
     def getReward_final(self):
+        if not sum([len(i) for i in self.score_lists])==16:
+            print('score lists')
+            print(self.score_lists)
+            print('history ')
+            print(self.history)
+            print('cards lists')
+            print(self.cards_lists)
         assert sum([len(i) for i in self.score_lists])==16
         scores=[calc_score(self.score_lists[(self.play_for+i)%4]) for i in range(4)]
         return scores[0]+scores[2]-scores[1]-scores[3]
