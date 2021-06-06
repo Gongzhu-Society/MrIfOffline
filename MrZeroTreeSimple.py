@@ -123,14 +123,16 @@ class GameState():
             cards_lists_list.append(cards_lists)
         # print(cards_lists_list)
         self.cards_lists = cards_lists_list[0]
-        self.cards_dicts = [MrGreed.gen_cards_dict(i) for i in neo_state.cards_lists]
-
+        self.cards_dicts = [MrGreed.gen_cards_dict(i) for i in self.cards_lists]
 
     def renew_hidden_information(self, hidden_info):
-        self.cards_lists = copy.copy(hidden_info)
+        self.cards_lists = copy.deepcopy(hidden_info)
+        self.cards_dicts = [MrGreed.gen_cards_dict(i) for i in self.cards_lists]
 
-    def next_hidden_information(self):
-        return hidden_info
+    def next_hidden_information(self, action):
+        cl = copy.deepcopy(self.cards_lists)
+        cl[self.pnext].remove(action)
+        return self.cards_lists
 
 print_level=0
 BETA=0.2 #for pareparing train data

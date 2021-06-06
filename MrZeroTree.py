@@ -8,7 +8,7 @@ from MrZeroTreeSimple import GameState,MrZeroTreeSimple,MCTS_EXPL,BETA
 from ScenarioGenerator.ScenarioGen import ScenarioGen
 from ScenarioGenerator.ImpScenarioGen import ImpScenarioGen
 from OfflineInterface import OfflineInterface
-from MCTS.mcts import mcts
+from MCTS.mcts import mcts, ismcts
 
 import torch
 import torch.nn.functional as F
@@ -353,7 +353,7 @@ class MrZeroTree(MrZeroTreeSimple):
             gamestate=GameState(cards_lists,self.scores,self.cards_on_table,self.place,mode=1)
             #mcts
             if self.mcts_k>=0:
-                searcher=mcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
+                searcher=ismcts(iterationLimit=searchnum,rolloutPolicy=self.pv_policy,
                               explorationConstant=MCTS_EXPL)
                 searcher.search(initialState=gamestate)
                 for action,node in searcher.root.children.items():

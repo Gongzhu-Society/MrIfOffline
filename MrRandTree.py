@@ -123,7 +123,7 @@ class GameState():
 
 class MrRandTree(MrRandom):
 
-    N_SAMPLE=5
+    N_SAMPLE=1
 
     def clear_fmt_score(fmt_score):
         """
@@ -169,7 +169,7 @@ class MrRandTree(MrRandom):
                 log("get scenario: %s"%(cards_lists))
             cards_on_table_copy=copy.copy(self.cards_on_table)
             gamestate=GameState(cards_lists,fmt_scores,cards_on_table_copy,self.history,self.place)
-            searcher=ismcts(iterationLimit=200,explorationConstant=100)
+            searcher=ismcts(iterationLimit=200*5,explorationConstant=100)
             searcher.search(initialState=gamestate)
             for action,node in searcher.root.children.items():
                 if print_level>=1:
