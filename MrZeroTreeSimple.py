@@ -48,7 +48,7 @@ class GameState():
             neo_state.cards_lists[neo_state.pnext].remove(action)
             neo_state.cards_dicts[neo_state.pnext][action[0]].remove(action)
         elif self.mode == 1:
-            sce_gen = ScenarioGen(self.pnext, self.history, self.cards_on_table, self.cards_lists[self.play_for], number=1)
+            sce_gen = ScenarioGen(self.pnext, self.history, self.cards_on_table, self.cards_lists[self.pnext], number=1)
             cards_lists_list = []
             for cll in sce_gen:
                 cards_lists = [None, None, None, None]
@@ -107,6 +107,8 @@ class GameState():
             print(self.history)
             print('cards lists')
             print(self.cards_lists)
+            print('cards on table')
+            print(self.cards_on_table)
         assert sum([len(i) for i in self.score_lists])==16
         scores=[calc_score(self.score_lists[(self.play_for+i)%4]) for i in range(4)]
         return scores[0]+scores[2]-scores[1]-scores[3]
@@ -121,7 +123,7 @@ class GameState():
         return scores[0]+scores[2]-scores[1]-scores[3]
 
     def resample(self):
-        sce_gen = ScenarioGen(self.pnext, self.history, self.cards_on_table, self.cards_lists[self.play_for], number=1)
+        sce_gen = ScenarioGen(self.pnext, self.history, self.cards_on_table, self.cards_lists[self.pnext], number=1)
         cards_lists_list = []
         for cll in sce_gen:
             cards_lists = [None, None, None, None]
@@ -134,13 +136,13 @@ class GameState():
         self.cards_dicts = [MrGreed.gen_cards_dict(i) for i in self.cards_lists]
 
     def renew_hidden_information(self, hidden_info):
-        self.cards_lists = copy.deepcopy(hidden_info)
+        self.cards_lists = hidden_info
         self.cards_dicts = [MrGreed.gen_cards_dict(i) for i in self.cards_lists]
 
     def next_hidden_information(self, action):
         cl = copy.deepcopy(self.cards_lists)
         cl[self.pnext].remove(action)
-        return self.cards_lists
+        return cl
 
 print_level=0
 BETA=0.2 #for pareparing train data
