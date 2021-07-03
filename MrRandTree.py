@@ -119,7 +119,7 @@ class GameState():
     def next_hidden_information(self, action):
         cl = copy.deepcopy(self.cards_lists)
         cl[self.pnext].remove(action)
-        return self.cards_lists
+        return cl
 
 class MrRandTree(MrRandom):
 

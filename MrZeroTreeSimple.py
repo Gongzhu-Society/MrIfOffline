@@ -146,7 +146,7 @@ class GameState():
 
 print_level=0
 BETA=0.2 #for pareparing train data
-MCTS_EXPL=30
+MCTS_EXPL=100
 
 class MrZeroTreeSimple(MrRandom):
     def __init__(self,room=0,place=0,name="default",pv_net=None,device=None,train_mode=False,
@@ -436,7 +436,7 @@ class MrZeroTreeSimple(MrRandom):
     def family_name():
         return 'MrZeroTreeSimple'
 
-BENCH_SMP_B=5
+BENCH_SMP_B=1
 BENCH_SMP_K=0
 
 def benchmark(save_name,epoch,device_num, print_process=False,args={}):
@@ -449,11 +449,11 @@ def benchmark(save_name,epoch,device_num, print_process=False,args={}):
     N1=args['benchmark_N1'];N2=2;log("start benchmark against MrGreed for %dx%d"%(N1,N2))
     if device_num < 0:
         zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=save_name,device="cpu",
-                   mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
+                   mcts_b=20,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
         log('Using CPU!')
     else:
         zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=save_name,device="cuda:%d"%(device_num),
-                   mcts_b=0,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
+                   mcts_b=20,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
     g=[MrGreed(room=255,place=i,name='greed%d'%(i)) for i in [1,3]]
     interface=OfflineInterface([zt[0],g[0],zt[1],g[1]],print_flag=False)
 
@@ -474,24 +474,6 @@ def benchmark(save_name,epoch,device_num, print_process=False,args={}):
     s_temp=[j[0]+j[2]-j[1]-j[3] for j in stats]
     s_temp=[sum(s_temp[i:i+N2])/N2 for i in range(0,len(s_temp),N2)]
     log("benchmark at epoch %s's result: %.2f %.2f"%(epoch,numpy.mean(s_temp),numpy.sqrt(numpy.var(s_temp)/(len(s_temp)-1))))
-
-def prepare_data_queue(pv_net,device_num,data_rounds,train_b,train_k,data_queue,args={}):
-    input("not using")
-    device_train=torch.device("cuda:%d"%(device_num))
-    pv_net.to(device_train)
-    zt=[MrZeroTreeSimple(room=0,place=i,name='zerotree%d'%(i),pv_net=pv_net,device=device_train,train_mode=True,
-                   mcts_b=train_b,mcts_k=train_k,args=args) for i in range(4)]
-    interface=OfflineInterface(zt,print_flag=False)
-    stats=[]
-    for k in range(data_rounds):
-        cards=interface.shuffle()
-        for i in range(52):
-            interface.step_complete_info()
-        stats.append(interface.clear())
-        interface.prepare_new()
-
-    for i in range(4):
-        data_queue.put(zt[i].train_datas,block=False)
 
 
 def prepare_data(pv_net,device_num,data_rounds,train_b,train_k,args={}):

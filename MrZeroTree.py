@@ -309,6 +309,7 @@ class MrZeroTree(MrZeroTreeSimple):
         if self.sample_k>=0:
             sce_num=self.sample_b+int(self.sample_k*len(self.cards_list))
             assert self.sample_b>=0 and sce_num>0
+            sce_num=1
             sce_gen=ScenarioGen(self.place,self.history,self.cards_on_table,self.cards_list,number=sce_num)
             scenarios=[i for i in sce_gen]
         else:
@@ -321,6 +322,7 @@ class MrZeroTree(MrZeroTreeSimple):
         #cards_played,scores_stage,void_info_stage=self.public_info()
         scenarios_weight=[]
         cards_lists_list=[]
+        
         for cll in scenarios:
             if print_level>=3:
                 log("analyzing: %s"%(cll))

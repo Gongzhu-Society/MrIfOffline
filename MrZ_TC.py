@@ -5,18 +5,49 @@ from MrZeroTreeSimple import benchmark,prepare_data,prepare_inference_data
 
 from torch import device
 import torch.nn.functional as F
-from torch.multiprocessing import Process
 import torch.multiprocessing
 
-import copy,itertools,numpy,time
+import copy,itertools,numpy,time,pickle,tempfile,os
+from torch.multiprocessing import Process,Queue # from multiprocessing import Process,Queue
+
+
+def gen_data(model,data_q,dev_num,data_rounds,train_mcts_b,train_mcts_k,args={}):
+    train_datas = prepare_data(model,dev_num,data_rounds,train_mcts_b,train_mcts_k,args=args)
+    fd,fname=tempfile.mkstemp(suffix='.gongzhudata.tmp',prefix='',dir='/tmp') # 后缀可以改，方便辨认
+    
+    with open(fd,"wb") as f:
+        pickle.dump(train_datas,f) # 把训练数据存在临时文件中
+    data_q.put((fd,fname)) # 把文件名通过一个 queue 返回
+
+def daemon(model,dev_train_num,data_rounds,train_mcts_b,train_mcts_k,args={}):
+    #torch.multiprocessing.set_start_method('spawn') # 没这个 pytorch 多进程会报错，放在 daemon 的进程中即可，gen_data 的进程不用这句
+    data_q=Queue() # 返回文件名的 queue
+    plist=[]
+    num_process = 4
+    single_data_rounds = data_rounds // num_process
+    for i in range(num_process-1):
+        p=Process(target=gen_data,args=(copy.deepcopy(model.eval()),data_q,dev_train_num,
+                                        single_data_rounds,train_mcts_b,train_mcts_k,args))
+        p.start()
+        plist.append(p)
+    remain_data_rounds=data_rounds-single_data_rounds*(num_process-1)
+    rlist=prepare_data(model.eval(),dev_train_num,
+                        remain_data_rounds,train_mcts_b,train_mcts_k,args=args)
+    for p in plist:
+        p.join() # 等待进程结束
+        fd,fname=data_q.get(False) #读出进程放在 queue 中的文件名
+        with open(fname,"rb") as f:
+            rlist+=pickle.load(f)
+        os.unlink(fname) # 删除文件（释放内存）
+    return rlist
 
 def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
     import torch.optim as optim
     import gc
     data_rounds=args['data_rounds']
     loss2_weight=0.3
-    train_mcts_b=4
-    train_mcts_k=4
+    train_mcts_b=20
+    train_mcts_k=10
     review_number=args['review_number']
     age_in_epoch=args['age_in_epoch']
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
@@ -37,7 +68,7 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
     train_datas=[]
     p_benchmark=None
     for epoch in range(2401):
-        if epoch%80==0:
+        if epoch%80==0 :#and epoch>0:
             save_name='%s-%s-%s-%s-%d.pkl'%(pv_net.__class__.__name__,__file__[-5:-3],pv_net.num_layers(),pv_net.num_paras(),epoch)
             #torch.save(pv_net,save_name)
             torch.save(pv_net.state_dict(),save_name)
@@ -50,7 +81,7 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
             time.sleep(3600)
             '''
             print("benchmarking")
-            benchmark(save_name,epoch, dev_bench_num, False,args=args)
+            benchmark(save_name,epoch, dev_bench_num, True,args=args)
 
         if (epoch<=5) or (epoch<30 and epoch%5==0) or epoch%20==0:
             output_flag=True
@@ -59,7 +90,8 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
 
         if epoch>=review_number:
             train_datas=train_datas[len(train_datas)//review_number:]
-        train_datas+=prepare_data(copy.deepcopy(pv_net),dev_train_num,data_rounds,train_mcts_b,train_mcts_k,args=args)
+        #train_datas+=prepare_data(copy.deepcopy(pv_net),dev_train_num,data_rounds,train_mcts_b,train_mcts_k,args=args)
+        train_datas += daemon(pv_net,dev_train_num,data_rounds,train_mcts_b,train_mcts_k,args=args)
         trainloader=torch.utils.data.DataLoader(train_datas,batch_size=64,drop_last=True,shuffle=True)
 
         if output_flag:
