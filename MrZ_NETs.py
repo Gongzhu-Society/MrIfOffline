@@ -230,7 +230,7 @@ class PV_NET_4(PV_NET_FATHER):
         self.fc1=nn.Linear(2048*2,2048*2)
         self.fc2=nn.Linear(2048*2,512)
         
-        self.neck1 = nn.Sequential(*[FCBlock(512,512,1,1) for i in range(40)])
+        self.neck1 = nn.Sequential(*[FCBlock(512,512,1,1) for i in range(20)])
         #self.shrink1 = FCBlock(512,256,2,2)
         #self.neck2 = nn.Sequential(*[FCBlock(256,256,1,1) for i in range(20)])
 
