@@ -1,0 +1,15 @@
+{
+'start_from':'None',
+'gs_start_from':'None',
+'searcher':'ismcts',
+'calc_score_mode':0,  #default is 1
+'data_rounds':128,
+'data_rounds_guesser':256,
+'review_number':3,
+'age_in_epoch':3,
+'pv_net':'PV_NET_4',
+'beta_1':0.9,
+'benchmark_N1':512,
+'guesser_lr':1e-4,
+'batch_size':64
+}
