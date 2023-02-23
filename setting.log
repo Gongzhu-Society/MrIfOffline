@@ -2,11 +2,15 @@
 'start_from':'None',
 'gs_start_from':'None',
 'searcher':'ismcts',
-'calc_score_mode':0,  #default is 1
-'data_rounds':128,
+'calc_score_mode':0,  # default is 1, setting to 0 will settle C10 faster
+'data_rounds':128*4,
 'data_rounds_guesser':256,
 'review_number':3,
 'age_in_epoch':3,
+'train_mcts_b':100,
+'train_mcts_k':4,
+'bench_mcts_b':100,
+'bench_mcts_k':1,
 'pv_net':'PV_NET_4',
 'beta_1':0.9,
 'benchmark_N1':512,

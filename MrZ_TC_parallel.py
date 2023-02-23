@@ -15,8 +15,8 @@ def train(pv_net,dev_train_num=0,dev_bench_num=0,args={}):
     import gc
     data_rounds=args['data_rounds']
     loss2_weight=0.3
-    train_mcts_b=4
-    train_mcts_k=20
+    train_mcts_b=args['train_mcts_b']
+    train_mcts_k=args['train_mcts_k']
     review_number=args['review_number']
     age_in_epoch=args['age_in_epoch']
     log("loss2_weight: %.2f, data_rounds: %d, train_mcts_b: %d, train_mcts_k: %.1f, review_number: %d, age_in_epoch: %d"
@@ -273,7 +273,7 @@ def main_for_guesser(args):
 if __name__=="__main__":
     torch.multiprocessing.set_start_method('spawn')
 
-    f = open("setting.txt", 'r')
+    f = open("setting.log", 'r')
     args = eval(f.read())
     f.close()
     #main_for_guesser(args)

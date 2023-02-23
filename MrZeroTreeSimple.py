@@ -313,6 +313,15 @@ class MrZeroTreeSimple(MrRandom):
                 _,v=self.pv_net(netin.to(self.device).unsqueeze(0))
 
             return v[0].item()*state.getCurrentPlayer()+state.getReward_midway(mode=self.args['calc_score_mode'])
+    
+    def expert_policy(self,state):
+        netin=MrZeroTreeSimple.prepare_ohs(state.cards_lists,state.cards_on_table,state.score_lists,state.history,state.pnext)
+        with torch.no_grad():
+            #_,v=self.pv_net(netin.to(self.device))
+            p,v=self.pv_net(netin.to(self.device).unsqueeze(0))
+        return p
+    
+
 
     def pick_a_card(self):
         #input("in pick a card")
@@ -449,7 +458,7 @@ def benchmark(save_name,epoch,device_num, print_process=False,args={}):
     N1=args['benchmark_N1'];N2=2;log("start benchmark against MrGreed for %dx%d"%(N1,N2))
     if device_num < 0:
         zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=save_name,device="cpu",
-                   mcts_b=100,mcts_k=1,sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
+                   mcts_b=args['bench_mcts_b'],mcts_k=args['bench_mcts_k'],sample_b=BENCH_SMP_B,sample_k=BENCH_SMP_K,args=args) for i in [0,2]]
         log('Using CPU!')
     else:
         zt=[MrZeroTreeSimple(room=255,place=i,name='zerotree%d'%(i),pv_net=save_name,device="cuda:%d"%(device_num),
