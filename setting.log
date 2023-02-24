@@ -11,7 +11,7 @@
 'train_mcts_k':4,
 'bench_mcts_b':100,
 'bench_mcts_k':1,
-'pv_net':'PV_NET_4',
+'pv_net':'PV_NET_2',
 'beta_1':0.9,
 'benchmark_N1':512,
 'guesser_lr':1e-4,

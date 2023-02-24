@@ -357,7 +357,7 @@ class MrZeroTree(MrZeroTreeSimple):
             if self.mcts_k>=0:
                 searcher=ismcts(iterationLimit=searchnum,
                               rolloutPolicy=self.pv_policy,
-                              mixing_ratio = 0.5,
+                              mixing_ratio = 0,
                               explorationConstant=MCTS_EXPL)
                 searcher.search(initialState=gamestate)
                 for action,node in searcher.root.children.items():
